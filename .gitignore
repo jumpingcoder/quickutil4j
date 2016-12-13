@@ -1,0 +1,7 @@
+.DS_Store
+/target
+/.settings
+/.classpath
+/.project
+/GeoIP2-City.mmdb
+/GeoIP2-Country.mmdb
