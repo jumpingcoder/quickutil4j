@@ -44,7 +44,7 @@ public class AnnotationUtil {
     }
 
     /**
-     * 将文件夹内的代码生成swagger
+     * 将文件夹内的注释生成swagger.json
      * 
      * @param inputDic-输入的文件夹
      * @param outputDic-输出的文件夹
@@ -176,12 +176,13 @@ public class AnnotationUtil {
                 if (contentList[i].contains("@param")) {
                     String line = contentList[i].substring(contentList[i].indexOf("@param") + 6);
                     String[] array = line.split("-");
-                    sbin.append("\t+" + array[0] + ": " + line.substring(array[0].length() + 1) + "\n");
+                    sbin.append("+" + array[0] + ": " + line.substring(array[0].length() + 1) + "\n");
                 }
                 if (contentList[i].contains("public") || contentList[i].contains("protected") || contentList[i].contains("private")) {
                     sb.append("#### " + title + "\n\n");
-                    sb.append("+ " + contentList[i].substring(contentList[i].indexOf("p")).replaceAll("\\{", "") + "\n\n");
-                    sb.append("+ param" + "\n");
+                    sb.append("```java\n");
+                    sb.append(contentList[i].substring(contentList[i].indexOf("p")).replaceAll("\\{", "") + "\n");
+                    sb.append("```\n");
                     sb.append(sbin.toString() + "\n");
                     in = false;
                     title = null;
@@ -199,6 +200,8 @@ public class AnnotationUtil {
      * @return
      */
     public static String markdownToHtml(String content) {
+        content = content.replaceAll("```java", "");
+        content = content.replaceAll("```", "");
         content = content.replaceAll("_", "##1001");
         content = content.replaceAll("<", "&lt;");
         content = content.replaceAll(">", "&gt;");
