@@ -193,9 +193,42 @@ public class ElasticSearchUtil {
     private static int count = 0;
 
     /**
-     * 缓存队列式批量写入，每秒写入一次
+     * 批量写入
      * 
      * @param host-请求ES的HOST
+     * @param index-ES的index
+     * @param type-ES的type
+     * @param source-写入的内容，key为id，value为source
+     * @return
+     */
+    public static boolean bulkInsert(String host, String index, String type, Map<String, String> source) {
+        String result = null;
+        try {
+            StringBuilder bulk = new StringBuilder();
+            for (String key : source.keySet()) {
+                bulk.append(String.format(info, index, type, key) + source.get(key) + "\n");
+            }
+            result = bulk.toString();
+            HttpResponse response = HttpUtil.httpPost(host + "/_bulk", result.getBytes());
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode == 200 || statusCode == 201) {
+                System.out.println("success--" + source.size());
+                return true;
+            } else {
+                System.out.println("failreason--" + FileUtil.stream2string(response.getEntity().getContent()));
+                System.out.println(result);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("failreason--exception");
+            System.out.println(result);
+        }
+        return false;
+    }
+
+    /**
+     * 缓存队列式批量写入，每秒写入一次
+     * 
      * @param host-请求ES的HOST
      * @param index-ES的index
      * @param type-ES的type
