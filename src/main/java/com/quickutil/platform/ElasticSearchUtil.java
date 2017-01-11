@@ -34,12 +34,13 @@ public class ElasticSearchUtil {
                 String json = JsonUtil.toJson(paramMap.get(paramKey));
                 template = template.replaceAll("@" + paramKey, json);
             }
-            // System.out.println(template);
+//            System.out.println(template);
             for (String replace : replaceArray) {
                 template = template.replaceAll(replace, "");
             }
-            // System.out.println(result);
-            return selectByJson(requestUrl, template);
+            String result = selectByJson(requestUrl, template);
+//            System.out.println(result);
+            return result;
         } catch (Exception e) {
             e.printStackTrace();
         }

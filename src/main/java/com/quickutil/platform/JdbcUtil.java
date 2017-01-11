@@ -490,7 +490,7 @@ public class JdbcUtil {
      */
     public static boolean insertListMap(String dbName, String tableName, List<Map<String, Object>> content, boolean isReplace) {
         if (content.size() == 0)
-            return false;
+            return true;
         String sql = combineInsert(tableName, content, isReplace);
         return execute(dbName, sql);
     }
