@@ -18,7 +18,8 @@ public class ElasticSearchUtil {
     private static final String selectIdFormat = "%s/%s/%s/%s/_source";
     private static final String insertFormat = "%s/%s/%s/%s";
     private static final String updateFormat = "%s/%s/%s/%s/_update";
-    private static final String deleteFormat = "%s/%s/%s/%s";
+    private static final String deleteIndexFormat = "%s/%s";
+    private static final String deleteIdFormat = "%s/%s/%s/%s";
 
     /**
      * 使用模板查询数据
@@ -34,12 +35,12 @@ public class ElasticSearchUtil {
                 String json = JsonUtil.toJson(paramMap.get(paramKey));
                 template = template.replaceAll("@" + paramKey, json);
             }
-//            System.out.println(template);
+            // System.out.println(template);
             for (String replace : replaceArray) {
                 template = template.replaceAll(replace, "");
             }
             String result = selectByJson(requestUrl, template);
-//            System.out.println(result);
+            // System.out.println(result);
             return result;
         } catch (Exception e) {
             e.printStackTrace();
@@ -171,8 +172,11 @@ public class ElasticSearchUtil {
     public static boolean delete(String host, String index, String type, String id) {
         try {
             long paytime = System.currentTimeMillis();
-            String url = String.format(deleteFormat, host, index, type, id);
-            url = url.replaceAll("/null", "");
+            String url;
+            if (id == null)
+                url = String.format(deleteIndexFormat, host, index);
+            else
+                url = String.format(deleteIdFormat, host, index, type, id);
             HttpResponse response = HttpUtil.httpDelete(url, null, null, RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(10000).build());
             if (response.getStatusLine().getStatusCode() == 200) {
                 System.out.println("success--/" + index + "/" + type + "/" + id + "--" + (System.currentTimeMillis() - paytime));
