@@ -68,7 +68,7 @@ public class JsonUtil {
      * @return
      */
     public static JsonArray toJsonArray(String json) {
-        return gson.toJsonTree(toMap(json)).getAsJsonArray();
+        return gson.toJsonTree(toList(json)).getAsJsonArray();
     }
 
     /**
