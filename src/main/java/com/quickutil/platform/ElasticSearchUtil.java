@@ -20,6 +20,31 @@ public class ElasticSearchUtil {
     private static final String updateFormat = "%s/%s/%s/%s/_update";
     private static final String deleteIndexFormat = "%s/%s";
     private static final String deleteIdFormat = "%s/%s/%s/%s";
+    private static final String indexBulkHead = "{\"index\":{\"_index\":\"%s\",\"_type\":\"%s\",\"_id\":\"%s\"}}\n";
+    private static final String updateBulkHead = "{\"update\":{\"_index\":\"%s\",\"_type\":\"%s\",\"_id\":\"%s\"}}\n";
+
+    /**
+     * 使用id查询数据
+     * 
+     * @param host-请求ES的HOST
+     * @param index-ES的index
+     * @param type-ES的type
+     * @param id-ES的id
+     * @return
+     */
+    public static String selectById(String host, String index, String type, String id) {
+        try {
+            String url = String.format(selectIdFormat, host, index, type, id);
+            HttpResponse response = HttpUtil.httpGet(url, null, null, RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(5000).build());
+            if (response == null)
+                return null;
+            if (response.getStatusLine().getStatusCode() == 200)
+                return FileUtil.stream2string(response.getEntity().getContent());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     /**
      * 使用模板查询数据
@@ -66,29 +91,6 @@ public class ElasticSearchUtil {
     }
 
     /**
-     * 使用id查询数据
-     * 
-     * @param host-请求ES的HOST
-     * @param index-ES的index
-     * @param type-ES的type
-     * @param id-ES的id
-     * @return
-     */
-    public static String selectById(String host, String index, String type, String id) {
-        try {
-            String url = String.format(selectIdFormat, host, index, type, id);
-            HttpResponse response = HttpUtil.httpGet(url, null, null);
-            if (response == null)
-                return null;
-            if (response.getStatusLine().getStatusCode() == 200)
-                return FileUtil.stream2string(response.getEntity().getContent());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    /**
      * 写入数据
      * 
      * @param host-请求ES的HOST
@@ -100,27 +102,21 @@ public class ElasticSearchUtil {
      * @return
      */
     public static boolean insert(String host, String index, String type, String id, String source) {
-        HttpResponse response = null;
         try {
             long paytime = System.currentTimeMillis();
-            String url = String.format(insertFormat, host, index, type, id);
-            url = url.replaceAll(" ", "");
-            response = HttpUtil.httpPut(url, source.getBytes(), null, null, RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(10000).build());
-            if (response == null) {
-                System.out.println("insertfail--/" + index + "/" + type + "/" + id + "--" + source);
-                System.out.println("failreason--out of time");
-                return false;
-            }
+            String url = String.format(insertFormat, host, index, type, id).replaceAll(" ", "");
+            HttpResponse response = HttpUtil.httpPut(url, source.getBytes(), null, null, RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(10000).build());
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode == 200 || statusCode == 201) {
                 System.out.println("success--/" + index + "/" + type + "/" + id + "--" + (System.currentTimeMillis() - paytime));
                 return true;
             } else {
-                System.out.println("insertfail--/" + index + "/" + type + "/" + id + "--" + source);
                 System.out.println("failreason--" + FileUtil.stream2string(response.getEntity().getContent()));
+                System.out.println(String.format(indexBulkHead, index, type, id) + source + "\n");
             }
         } catch (Exception e) {
-            System.out.println("insertfail--/" + index + "/" + type + "/" + id + "--" + source);
+            System.out.println("failreason--exception");
+            System.out.println(String.format(indexBulkHead, index, type, id) + source + "\n");
             e.printStackTrace();
         }
         return false;
@@ -134,27 +130,30 @@ public class ElasticSearchUtil {
      * @param type-ES的type
      * @param id-ES的id
      * @param source-更新的内容
+     * @param isupsert-是否是upsert
      * @return
      */
-    public static boolean update(String host, String index, String type, String id, Object source) {
+    public static boolean update(String host, String index, String type, String id, Object source, boolean isupsert) {
+        String sourceStr = null;
         try {
             long paytime = System.currentTimeMillis();
-            String url = String.format(updateFormat, host, index, type, id);
-            url = url.replaceAll(" ", "");
+            String url = String.format(updateFormat, host, index, type, id).replaceAll(" ", "");
             Map<String, Object> map = new HashMap<String, Object>();
             map.put("doc", source);
-            HttpResponse response = HttpUtil.httpPost(url, JsonUtil.toJson(map).getBytes(), null, null,
-                    RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(10000).build());
+            map.put("doc_as_upsert", isupsert);
+            sourceStr = JsonUtil.toJson(map);
+            HttpResponse response = HttpUtil.httpPost(url, sourceStr.getBytes(), null, null, RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(10000).build());
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode == 200 || statusCode == 201) {
                 System.out.println("success--/" + index + "/" + type + "/" + id + "--" + (System.currentTimeMillis() - paytime));
                 return true;
             } else {
-                System.out.println("updatefail--/" + index + "/" + type + "/" + id + "--" + source);
                 System.out.println("failreason--" + FileUtil.stream2string(response.getEntity().getContent()));
+                System.out.println(String.format(updateBulkHead, index, type, id) + sourceStr + "\n");
             }
         } catch (Exception e) {
-            System.out.println("updatefail--/" + index + "/" + type + "/" + id + "--" + source);
+            System.out.println("failreason--exception");
+            System.out.println(String.format(updateBulkHead, index, type, id) + sourceStr + "\n");
             e.printStackTrace();
         }
         return false;
@@ -182,20 +181,15 @@ public class ElasticSearchUtil {
                 System.out.println("success--/" + index + "/" + type + "/" + id + "--" + (System.currentTimeMillis() - paytime));
                 return true;
             } else {
-                System.out.println("deletefail--/" + index + "/" + type + "/" + id);
+                System.out.println("fail--/" + index + "/" + type + "/" + id);
                 System.out.println("failreason--" + FileUtil.stream2string(response.getEntity().getContent()));
             }
         } catch (Exception e) {
-            System.out.println("deletefail--/" + index + "/" + type + "/" + id);
+            System.out.println("fail--/" + index + "/" + type + "/" + id);
             e.printStackTrace();
         }
         return false;
     }
-
-    private static final String info = "{\"index\":{\"_index\":\"%s\",\"_type\":\"%s\",\"_id\":\"%s\"}}\n";
-    private static long lasttime = 0;
-    private static StringBuffer sb = new StringBuffer();
-    private static int count = 0;
 
     /**
      * 批量写入
@@ -207,26 +201,26 @@ public class ElasticSearchUtil {
      * @return
      */
     public static boolean bulkInsert(String host, String index, String type, Map<String, String> source) {
-        String result = null;
+        String sourceStr = null;
         try {
             StringBuilder bulk = new StringBuilder();
             for (String key : source.keySet()) {
-                bulk.append(String.format(info, index, type, key) + source.get(key) + "\n");
+                bulk.append(String.format(indexBulkHead, index, type, key) + source.get(key) + "\n");
             }
-            result = bulk.toString();
-            HttpResponse response = HttpUtil.httpPost(host + "/_bulk", result.getBytes());
+            sourceStr = bulk.toString();
+            HttpResponse response = HttpUtil.httpPost(host + "/_bulk", sourceStr.getBytes());
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode == 200 || statusCode == 201) {
                 System.out.println("success--" + source.size());
                 return true;
             } else {
                 System.out.println("failreason--" + FileUtil.stream2string(response.getEntity().getContent()));
-                System.out.println(result);
+                System.out.println(sourceStr);
             }
         } catch (Exception e) {
-            e.printStackTrace();
             System.out.println("failreason--exception");
-            System.out.println(result);
+            System.out.println(sourceStr);
+            e.printStackTrace();
         }
         return false;
     }
@@ -241,35 +235,76 @@ public class ElasticSearchUtil {
      * @param source-写入的内容
      * @return
      */
-    public static boolean insertByBulkBuffer(String host, String index, String type, String id, String source) {
-        String result = null;
+    private static long lasttime = 0;
+    private static StringBuffer sb = new StringBuffer();
+    private static int count = 0;
+
+    public static boolean bulkInsertBuffer(String host, String index, String type, String id, String source) {
+        String sourceStr = null;
         try {
-            sb.append(String.format(info, index, type, id) + source + "\n");
+            sb.append(String.format(indexBulkHead, index, type, id) + source + "\n");
             count++;
             if (System.currentTimeMillis() - lasttime > 1000) {
-                result = sb.toString();
+                sourceStr = sb.toString();
                 lasttime = System.currentTimeMillis();
                 sb = new StringBuffer();
                 System.out.println("content count:" + count);
                 count = 0;
-                HttpResponse response = HttpUtil.httpPost(host + "/_bulk", result.getBytes());
+                HttpResponse response = HttpUtil.httpPost(host + "/_bulk", sourceStr.getBytes());
                 int statusCode = response.getStatusLine().getStatusCode();
                 if (statusCode == 200 || statusCode == 201) {
                     System.out.println("success--/" + index + "/" + type + "/" + id);
                     return true;
                 } else {
                     System.out.println("failreason--" + FileUtil.stream2string(response.getEntity().getContent()));
-                    System.out.println(result);
+                    System.out.println(sourceStr);
                 }
             } else {
                 return true;
             }
         } catch (Exception e) {
-            e.printStackTrace();
             System.out.println("failreason--exception");
-            System.out.println(result);
+            System.out.println(sourceStr);
+            e.printStackTrace();
         }
         return false;
     }
 
+    /**
+     * 批量更新
+     * 
+     * @param host-请求ES的HOST
+     * @param index-ES的index
+     * @param type-ES的type
+     * @param source-更新的内容
+     * @param isupsert-是否是upsert
+     * @return
+     */
+    public static boolean bulkUpdate(String host, String index, String type, Map<String, Object> source, boolean isupsert) {
+        String sourceStr = null;
+        try {
+            StringBuilder bulk = new StringBuilder();
+            for (String key : source.keySet()) {
+                Map<String, Object> map = new HashMap<String, Object>();
+                map.put("doc", source.get(key));
+                map.put("doc_as_upsert", isupsert);
+                bulk.append(String.format(updateBulkHead, index, type, key) + JsonUtil.toJson(map) + "\n");
+            }
+            sourceStr = bulk.toString();
+            HttpResponse response = HttpUtil.httpPost(host + "/_bulk", sourceStr.getBytes());
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode == 200 || statusCode == 201) {
+                System.out.println("success--" + source.size());
+                return true;
+            } else {
+                System.out.println("failreason--" + FileUtil.stream2string(response.getEntity().getContent()));
+                System.out.println(sourceStr);
+            }
+        } catch (Exception e) {
+            System.out.println("failreason--exception");
+            System.out.println(sourceStr);
+            e.printStackTrace();
+        }
+        return false;
+    }
 }
