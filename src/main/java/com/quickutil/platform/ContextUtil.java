@@ -65,6 +65,30 @@ public class ContextUtil {
     }
 
     /**
+     * 获取Header
+     * 
+     * @param key-header的key
+     * @return
+     */
+    public static String getHeader(String key) {
+        return request.get().getHeader(key);
+    }
+
+    /**
+     * 获取请求的IP
+     * 
+     * @return
+     */
+    public static String getIp() {
+        String ip = request.get().getHeader(X_Forwarded_For);// 防止反向代理
+        if (ip == null)
+            ip = request.get().getRemoteAddr();
+        if (ip == null)
+            ip = "127.0.0.1";
+        return ip;
+    }
+
+    /**
      * 获取user-agent
      * 
      * @return
@@ -80,6 +104,32 @@ public class ContextUtil {
      */
     public static String getReferer() {
         return request.get().getHeader(Referer);
+    }
+
+    /**
+     * 获取COOKIE
+     * 
+     * @param cookieKey-cookie的key
+     * @return
+     */
+    public static String getCookie(String cookieKey) {
+        Cookie[] cookies = request.get().getCookies();
+        if (cookies == null)
+            return null;
+        for (Cookie cookie : cookies) {
+            if (cookie.getName().equals(cookieKey))
+                return cookie.getValue();
+        }
+        return null;
+    }
+
+    /**
+     * 获取完整HOST
+     * 
+     * @return
+     */
+    public static String getHost() {
+        return String.format(localhost, request.get().getScheme(), request.get().getServerName(), request.get().getServerPort());
     }
 
     /**
@@ -111,46 +161,6 @@ public class ContextUtil {
         if (useragent.contains(Wechat))
             return true;
         return false;
-    }
-
-    /**
-     * 获取请求的IP
-     * 
-     * @return
-     */
-    public static String getIp() {
-        String ip = request.get().getHeader(X_Forwarded_For);// 防止反向代理
-        if (ip == null)
-            ip = request.get().getRemoteAddr();
-        if (ip == null)
-            ip = "127.0.0.1";
-        return ip;
-    }
-
-    /**
-     * 获取完整HOST
-     * 
-     * @return
-     */
-    public static String getHost() {
-        return String.format(localhost, request.get().getScheme(), request.get().getServerName(), request.get().getServerPort());
-    }
-
-    /**
-     * 获取COOKIE
-     * 
-     * @param cookieKey-cookie的key
-     * @return
-     */
-    public static String getCookie(String cookieKey) {
-        Cookie[] cookies = request.get().getCookies();
-        if (cookies == null)
-            return null;
-        for (Cookie cookie : cookies) {
-            if (cookie.getName().equals(cookieKey))
-                return cookie.getValue();
-        }
-        return null;
     }
 
 }

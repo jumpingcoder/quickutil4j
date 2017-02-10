@@ -22,6 +22,11 @@ public class ElasticSearchUtil {
     private static final String deleteIdFormat = "%s/%s/%s/%s";
     private static final String indexBulkHead = "{\"index\":{\"_index\":\"%s\",\"_type\":\"%s\",\"_id\":\"%s\"}}\n";
     private static final String updateBulkHead = "{\"update\":{\"_index\":\"%s\",\"_type\":\"%s\",\"_id\":\"%s\"}}\n";
+    private static final String successLog = "success--/%s/%s/%s--%s";
+    private static final String successBatchLog = "success--%s--%s";
+    private static final String failLog = "fail--/%s/%s/%s--%s";
+    private static final String failreason = "failreason--";
+    private static final String failException = "failreason--exception";
 
     /**
      * 使用id查询数据
@@ -108,10 +113,10 @@ public class ElasticSearchUtil {
             HttpResponse response = HttpUtil.httpPut(url, source.getBytes(), null, null, RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(10000).build());
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode == 200 || statusCode == 201) {
-                System.out.println("success--/" + index + "/" + type + "/" + id + "--" + (System.currentTimeMillis() - paytime));
+                System.out.println(String.format(successLog, index, type, id, System.currentTimeMillis() - paytime));
                 return true;
             } else {
-                System.out.println("failreason--" + FileUtil.stream2string(response.getEntity().getContent()));
+                System.out.println(failreason + FileUtil.stream2string(response.getEntity().getContent()));
                 System.out.println(String.format(indexBulkHead, index, type, id) + source + "\n");
             }
         } catch (Exception e) {
@@ -145,14 +150,14 @@ public class ElasticSearchUtil {
             HttpResponse response = HttpUtil.httpPost(url, sourceStr.getBytes(), null, null, RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(10000).build());
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode == 200 || statusCode == 201) {
-                System.out.println("success--/" + index + "/" + type + "/" + id + "--" + (System.currentTimeMillis() - paytime));
+                System.out.println(String.format(successLog, index, type, id, System.currentTimeMillis() - paytime));
                 return true;
             } else {
-                System.out.println("failreason--" + FileUtil.stream2string(response.getEntity().getContent()));
+                System.out.println(failreason + FileUtil.stream2string(response.getEntity().getContent()));
                 System.out.println(String.format(updateBulkHead, index, type, id) + sourceStr + "\n");
             }
         } catch (Exception e) {
-            System.out.println("failreason--exception");
+            System.out.println(failException);
             System.out.println(String.format(updateBulkHead, index, type, id) + sourceStr + "\n");
             e.printStackTrace();
         }
@@ -169,8 +174,8 @@ public class ElasticSearchUtil {
      * @return
      */
     public static boolean delete(String host, String index, String type, String id) {
+        long paytime = System.currentTimeMillis();
         try {
-            long paytime = System.currentTimeMillis();
             String url;
             if (id == null)
                 url = String.format(deleteIndexFormat, host, index);
@@ -178,14 +183,14 @@ public class ElasticSearchUtil {
                 url = String.format(deleteIdFormat, host, index, type, id);
             HttpResponse response = HttpUtil.httpDelete(url, null, null, RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(10000).build());
             if (response.getStatusLine().getStatusCode() == 200) {
-                System.out.println("success--/" + index + "/" + type + "/" + id + "--" + (System.currentTimeMillis() - paytime));
+                System.out.println(String.format(successLog, index, type, id, System.currentTimeMillis() - paytime));
                 return true;
             } else {
-                System.out.println("fail--/" + index + "/" + type + "/" + id);
-                System.out.println("failreason--" + FileUtil.stream2string(response.getEntity().getContent()));
+                System.out.println(String.format(failLog, index, type, id, System.currentTimeMillis() - paytime));
+                System.out.println(failreason + FileUtil.stream2string(response.getEntity().getContent()));
             }
         } catch (Exception e) {
-            System.out.println("fail--/" + index + "/" + type + "/" + id);
+            System.out.println(String.format(failLog, index, type, id, System.currentTimeMillis() - paytime));
             e.printStackTrace();
         }
         return false;
@@ -201,6 +206,7 @@ public class ElasticSearchUtil {
      * @return
      */
     public static boolean bulkInsert(String host, String index, String type, Map<String, String> source) {
+        long paytime = System.currentTimeMillis();
         String sourceStr = null;
         try {
             StringBuilder bulk = new StringBuilder();
@@ -211,14 +217,14 @@ public class ElasticSearchUtil {
             HttpResponse response = HttpUtil.httpPost(host + "/_bulk", sourceStr.getBytes());
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode == 200 || statusCode == 201) {
-                System.out.println("success--" + source.size());
+                System.out.println(String.format(successBatchLog, source.size(), System.currentTimeMillis() - paytime));
                 return true;
             } else {
-                System.out.println("failreason--" + FileUtil.stream2string(response.getEntity().getContent()));
+                System.out.println(failreason + FileUtil.stream2string(response.getEntity().getContent()));
                 System.out.println(sourceStr);
             }
         } catch (Exception e) {
-            System.out.println("failreason--exception");
+            System.out.println(failException);
             System.out.println(sourceStr);
             e.printStackTrace();
         }
@@ -240,6 +246,7 @@ public class ElasticSearchUtil {
     private static int count = 0;
 
     public static boolean bulkInsertBuffer(String host, String index, String type, String id, String source) {
+        long paytime = System.currentTimeMillis();
         String sourceStr = null;
         try {
             sb.append(String.format(indexBulkHead, index, type, id) + source + "\n");
@@ -253,17 +260,17 @@ public class ElasticSearchUtil {
                 HttpResponse response = HttpUtil.httpPost(host + "/_bulk", sourceStr.getBytes());
                 int statusCode = response.getStatusLine().getStatusCode();
                 if (statusCode == 200 || statusCode == 201) {
-                    System.out.println("success--/" + index + "/" + type + "/" + id);
+                    System.out.println(String.format(successLog, index, type, id, System.currentTimeMillis() - paytime));
                     return true;
                 } else {
-                    System.out.println("failreason--" + FileUtil.stream2string(response.getEntity().getContent()));
+                    System.out.println(failreason + FileUtil.stream2string(response.getEntity().getContent()));
                     System.out.println(sourceStr);
                 }
             } else {
                 return true;
             }
         } catch (Exception e) {
-            System.out.println("failreason--exception");
+            System.out.println(failException);
             System.out.println(sourceStr);
             e.printStackTrace();
         }
@@ -281,6 +288,7 @@ public class ElasticSearchUtil {
      * @return
      */
     public static boolean bulkUpdate(String host, String index, String type, Map<String, Object> source, boolean isupsert) {
+        long paytime = System.currentTimeMillis();
         String sourceStr = null;
         try {
             StringBuilder bulk = new StringBuilder();
@@ -294,14 +302,14 @@ public class ElasticSearchUtil {
             HttpResponse response = HttpUtil.httpPost(host + "/_bulk", sourceStr.getBytes());
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode == 200 || statusCode == 201) {
-                System.out.println("success--" + source.size());
+                System.out.println(String.format(successBatchLog, source.size(), System.currentTimeMillis() - paytime));
                 return true;
             } else {
-                System.out.println("failreason--" + FileUtil.stream2string(response.getEntity().getContent()));
+                System.out.println(failreason + FileUtil.stream2string(response.getEntity().getContent()));
                 System.out.println(sourceStr);
             }
         } catch (Exception e) {
-            System.out.println("failreason--exception");
+            System.out.println(failException);
             System.out.println(sourceStr);
             e.printStackTrace();
         }

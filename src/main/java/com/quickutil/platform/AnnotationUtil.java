@@ -49,10 +49,9 @@ public class AnnotationUtil {
      * @param inputDic-输入的文件夹
      * @param outputDic-输出的文件夹
      * @param host-请求的host
-     * @param schema-http或https
-     * @param version-接口版本，默认可以为null
+     * @param isHttps-是否是https
      **/
-    public static void annotationToSwagger(String inputDic, String outputDic, String host, String schema, String version) {
+    public static void annotationToSwagger(String inputDic, String outputFile, String host, boolean isHttps) {
         List<String> fileList = FileUtil.getAllFilePath(inputDic, null);
         Map<String, Map<String, Object>> pathMap = new HashMap<String, Map<String, Object>>();
         for (String filePath : fileList) {
@@ -66,14 +65,15 @@ public class AnnotationUtil {
             }
         }
         Map<String, Object> resultMap = new HashMap<String, Object>();
-        if (version == null)
-            version = "";
-        resultMap.put("basePath", version);
+        resultMap.put("basePath", "");
         resultMap.put("swagger", "2.0");
         resultMap.put("host", host);
-        resultMap.put("schemes", Arrays.asList(schema));
+        if (isHttps)
+            resultMap.put("schemes", Arrays.asList("https"));
+        else
+            resultMap.put("schemes", Arrays.asList("http"));
         resultMap.put("paths", pathMap);
-        FileUtil.string2File(outputDic + "/swagger.json", JsonUtil.toJson(resultMap), false);
+        FileUtil.string2File(outputFile, JsonUtil.toJson(resultMap), false);
     }
 
     private static final String[] paramArray = { "@path", "@header", "@body", "@param", "@query", "@formData" };
