@@ -47,7 +47,7 @@ public class AnnotationUtil {
      * 将文件夹内的注释生成swagger.json
      * 
      * @param inputDic-输入的文件夹
-     * @param outputDic-输出的文件夹
+     * @param outputFile-输出的文件路径
      * @param host-请求的host
      * @param isHttps-是否是https
      **/
