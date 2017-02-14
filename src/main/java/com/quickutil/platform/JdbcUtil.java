@@ -207,6 +207,20 @@ public class JdbcUtil {
         return datasource;
     }
 
+    /**
+     * 用于输入格式化，避免sql注入
+     * 
+     * @param sql
+     * @param params
+     * @return
+     */
+    public static String format(String sql, Object... params) {
+        for (int i = 0; i < params.length; i++) {
+            params[i] = params[i].toString().replaceAll("'", "\\\\'");
+        }
+        return String.format(sql, params);
+    }
+
     private static String isTableExistSql = "select table_name FROM information_schema.TABLES WHERE table_name = '%s'";
 
     /**
