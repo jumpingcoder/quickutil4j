@@ -7,6 +7,7 @@
 package com.quickutil.platform;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.http.HttpResponse;
@@ -22,6 +23,7 @@ public class ElasticSearchUtil {
     private static final String deleteIdFormat = "%s/%s/%s/%s";
     private static final String indexBulkHead = "{\"index\":{\"_index\":\"%s\",\"_type\":\"%s\",\"_id\":\"%s\"}}\n";
     private static final String updateBulkHead = "{\"update\":{\"_index\":\"%s\",\"_type\":\"%s\",\"_id\":\"%s\"}}\n";
+    private static final String deleteBulkHead = "{\"delete\":{\"_index\":\"%s\",\"_type\":\"%s\",\"_id\":\"%s\"}}\n";
     private static final String successLog = "success--/%s/%s/%s--%s";
     private static final String successBatchLog = "success--%s--%s";
     private static final String failLog = "fail--/%s/%s/%s--%s";
@@ -303,6 +305,41 @@ public class ElasticSearchUtil {
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode == 200 || statusCode == 201) {
                 System.out.println(String.format(successBatchLog, source.size(), System.currentTimeMillis() - paytime));
+                return true;
+            } else {
+                System.out.println(failreason + FileUtil.stream2string(response.getEntity().getContent()));
+                System.out.println(sourceStr);
+            }
+        } catch (Exception e) {
+            System.out.println(failException);
+            System.out.println(sourceStr);
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * 批量写入
+     * 
+     * @param host-请求ES的HOST
+     * @param index-ES的index
+     * @param type-ES的type
+     * @param idList-删除的id
+     * @return
+     */
+    public static boolean bulkDelete(String host, List<String> indexList, List<String> typeList, List<String> idList) {
+        long paytime = System.currentTimeMillis();
+        String sourceStr = null;
+        try {
+            StringBuilder bulk = new StringBuilder();
+            for (int i = 0; i < indexList.size(); i++) {
+                bulk.append(String.format(deleteBulkHead, indexList.get(i), typeList.get(i), idList.get(i)));
+            }
+            sourceStr = bulk.toString();
+            HttpResponse response = HttpUtil.httpPost(host + "/_bulk", sourceStr.getBytes());
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode == 200 || statusCode == 201) {
+                System.out.println(String.format(successBatchLog, idList.size(), System.currentTimeMillis() - paytime));
                 return true;
             } else {
                 System.out.println(failreason + FileUtil.stream2string(response.getEntity().getContent()));
