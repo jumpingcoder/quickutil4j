@@ -26,7 +26,6 @@ public class CryptoUtil {
 	private static final String HmacMD5 = "HmacMD5";
 	private static final String SHA1 = "SHA-1";
 	private static final String MD5 = "MD5";
-	private static final String AES = "AES";
 	private static Random random = new Random();
 
 	/**
@@ -171,15 +170,15 @@ public class CryptoUtil {
 	 */
 	public static byte[] aesEncrypt(byte[] content, String password) {
 		try {
-			KeyGenerator kgen = KeyGenerator.getInstance(AES);
+			KeyGenerator kgen = KeyGenerator.getInstance("AES");
 			kgen.init(128, new SecureRandom(password.getBytes()));
 			SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
 			random.setSeed(password.getBytes());
 			kgen.init(128, random);
 			SecretKey secretKey = kgen.generateKey();
 			byte[] enCodeFormat = secretKey.getEncoded();
-			SecretKeySpec key = new SecretKeySpec(enCodeFormat, AES);
-			Cipher cipher = Cipher.getInstance(AES);// 创建密码器
+			SecretKeySpec key = new SecretKeySpec(enCodeFormat, "AES");
+			Cipher cipher = Cipher.getInstance("AES");// 创建密码器
 			cipher.init(Cipher.ENCRYPT_MODE, key);// 初始化
 			return cipher.doFinal(content); // 加密
 		} catch (Exception e) {
@@ -197,14 +196,14 @@ public class CryptoUtil {
 	 */
 	public static byte[] aesDecrypt(byte[] content, String password) {
 		try {
-			KeyGenerator kgen = KeyGenerator.getInstance(AES);
+			KeyGenerator kgen = KeyGenerator.getInstance("AES");
 			SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
 			random.setSeed(password.getBytes());
 			kgen.init(128, random);
 			SecretKey secretKey = kgen.generateKey();
 			byte[] enCodeFormat = secretKey.getEncoded();
-			SecretKeySpec key = new SecretKeySpec(enCodeFormat, AES);
-			Cipher cipher = Cipher.getInstance(AES);// 创建密码器
+			SecretKeySpec key = new SecretKeySpec(enCodeFormat, "AES");
+			Cipher cipher = Cipher.getInstance("AES");// 创建密码器
 			cipher.init(Cipher.DECRYPT_MODE, key);// 初始化
 			return cipher.doFinal(content); // 解密
 		} catch (Exception e) {
