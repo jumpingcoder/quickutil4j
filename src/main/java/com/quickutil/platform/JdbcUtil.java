@@ -210,8 +210,8 @@ public class JdbcUtil {
 	/**
 	 * 用于输入格式化，避免sql注入
 	 * 
-	 * @param sql
-	 * @param params
+	 * @param sql-SQL语句
+	 * @param params-参数
 	 * @return
 	 */
 	public static String format(String sql, Object... params) {
@@ -224,7 +224,7 @@ public class JdbcUtil {
 	/**
 	 * 将数组拼接为in查询所需字符串
 	 * 
-	 * @param array
+	 * @param array-内容数组
 	 * @return
 	 */
 	public static String arrayToIn(String[] array) {
