@@ -225,7 +225,7 @@ public class ElasticSearchUtil {
 				System.out.println("content count:" + count);
 				count = 0;
 				HttpResponse response = HttpUtil.httpPost(host + "/_bulk", sourceStr.getBytes(), null, null,
-						RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(10000).build());
+						RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(60000).build());
 				int statusCode = response.getStatusLine().getStatusCode();
 				if (statusCode == 200 || statusCode == 201) {
 					System.out.println(String.format(successLog, index, type, id, System.currentTimeMillis() - paytime));
