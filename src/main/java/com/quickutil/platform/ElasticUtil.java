@@ -7,10 +7,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import javafx.util.Pair;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -39,27 +42,22 @@ import org.apache.http.util.EntityUtils;
  */
 public class ElasticUtil {
 	private static final String[] replaceArray = { "\t", "\n" };
-	private static final String indexBulkHead = "{\"index\":{\"_index\":\"%s\",\"_type\":\"%s\",\"_id\":\"%s\"}}\n";
-	private static final String successLog = "success--/%s/%s/%s--%s";
 	private static final String successBatchLog = "success--%s--%s";
 	private static final String failLog = "fail--/%s/%s/%s--%s";
 	private static final String failreason = "failreason--";
 	private static final String failException = "failreason--exception";
-	private static final String bulkAPI = "%s/_bulk";
 
 	private static final String hostFormat = "%s/";
 	private static final String hostIndexFormat = "%s/%s/";
 	private static final String hostIndexTypeFormat = "%s/%s/%s/";
 
 	private final String host;
-	private final String name;
+	private final Version version;
 
 	public final HttpClient client;
 
 	private static RequestConfig requestConfig = RequestConfig.custom()
-			.setConnectionRequestTimeout(60000)
-			.setConnectTimeout(60000)
-			.setSocketTimeout(60000).build();
+			.setConnectionRequestTimeout(60000).setConnectTimeout(60000).setSocketTimeout(60000).build();
 
 	private static PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
 
@@ -87,8 +85,7 @@ public class ElasticUtil {
 			HttpClientContext clientContext = HttpClientContext
 					.adapt(context);
 			HttpRequest request = clientContext.getRequest();
-			// 如果请求是幂等的，就再次尝试
-			if (!(request instanceof HttpEntityEnclosingRequest)) {
+			if (!(request instanceof HttpEntityEnclosingRequest)) { // 如果请求是幂等的，就再次尝试
 				return true;
 			}
 			return false;
@@ -96,26 +93,19 @@ public class ElasticUtil {
 	};
 
 	static {
-		cm.setMaxTotal(50);
-		cm.setDefaultMaxPerRoute(50);
+		cm.setMaxTotal(50); cm.setDefaultMaxPerRoute(50);
 	}
-	public ElasticUtil(String host, String name) {
+	public ElasticUtil(String host, Version version) {
 		this.host = host;
-		if (null == name) {
-			this.name = StringUtil.getRandomString(10);
-		} else {
-			this.name = name;
-		}
-
+		this.version = version;
 		cm.setMaxPerRoute(new HttpRoute(new HttpHost(host)), 50);
-
-		this.client =  HttpClients.custom()
-				.setConnectionManager(cm)
+		this.client =  HttpClients.custom().setConnectionManager(cm)
 				.setRetryHandler(httpRequestRetryHandler).build();
 	}
 
-	public String getName() {
-		return this.name;
+	public static void main(String[] args) {
+		ElasticUtil elasticUtil = new ElasticUtil("http://10.10.3.166:9200", Version.es5);
+		elasticUtil.insert("test", "logs", "AVzpI2YikGEMXtpBv0BO", "");
 	}
 
 	private HttpUriRequest getMethod(String url) {
@@ -135,6 +125,7 @@ public class ElasticUtil {
 
 	/**
 	 * 使用id查询数据
+	 * 有任何错误返回都返回空
 	 *
 	 * @param index-ES的index
 	 * @param type-ES的type
@@ -147,10 +138,12 @@ public class ElasticUtil {
 			HttpResponse response = client.execute(getMethod(url));
 			if (response == null)
 				return null;
-			if (response.getStatusLine().getStatusCode() == 200)
-				return getEntity(response);
-			else
+			else if (200 != response.getStatusLine().getStatusCode()) {
+				System.out.format("get url: %s fail. with response: \n%s", url, getEntity(response));
 				return null;
+			} else {
+				return getEntity(response);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -159,6 +152,7 @@ public class ElasticUtil {
 
 	/**
 	 * 使用模板查询数据
+	 * 尽量不要使用,因为你需要自己处理 response 解析内容
 	 *
 	 * @param requestUrl-请求的ES的URL
 	 * @param template-查询的DSL模板
@@ -184,6 +178,7 @@ public class ElasticUtil {
 
 	/**
 	 * 使用json查询数据
+	 * 尽量不要使用,因为你需要自己处理 response 解析内容
 	 *
 	 * @param url-请求的ES的URL,除去 Host
 	 * @param entity-查询的DSL
@@ -193,17 +188,15 @@ public class ElasticUtil {
 		try {
 			HttpResponse response = client.execute(postMethod(url, entity));
 			if (null == response) { return null; }
-			String fLog = failreason + "with url:" + url + "\n";
-			handleResp(response, null, fLog);
 			return getEntity(response);
-		} catch (Exception e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return null;
 	}
 
 	/**
-	 * 写入数据
+	 * 写入一个文档,返回成功或失败
 	 *
 	 * @param index-ES的index
 	 * @param type-ES的type
@@ -214,12 +207,15 @@ public class ElasticUtil {
 	public boolean insert(String index, String type, String id, String source) {
 		String url = null;
 		try {
-			long start = System.currentTimeMillis();
 			url = String.format("%s/%s/%s/%s", host, index, type, id).replace(" ", "");
 			HttpResponse response = client.execute(postMethod(url, source));
-			String sLog = String.format(successLog, index, type, id, System.currentTimeMillis() - start);
-			String fLog = failreason + getEntity(response)+ "\n" + url + source + "\n";
-			handleResp(response, sLog, fLog);
+			// index response status can be 201 or 200, 201 indicate first create, 200 indicate update
+			if (200 == response.getStatusLine().getStatusCode() ||
+					201 == response.getStatusLine().getStatusCode()) {
+				return true;
+			} else {
+				return false;
+			}
 		} catch (Exception e) {
 			System.out.println(failException + "\n" + url + source + "\n");
 			e.printStackTrace();
@@ -228,28 +224,34 @@ public class ElasticUtil {
 	}
 
 	/**
-	 * 更新数据
+	 * 部分更新一个文档,返回成功或失败
 	 *
 	 * @param index-ES的index
 	 * @param type-ES的type
 	 * @param id-ES的id
 	 * @param source-更新的内容
-	 * @param isupsert-是否是upsert
+	 * @param isUpsert-true 表示如果文档不存在则插入,false 时如果不存在则不插入
 	 * @return
 	 */
-	public boolean update(String index, String type, String id, Object source, boolean isupsert) {
+	public boolean update(String index, String type, String id, Object source, boolean isUpsert) {
 		String sourceStr = null, url = null;
 		try {
 			url = String.format("/%s/%s/%s/_update", index, type, id).replace(" ", "");
-			long start = System.currentTimeMillis();
 			Map<String, Object> map = new HashMap<String, Object>();
 			map.put("doc", source);
-			map.put("doc_as_upsert", isupsert);
+			map.put("doc_as_upsert", isUpsert);
 			sourceStr = JsonUtil.toJson(map);
 			HttpResponse response = client.execute(postMethod(url, sourceStr));
-			String sLog = String.format(successLog, index, type, id, System.currentTimeMillis() - start);
-			String fLog = failreason + getEntity(response) + "\n" + url + sourceStr + "\n";
-			handleResp(response, sLog, fLog);
+			if (200 == response.getStatusLine().getStatusCode() ||
+					201 == response.getStatusLine().getStatusCode()) {
+				return true;
+			} else if (404 == response.getStatusLine().getStatusCode()) {
+				System.out.format("[%s][%s][%s]: document missing\n", index, type, id);
+				return false;
+			} else {
+				System.out.println(response.getStatusLine().getStatusCode());
+				return false;
+			}
 		} catch (Exception e) {
 			System.out.println(failException + "\n" + url + sourceStr + "\n");
 			e.printStackTrace();
@@ -258,7 +260,42 @@ public class ElasticUtil {
 	}
 
 	/**
-	 * 缓存队列式批量写入，每秒写入一次
+	 * 发起批量请求
+	 * @param url
+	 * @param entity
+	 * @return
+	 */
+	private BulkResponse bulk(String url, String entity, int size) {
+		byte[] responseItems = new byte[size];
+		try {
+			HttpResponse response = client.execute(postMethod(url, entity));
+			if (200 != response.getStatusLine().getStatusCode()) {
+				System.out.println("bulk insert error, with resposne: " + getEntity(response));
+				Arrays.fill(responseItems, BulkResponse.itemFalse);
+				return new BulkResponse(false, responseItems);
+			} else {
+				JsonObject responseObject = JsonUtil.toJsonMap(getEntity(response));
+				boolean isSuccess = responseObject.get("errors").getAsBoolean();
+				if (isSuccess) {
+					return new BulkResponse(true, responseItems);
+				} else {
+					JsonArray responseArray = responseObject.getAsJsonArray("items");
+					for (int i = 0; i < responseArray.size(); i++) {
+						int status = responseArray.get(i).getAsJsonObject().get("status").getAsInt();
+						if (200 != status && 201 != status) { responseItems[i] = BulkResponse.itemFalse; }
+					}
+					return new BulkResponse(false, responseItems);
+				}
+			}
+		} catch (Exception e) {
+			System.out.println("bulk operation error for url: " + url);
+			Arrays.fill(responseItems, BulkResponse.itemFalse);
+			return new BulkResponse(false, responseItems);
+		}
+	}
+
+	/**
+	 * 缓存队列式批量写入，每秒写入一次, 时间不到1s, 返回写入成功,其实在程序缓存中
 	 *
 	 * @param index-ES的index
 	 * @param type-ES的type
@@ -271,10 +308,10 @@ public class ElasticUtil {
 	private int count = 0;
 
 	public boolean bulkInsertBuffer(String index, String type, String id, String source) {
-		long start = System.currentTimeMillis();
 		String entity = null;
 		try {
-			sb.append(String.format(indexBulkHead, index, type, id) + source + "\n");
+			String actionAndMeta = "{\"index\":{\"_index\":\"%s\",\"_type\":\"%s\",\"_id\":\"%s\"}}\n";
+			sb.append(String.format(actionAndMeta, index, type, id) + source + "\n");
 			count++;
 			if (System.currentTimeMillis() - lasttime > 1000) {
 				entity = sb.toString();
@@ -282,10 +319,13 @@ public class ElasticUtil {
 				sb = new StringBuffer();
 				System.out.println("content count:" + count);
 				count = 0;
-				HttpResponse response = client.execute(postMethod(String.format(bulkAPI, host), entity));
-				String sLog = String.format(successLog, index, type, id, System.currentTimeMillis() - start);
-				String fLog = failreason + getEntity(response) + "\n" + entity;
-				handleResp(response, sLog, fLog);
+				BulkResponse response = bulk(String.format("%s/_bulk", host), entity, count);
+				if (response.isSuccess()) {
+					return true;
+				} else { // 这里打印了所有的请求,有可能量很大, TODO:@massage 如果不是用它来记录客户端上报的数据的话我想删掉这行打印
+					System.out.println("bulk insert buffer fail, the source is:\n" + entity);
+					return false;
+				}
 			} else {
 				return true;
 			}
@@ -297,82 +337,82 @@ public class ElasticUtil {
 	}
 
 	/**
-	 * 批量写入
+	 * 批量插入,为每一个 source 指定不同的 index 和 type
+	 *
+	 * @param source-bulk 操作,
+	 * 前一行是action_and_meta,比如{ "index" : { "_index" : "test", "_type" : "type1", "_id" : "1" } }
+	 * 后一行是optional_source,比如{ "field1" : "value1" }
+	 * @return
+	 */
+	public BulkResponse bulkInsert(List<Pair<String, String>> source) {
+		StringBuilder entity = new StringBuilder();
+		Iterator<Pair<String, String>> it = source.iterator();
+		while (it.hasNext()) {
+			Pair<String, String> pair = it.next();
+			entity.append(pair.getKey() + "\n" + pair.getValue() + "\n");
+		}
+		return bulk(String.format("%s/_bulk", host), entity.toString(), source.size());
+	}
+
+	/**
+	 * 批量写入,写入同一个 index 和 type
 	 *
 	 * @param index-ES的index
 	 * @param type-ES的type
 	 * @param source-写入的内容，key为id，value为source
 	 * @return
 	 */
-	public String bulkInsert(String index, String type, Map<String, String> source) {
-		long start = System.currentTimeMillis();
-		String entity = null;
-		try {
-			StringBuilder bulk = new StringBuilder();
-			Iterator it = source.keySet().iterator();
-			while (it.hasNext()) {
-				String key = (String)it.next();
-				bulk.append(String.format(indexBulkHead, index, type, key) + source.get(key) + "\n");
-			}
-			entity = bulk.toString();
-			HttpResponse response = client.execute(postMethod(String.format(bulkAPI, host), entity));
-			String content = getEntity(response);
-			String sLog = String.format(successBatchLog, source.size(), System.currentTimeMillis() - start);
-			String fLog = failreason + content + "\n" + entity;
-			if (!handleResp(response, sLog, fLog))
-				return null;
-			return content;
-		} catch (Exception e) {
-			System.out.println(failException);
-			System.out.println(entity);
-			e.printStackTrace();
+	public BulkResponse bulkInsert(String index, String type, Map<String, String> source) {
+		String actionAndMeta = "{\"index\":{\"_id\":\"%s\"}}\n";
+		StringBuilder entity = new StringBuilder();
+		Iterator it = source.keySet().iterator();
+		while (it.hasNext()) {
+			String key = (String)it.next();
+			entity.append(String.format(actionAndMeta, key) + source.get(key) + "\n");
 		}
-		return null;
+		String urlFormat = "%s/%s/%s/_bulk";
+		return bulk(String.format(urlFormat, host, index, type), entity.toString(), source.size());
 	}
 
 	/**
-	 * 批量更新
+	 * 批量更新,使用同一个脚本同一个 index 和 type
 	 *
 	 * @param index-ES的index
 	 * @param type-ES的type
-	 * @param source-更新的内容
-	 * @param isUpsert-true 为追加字段, FALSE 为覆盖文档
+	 * @param source-更新的内容, key为id，value为source
+	 * @param script-放在 elasticsearch home 目录下的 config/script 目录下的groovy脚本,
+	 * 为了安全,不支持在请求中带上脚本
+	 * 之所以是 groovy 脚本,因为 groovy 是 2.x 和 5.x 都支持的
+	 * @param upsert-文档不存在时插入,其实控制粒度是对于每一个文档的,但是这里为了方便输入,粒度为同一次批量的文档
 	 * @return
 	 */
-	public boolean bulkUpdate(String index, String type, Map<String, Object> source, boolean isUpsert) {
-		long start = System.currentTimeMillis();
-		String updateBulkHead = "{\"update\":{\"_index\":\"%s\",\"_type\":\"%s\",\"_id\":\"%s\"}}\n";
-		String entity = null;
-		try {
-			StringBuilder bulk = new StringBuilder();
-			for (String key : source.keySet()) {
-				Map<String, Object> map = new HashMap<String, Object>();
-				map.put("doc", source.get(key));
-				map.put("doc_as_upsert",  isUpsert);
-				bulk.append(String.format(updateBulkHead, index, type, key) + JsonUtil.toJson(map) + "\n");
+	public BulkResponse bulkUpdate(String index, String type, Map<String, Object> source,
+			String script, boolean upsert) {
+		String actionAndMeta = "{\"update\":{\"_id\":\"%s\"}}\n";
+		StringBuilder entity = new StringBuilder();
+		for (String key : source.keySet()) {
+			StringBuilder item = new StringBuilder();
+			item.append(
+					String.format("{\"script\":{ \"lang\":\"groovy\",\"file\":\"%s\",\"params\": %s}}",
+					script, JsonUtil.toJson(source.get(key))));
+			if (upsert) {
+				item.append(",{\"scripted_upsert\":true,}");
 			}
-			entity = bulk.toString();
-
-			HttpResponse response = client.execute(postMethod(String.format(bulkAPI, host), entity));
-			String sLog = String.format(successBatchLog, source.size(), System.currentTimeMillis() - start);
-			String fLog = failreason + getEntity(response) + "\n" + entity;
-			handleResp(response, sLog, fLog);
-		} catch (Exception e) {
-			System.out.println(failException + "\n" + entity);
-			e.printStackTrace();
+			entity.append(String.format(actionAndMeta, key) + source.get(key) + "\n");
 		}
-		return false;
+		String urlFormat = "%s/%s/%s/_bulk";
+		return bulk(String.format(urlFormat, host, index, type), entity.toString(), source.size());
 	}
 
 	/**
-	 * 批量更新
+	 * 对同一个 index 和 type( 可以为空) 进行批量搜索
 	 *
 	 * @param index-ES的index
-	 * @param type-ES的type
-	 * @param entity-
+	 * @param type-ES的type(可以为空)
+	 * @param queries-query 的列表
 	 * @return
 	 */
-	public String mSearch(String index, String type, String entity) {
+	public String mSearch(String index, String type, List<Query> queries) {
 		String url = null;
 		try {
 			url = null == type ? String.format(hostIndexFormat, host, index) + "_msearch" :
@@ -733,4 +773,6 @@ public class ElasticUtil {
 	public static JsonArray getError(String response) {
 		return getError(JsonUtil.toJsonMap(response));
 	}
+
+	public enum Version { es2, es5 }
 }
