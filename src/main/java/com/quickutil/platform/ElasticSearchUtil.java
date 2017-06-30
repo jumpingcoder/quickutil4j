@@ -117,11 +117,12 @@ public class ElasticSearchUtil {
 			String responseStr = FileUtil.stream2string(response.getEntity().getContent());
 			if (statusCode == 200 || statusCode == 201) {
 				System.out.println(String.format(successLog, index, type, id, System.currentTimeMillis() - paytime));
+				return responseStr;
 			} else {
 				System.out.println(failreason + responseStr);
 				System.out.println(String.format(indexBulkHead, index, type, id) + source + "\n");
+				return null;
 			}
-			return responseStr;
 		} catch (Exception e) {
 			System.out.println(failException);
 			System.out.println(String.format(indexBulkHead, index, type, id) + source + "\n");
@@ -155,11 +156,12 @@ public class ElasticSearchUtil {
 			String responseStr = FileUtil.stream2string(response.getEntity().getContent());
 			if (statusCode == 200 || statusCode == 201) {
 				System.out.println(String.format(successLog, index, type, id, System.currentTimeMillis() - paytime));
+				return responseStr;
 			} else {
 				System.out.println(failreason + FileUtil.stream2string(response.getEntity().getContent()));
 				System.out.println(String.format(updateBulkHead, index, type, id) + sourceStr + "\n");
+				return null;
 			}
-			return responseStr;
 		} catch (Exception e) {
 			System.out.println(failException);
 			System.out.println(String.format(updateBulkHead, index, type, id) + sourceStr + "\n");
@@ -190,11 +192,12 @@ public class ElasticSearchUtil {
 			String responseStr = FileUtil.stream2string(response.getEntity().getContent());
 			if (statusCode == 200 || statusCode == 201) {
 				System.out.println(String.format(successLog, index, type, id, System.currentTimeMillis() - paytime));
+				return responseStr;
 			} else {
 				System.out.println(String.format(failLog, index, type, id, System.currentTimeMillis() - paytime));
 				System.out.println(failreason + FileUtil.stream2string(response.getEntity().getContent()));
+				return null;
 			}
-			return responseStr;
 		} catch (Exception e) {
 			System.out.println(String.format(failLog, index, type, id, System.currentTimeMillis() - paytime));
 			e.printStackTrace();
@@ -270,11 +273,12 @@ public class ElasticSearchUtil {
 			String responseStr = FileUtil.stream2string(response.getEntity().getContent());
 			if (statusCode == 200 || statusCode == 201) {
 				System.out.println(String.format(successBatchLog, source.size(), System.currentTimeMillis() - paytime));
+				return responseStr;
 			} else {
 				System.out.println(failreason + FileUtil.stream2string(response.getEntity().getContent()));
 				System.out.println(sourceStr);
+				return null;
 			}
-			return responseStr;
 		} catch (Exception e) {
 			System.out.println(failException);
 			System.out.println(sourceStr);
@@ -310,11 +314,12 @@ public class ElasticSearchUtil {
 			String responseStr = FileUtil.stream2string(response.getEntity().getContent());
 			if (statusCode == 200 || statusCode == 201) {
 				System.out.println(String.format(successBatchLog, source.size(), System.currentTimeMillis() - paytime));
+				return responseStr;
 			} else {
 				System.out.println(failreason + FileUtil.stream2string(response.getEntity().getContent()));
 				System.out.println(sourceStr);
+				return null;
 			}
-			return responseStr;
 		} catch (Exception e) {
 			System.out.println(failException);
 			System.out.println(sourceStr);
@@ -346,11 +351,12 @@ public class ElasticSearchUtil {
 			String responseStr = FileUtil.stream2string(response.getEntity().getContent());
 			if (statusCode == 200 || statusCode == 201) {
 				System.out.println(String.format(successBatchLog, idList.size(), System.currentTimeMillis() - paytime));
+				return responseStr;
 			} else {
 				System.out.println(failreason + FileUtil.stream2string(response.getEntity().getContent()));
 				System.out.println(sourceStr);
+				return null;
 			}
-			return responseStr;
 		} catch (Exception e) {
 			System.out.println(failException);
 			System.out.println(sourceStr);
