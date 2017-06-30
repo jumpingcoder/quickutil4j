@@ -137,13 +137,13 @@ public class GeoUtil {
 	 * @param points-纬度经度数组，下标偶数位为纬度，奇数位为经度，必须成对，最多20条经纬度
 	 * @return
 	 */
-	public static List<GeoDef> geoCodeyByBaidu(double[] points) {
+	public static List<GeoDef> geoCodeyByBaidu(List<Double> points) {
 		try {
-			if (points.length > 40)
+			if (points.size() > 40)
 				return null;
 			StringBuilder builder = new StringBuilder();
-			for (int i = 0; i < points.length; i = i + 2) {
-				double[] delta = WGSToGCJPointer(points[i], points[i + 1]);
+			for (int i = 0; i < points.size(); i = i + 2) {
+				double[] delta = WGSToGCJPointer(points.get(i), points.get(i + 1));
 				delta = GCJToBDPointer(delta[0], delta[1]);
 				builder.append(delta[0] + "," + delta[1] + "|");
 			}
@@ -153,8 +153,8 @@ public class GeoUtil {
 			JsonObject object = JsonUtil.toJsonMap(FileUtil.stream2string(HttpUtil.httpGet(queryUrl).getEntity().getContent()));
 			JsonArray array = object.getAsJsonArray("areas");
 			List<GeoDef> geodefList = new ArrayList<GeoDef>();
-			for (int i = 0; i < points.length; i = i + 2) {
-				geodefList.add(new GeoDef(points[i], points[i + 1], "", array.get(i / 2).getAsJsonObject().get("country").getAsString(), "",
+			for (int i = 0; i < points.size(); i = i + 2) {
+				geodefList.add(new GeoDef(points.get(i), points.get(i + 1), "", array.get(i / 2).getAsJsonObject().get("country").getAsString(), "",
 						array.get(i / 2).getAsJsonObject().get("province").getAsString(), array.get(i / 2).getAsJsonObject().get("city").getAsString(),
 						array.get(i / 2).getAsJsonObject().get("district").getAsString()));
 			}
