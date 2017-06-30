@@ -123,7 +123,7 @@ public class GeoUtil {
 			String country = object.getAsJsonObject("result").getAsJsonObject("addressComponent").get("country").getAsString();
 			String province = object.getAsJsonObject("result").getAsJsonObject("addressComponent").get("province").getAsString();
 			String city = object.getAsJsonObject("result").getAsJsonObject("addressComponent").get("city").getAsString();
-			String description = object.getAsJsonObject("result").get("district").getAsString();
+			String description = object.getAsJsonObject("result").getAsJsonObject("addressComponent").get("district").getAsString();
 			return new GeoDef(latitude, longitude, "", country, "", province, city, description);
 		} catch (Exception e) {
 			e.printStackTrace();
