@@ -1,5 +1,6 @@
 package com.quickutil.platform;
 
+import com.quickutil.platform.aggs.AggsDSL;
 import com.quickutil.platform.query.QueryDSL;
 
 /**

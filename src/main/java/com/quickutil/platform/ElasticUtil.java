@@ -417,7 +417,7 @@ public class ElasticUtil {
 		try {
 			url = null == type ? String.format(hostIndexFormat, host, index) + "_msearch" :
 					String.format(hostIndexTypeFormat, host, index, type) + "_msearch";
-			HttpResponse response = client.execute(postMethod(url, entity));
+			HttpResponse response = client.execute(postMethod(url, url));
 			String content = getEntity(response);
 			String fLog = failreason + content + "\n" + url;
 			handleResp(response, null, fLog);
