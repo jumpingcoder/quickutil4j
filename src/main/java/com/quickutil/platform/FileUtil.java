@@ -43,9 +43,8 @@ public class FileUtil {
 	public static boolean mkdirByFile(String dirPath) {
 		try {
 			File file = new File(dirPath);
-			if (!file.getParentFile().exists())
-				file.getParentFile().mkdirs();
-			return true;
+			if (!file.exists())
+				return file.mkdirs();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

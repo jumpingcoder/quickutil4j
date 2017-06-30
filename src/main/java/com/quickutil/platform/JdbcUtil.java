@@ -416,8 +416,7 @@ public class JdbcUtil {
 		try {
 			connection = dataSourceMap.get(dbName).getConnection();
 			ps = connection.prepareStatement(sql);
-			ps.execute();
-			return true;
+			return ps.execute();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;

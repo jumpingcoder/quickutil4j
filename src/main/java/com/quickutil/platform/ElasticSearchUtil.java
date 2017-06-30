@@ -108,25 +108,26 @@ public class ElasticSearchUtil {
 	 * @param source-写入的内容
 	 * @return
 	 */
-	public static boolean insert(String host, String index, String type, String id, String source) {
+	public static String insert(String host, String index, String type, String id, String source) {
 		try {
 			long paytime = System.currentTimeMillis();
 			String url = String.format(insertFormat, host, index, type, id).replaceAll(" ", "");
 			HttpResponse response = HttpUtil.httpPut(url, source.getBytes(), null, null, RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(5000).build());
 			int statusCode = response.getStatusLine().getStatusCode();
+			String responseStr = FileUtil.stream2string(response.getEntity().getContent());
 			if (statusCode == 200 || statusCode == 201) {
 				System.out.println(String.format(successLog, index, type, id, System.currentTimeMillis() - paytime));
-				return true;
 			} else {
-				System.out.println(failreason + FileUtil.stream2string(response.getEntity().getContent()));
+				System.out.println(failreason + responseStr);
 				System.out.println(String.format(indexBulkHead, index, type, id) + source + "\n");
 			}
+			return responseStr;
 		} catch (Exception e) {
-			System.out.println("failreason--exception");
+			System.out.println(failException);
 			System.out.println(String.format(indexBulkHead, index, type, id) + source + "\n");
 			e.printStackTrace();
 		}
-		return false;
+		return null;
 	}
 
 	/**
@@ -140,7 +141,7 @@ public class ElasticSearchUtil {
 	 * @param isupsert-是否是upsert
 	 * @return
 	 */
-	public static boolean update(String host, String index, String type, String id, Object source, boolean isupsert) {
+	public static String update(String host, String index, String type, String id, Object source, boolean isupsert) {
 		String sourceStr = null;
 		try {
 			long paytime = System.currentTimeMillis();
@@ -151,19 +152,20 @@ public class ElasticSearchUtil {
 			sourceStr = JsonUtil.toJson(map);
 			HttpResponse response = HttpUtil.httpPost(url, sourceStr.getBytes(), null, null, RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(5000).build());
 			int statusCode = response.getStatusLine().getStatusCode();
+			String responseStr = FileUtil.stream2string(response.getEntity().getContent());
 			if (statusCode == 200 || statusCode == 201) {
 				System.out.println(String.format(successLog, index, type, id, System.currentTimeMillis() - paytime));
-				return true;
 			} else {
 				System.out.println(failreason + FileUtil.stream2string(response.getEntity().getContent()));
 				System.out.println(String.format(updateBulkHead, index, type, id) + sourceStr + "\n");
 			}
+			return responseStr;
 		} catch (Exception e) {
 			System.out.println(failException);
 			System.out.println(String.format(updateBulkHead, index, type, id) + sourceStr + "\n");
 			e.printStackTrace();
 		}
-		return false;
+		return null;
 	}
 
 	/**
@@ -175,7 +177,7 @@ public class ElasticSearchUtil {
 	 * @param id-ES的id
 	 * @return
 	 */
-	public static boolean delete(String host, String index, String type, String id) {
+	public static String delete(String host, String index, String type, String id) {
 		long paytime = System.currentTimeMillis();
 		try {
 			String url;
@@ -184,18 +186,20 @@ public class ElasticSearchUtil {
 			else
 				url = String.format(deleteIdFormat, host, index, type, id);
 			HttpResponse response = HttpUtil.httpDelete(url, null, null, RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(5000).build());
-			if (response.getStatusLine().getStatusCode() == 200) {
+			int statusCode = response.getStatusLine().getStatusCode();
+			String responseStr = FileUtil.stream2string(response.getEntity().getContent());
+			if (statusCode == 200 || statusCode == 201) {
 				System.out.println(String.format(successLog, index, type, id, System.currentTimeMillis() - paytime));
-				return true;
 			} else {
 				System.out.println(String.format(failLog, index, type, id, System.currentTimeMillis() - paytime));
 				System.out.println(failreason + FileUtil.stream2string(response.getEntity().getContent()));
 			}
+			return responseStr;
 		} catch (Exception e) {
 			System.out.println(String.format(failLog, index, type, id, System.currentTimeMillis() - paytime));
 			e.printStackTrace();
 		}
-		return false;
+		return null;
 	}
 
 	/**
@@ -229,14 +233,12 @@ public class ElasticSearchUtil {
 				int statusCode = response.getStatusLine().getStatusCode();
 				if (statusCode == 200 || statusCode == 201) {
 					System.out.println(String.format(successLog, index, type, id, System.currentTimeMillis() - paytime));
-					return true;
 				} else {
 					System.out.println(failreason + FileUtil.stream2string(response.getEntity().getContent()));
 					System.out.println(sourceStr);
 				}
-			} else {
-				return true;
 			}
+			return true;
 		} catch (Exception e) {
 			System.out.println(failException);
 			System.out.println(sourceStr);
@@ -254,7 +256,7 @@ public class ElasticSearchUtil {
 	 * @param source-写入的内容，key为id，value为source
 	 * @return
 	 */
-	public static boolean bulkInsert(String host, String index, String type, Map<String, String> source) {
+	public static String bulkInsert(String host, String index, String type, Map<String, String> source) {
 		long paytime = System.currentTimeMillis();
 		String sourceStr = null;
 		try {
@@ -265,19 +267,20 @@ public class ElasticSearchUtil {
 			sourceStr = bulk.toString();
 			HttpResponse response = HttpUtil.httpPost(host + "/_bulk", sourceStr.getBytes());
 			int statusCode = response.getStatusLine().getStatusCode();
+			String responseStr = FileUtil.stream2string(response.getEntity().getContent());
 			if (statusCode == 200 || statusCode == 201) {
 				System.out.println(String.format(successBatchLog, source.size(), System.currentTimeMillis() - paytime));
-				return true;
 			} else {
 				System.out.println(failreason + FileUtil.stream2string(response.getEntity().getContent()));
 				System.out.println(sourceStr);
 			}
+			return responseStr;
 		} catch (Exception e) {
 			System.out.println(failException);
 			System.out.println(sourceStr);
 			e.printStackTrace();
 		}
-		return false;
+		return null;
 	}
 
 	/**
@@ -290,7 +293,7 @@ public class ElasticSearchUtil {
 	 * @param isupsert-是否是upsert
 	 * @return
 	 */
-	public static boolean bulkUpdate(String host, String index, String type, Map<String, Object> source, boolean isupsert) {
+	public static String bulkUpdate(String host, String index, String type, Map<String, Object> source, boolean isupsert) {
 		long paytime = System.currentTimeMillis();
 		String sourceStr = null;
 		try {
@@ -304,19 +307,20 @@ public class ElasticSearchUtil {
 			sourceStr = bulk.toString();
 			HttpResponse response = HttpUtil.httpPost(host + "/_bulk", sourceStr.getBytes());
 			int statusCode = response.getStatusLine().getStatusCode();
+			String responseStr = FileUtil.stream2string(response.getEntity().getContent());
 			if (statusCode == 200 || statusCode == 201) {
 				System.out.println(String.format(successBatchLog, source.size(), System.currentTimeMillis() - paytime));
-				return true;
 			} else {
 				System.out.println(failreason + FileUtil.stream2string(response.getEntity().getContent()));
 				System.out.println(sourceStr);
 			}
+			return responseStr;
 		} catch (Exception e) {
 			System.out.println(failException);
 			System.out.println(sourceStr);
 			e.printStackTrace();
 		}
-		return false;
+		return null;
 	}
 
 	/**
@@ -328,7 +332,7 @@ public class ElasticSearchUtil {
 	 * @param idList-删除的id
 	 * @return
 	 */
-	public static boolean bulkDelete(String host, List<String> indexList, List<String> typeList, List<String> idList) {
+	public static String bulkDelete(String host, List<String> indexList, List<String> typeList, List<String> idList) {
 		long paytime = System.currentTimeMillis();
 		String sourceStr = null;
 		try {
@@ -339,18 +343,19 @@ public class ElasticSearchUtil {
 			sourceStr = bulk.toString();
 			HttpResponse response = HttpUtil.httpPost(host + "/_bulk", sourceStr.getBytes());
 			int statusCode = response.getStatusLine().getStatusCode();
+			String responseStr = FileUtil.stream2string(response.getEntity().getContent());
 			if (statusCode == 200 || statusCode == 201) {
 				System.out.println(String.format(successBatchLog, idList.size(), System.currentTimeMillis() - paytime));
-				return true;
 			} else {
 				System.out.println(failreason + FileUtil.stream2string(response.getEntity().getContent()));
 				System.out.println(sourceStr);
 			}
+			return responseStr;
 		} catch (Exception e) {
 			System.out.println(failException);
 			System.out.println(sourceStr);
 			e.printStackTrace();
 		}
-		return false;
+		return null;
 	}
 }
