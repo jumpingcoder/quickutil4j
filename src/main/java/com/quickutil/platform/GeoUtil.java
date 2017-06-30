@@ -147,7 +147,7 @@ public class GeoUtil {
 				delta = GCJToBDPointer(delta[0], delta[1]);
 				builder.append(delta[0] + "," + delta[1] + "|");
 			}
-			String apiKey = "RMVaRr172UQuTGVVTDKz1eGD";
+			String apiKey = "ltXmyhH5stNNKDx1XDOsfUFIpCzAGRcT";
 			String queryUrl = String.format("http://api.map.baidu.com/geocoder/v2/?ak=%s&location=%s&output=json&batch=true", apiKey,
 					URLEncoder.encode(builder.substring(0, builder.length() - 1), "UTF-8"));
 			JsonObject object = JsonUtil.toJsonMap(FileUtil.stream2string(HttpUtil.httpGet(queryUrl).getEntity().getContent()));
