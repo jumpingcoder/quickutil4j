@@ -1,5 +1,6 @@
 package com.quickutil.platform.query;
 
+import com.google.gson.JsonObject;
 import com.quickutil.platform.FormatQueryException;
 
 /**
@@ -11,8 +12,7 @@ public abstract class QueryDSL {
 
 	QueryDSL(String type) {
 		this.type = type;
-		System.out.println("haha");
 	}
 
-	public abstract String toJson() throws FormatQueryException;
+	public abstract JsonObject toJson() throws FormatQueryException;
 }

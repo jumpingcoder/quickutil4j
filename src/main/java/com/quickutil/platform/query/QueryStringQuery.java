@@ -1,14 +1,13 @@
 package com.quickutil.platform.query;
 
 import com.google.gson.JsonObject;
-import com.quickutil.platform.JsonUtil;
 
 /**
  * @author shijie.ruan
  */
 public class QueryStringQuery extends QueryDSL {
 	private String defaultField = null;
-	private String defaultOperator = "OR";
+	private String defaultOperator = null;
 	private String analyzer = null;
 	private Boolean analyzeWildcard = null;
 	private String query;
@@ -17,21 +16,21 @@ public class QueryStringQuery extends QueryDSL {
 	 * query string 类型
 	 * @param query 查询的语句
 	 */
-	QueryStringQuery(String query) {
+	public QueryStringQuery(String query) {
 		super("query_string");
 		this.query = query;
 	}
 
-	public void setBoost(double boost) {
-		this.boost = boost;
+	public QueryStringQuery setBoost(double boost) {
+		this.boost = boost; return this;
 	}
 
 	/**
 	 * 当 query 中没有设置字段时,默认查询的字段,如果不设置, es 默认为 _all
 	 * @param defaultField
 	 */
-	public void setDefaultField(String defaultField) {
-		this.defaultField = defaultField;
+	public QueryStringQuery setDefaultField(String defaultField) {
+		this.defaultField = defaultField; return this;
 	}
 
 	/**
@@ -39,8 +38,8 @@ public class QueryStringQuery extends QueryDSL {
 	 * 不设置默认为 OR
 	 * @param defaultOperator
 	 */
-	public void setDefaultOperator(String defaultOperator) {
-		this.defaultOperator = defaultOperator;
+	public QueryStringQuery setDefaultOperator(Operator defaultOperator) {
+		this.defaultOperator = defaultOperator.toString(); return this;
 	}
 
 	/**
@@ -48,20 +47,20 @@ public class QueryStringQuery extends QueryDSL {
 	 * 如果 elasticsearch.yml 中也没有设置, 默认使用 standard analyzer, 它会去掉标点,空格切分,变成小写
 	 * @param analyzer
 	 */
-	public void setAnalyzer(String analyzer) {
-		this.analyzer = analyzer;
+	public QueryStringQuery setAnalyzer(String analyzer) {
+		this.analyzer = analyzer; return this;
 	}
 
 	/**
 	 * 是否允许使用通配符
 	 * @param analyzeWildcard
 	 */
-	public void setAnalyzeWildcard(Boolean analyzeWildcard) {
-		this.analyzeWildcard = analyzeWildcard;
+	public QueryStringQuery setAnalyzeWildcard(Boolean analyzeWildcard) {
+		this.analyzeWildcard = analyzeWildcard; return this;
 	}
 
 	@Override
-	public String toJson() {
+	public JsonObject toJson() {
 		JsonObject stringQuery = new JsonObject();
 		stringQuery.addProperty("query", query);
 		if (null != defaultField) { stringQuery.addProperty("default_field", defaultField); }
@@ -70,6 +69,10 @@ public class QueryStringQuery extends QueryDSL {
 		if (null != analyzeWildcard) { stringQuery.addProperty("analyze_wildcard", analyzeWildcard); }
 		JsonObject queryDSL = new JsonObject();
 		queryDSL.add(type, stringQuery);
-		return JsonUtil.toJson(queryDSL);
+		return queryDSL;
+	}
+
+	public enum Operator {
+		AND, OR
 	}
 }

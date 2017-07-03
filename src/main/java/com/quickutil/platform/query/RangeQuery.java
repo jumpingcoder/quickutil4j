@@ -2,7 +2,6 @@ package com.quickutil.platform.query;
 
 import com.google.gson.JsonObject;
 import com.quickutil.platform.FormatQueryException;
-import com.quickutil.platform.JsonUtil;
 
 /**
  * @author shijie.ruan
@@ -14,33 +13,33 @@ public class RangeQuery extends QueryDSL {
 	private String timeZone = null;
 
 
-	RangeQuery(String field) {
+	public RangeQuery(String field) {
 		super("range");
 		this.field = field;
 	}
 
-	public void setGte(String gte) {
-		this.gte = gte;
+	public RangeQuery setGte(String gte) {
+		this.gte = gte; return this;
 	}
 
-	public void setLte(String lte) {
-		this.lte = lte;
+	public RangeQuery setLte(String lte) {
+		this.lte = lte; return this;
 	}
 
-	public void setLt(String lt) {
-		this.lt = lt;
+	public RangeQuery setLt(String lt) {
+		this.lt = lt; return this;
 	}
 
-	public void setGt(String gt) {
-		this.gt = gt;
+	public RangeQuery setGt(String gt) {
+		this.gt = gt; return this;
 	}
 
-	public void setBoost(double boost) {
-		this.boost = boost;
+	public RangeQuery setBoost(double boost) {
+		this.boost = boost; return this;
 	}
 
 	/**
-	 * 日期字段的格式
+	 * 设置查询的日期字段的格式,比如 gte("20170703").setFormat("yyyyMMdd")
 	 * epoch_millis: number of milliseconds since the epoch,
 	 * epoch_second: number of seconds since the epoch,
 	 * date_optional_time: ISO datetime parser where the date is mandatory and the time is optional,
@@ -53,20 +52,20 @@ public class RangeQuery extends QueryDSL {
 	 * https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-date-format.html
 	 * @param format
 	 */
-	public void setFormat(String format) {
-		this.format = format;
+	public RangeQuery setFormat(String format) {
+		this.format = format; return this;
 	}
 
 	/**
 	 * 设置时区, 有利于将指定的日期变成 UTC 时间进行比较,如果不指定, 日期默认为 UTC 时间
 	 * @param timeZone
 	 */
-	public void setTimeZone(String timeZone) {
-		this.timeZone = timeZone;
+	public RangeQuery setTimeZone(String timeZone) {
+		this.timeZone = timeZone; return this;
 	}
 
 	@Override
-	public String toJson() throws FormatQueryException {
+	public JsonObject toJson() throws FormatQueryException {
 		JsonObject rangeObject = new JsonObject();
 		if (null != gt && null != gte) {
 			throw new FormatQueryException("either gt or gte can be set");
@@ -85,6 +84,6 @@ public class RangeQuery extends QueryDSL {
 		fieldObject.add(field, rangeObject);
 		JsonObject queryDSL = new JsonObject();
 		queryDSL.add(type, fieldObject);
-		return JsonUtil.toJson(queryDSL);
+		return queryDSL;
 	}
 }

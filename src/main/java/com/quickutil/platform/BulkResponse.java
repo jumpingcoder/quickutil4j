@@ -17,8 +17,8 @@ public class BulkResponse {
 		this.responseItem = responseItem;
 	}
 
-	public boolean isSuccess() {
-		return isSuccess;
+	public boolean hasFail() {
+		return !isSuccess;
 	}
 
 	public byte[] getResponseItem() {

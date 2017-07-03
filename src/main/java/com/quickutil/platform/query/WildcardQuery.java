@@ -2,7 +2,6 @@ package com.quickutil.platform.query;
 
 import com.google.gson.JsonObject;
 import com.quickutil.platform.FormatQueryException;
-import com.quickutil.platform.JsonUtil;
 
 /**
  * @author shijie.ruan
@@ -11,7 +10,7 @@ public class WildcardQuery extends QueryDSL {
 	private String field;
 	private String wildcardString;
 
-	WildcardQuery(String field, String wildcardString) {
+	public WildcardQuery(String field, String wildcardString) {
 		super("wildcard");
 		this.field = field; this.wildcardString = wildcardString;
 	}
@@ -21,7 +20,7 @@ public class WildcardQuery extends QueryDSL {
 	}
 
 	@Override
-	public String toJson() throws FormatQueryException {
+	public JsonObject toJson() throws FormatQueryException {
 		JsonObject wildcardQuery = new JsonObject();
 		if (null != boost) {
 			JsonObject fieldObject = new JsonObject();
@@ -33,6 +32,6 @@ public class WildcardQuery extends QueryDSL {
 		}
 		JsonObject queryDSL = new JsonObject();
 		queryDSL.add(type, wildcardQuery);
-		return JsonUtil.toJson(queryDSL);
+		return queryDSL;
 	}
 }

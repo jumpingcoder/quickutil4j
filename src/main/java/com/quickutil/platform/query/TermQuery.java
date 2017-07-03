@@ -1,7 +1,6 @@
 package com.quickutil.platform.query;
 
 import com.google.gson.JsonObject;
-import com.quickutil.platform.JsonUtil;
 
 /**
  * @author shijie.ruan
@@ -16,14 +15,14 @@ public class TermQuery extends QueryDSL {
 	 * @param field
 	 * @param value
 	 */
-	TermQuery(String field, String value) {
+	public TermQuery(String field, String value) {
 		super("term");
 		this.field = field;
 		this.value = value;
 	}
 
 	@Override
-	public String toJson() {
+	public JsonObject toJson() {
 		JsonObject termQuery = new JsonObject();
 		if (null != boost) {
 			JsonObject fieldObject = new JsonObject();
@@ -35,6 +34,6 @@ public class TermQuery extends QueryDSL {
 		}
 		JsonObject queryDSL = new JsonObject();
 		queryDSL.add(type, termQuery);
-		return JsonUtil.toJson(queryDSL);
+		return queryDSL;
 	}
 }

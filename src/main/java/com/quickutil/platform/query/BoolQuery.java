@@ -3,8 +3,6 @@ package com.quickutil.platform.query;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.quickutil.platform.FormatQueryException;
-import com.quickutil.platform.JsonUtil;
-import com.quickutil.platform.Query;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -17,9 +15,9 @@ public class BoolQuery extends QueryDSL {
 	private List<QueryDSL> filterSubQuery = new LinkedList<>();
 	private List<QueryDSL> shouldSubQuery = new LinkedList<>();
 	private List<QueryDSL> mustNotSubQuery = new LinkedList<>();
-	private Integer mininumShouldMatch = null;
+	private Integer minimumShouldMatch = null;
 
-	BoolQuery() {
+	public BoolQuery() {
 		super("bool");
 	}
 
@@ -64,7 +62,7 @@ public class BoolQuery extends QueryDSL {
 	}
 
 	public BoolQuery setMininumShouldMatch(int mininumShouldMatch) {
-		this.mininumShouldMatch = mininumShouldMatch;
+		this.minimumShouldMatch = mininumShouldMatch;
 		return this;
 	}
 
@@ -74,11 +72,11 @@ public class BoolQuery extends QueryDSL {
 	}
 
 	@Override
-	public String toJson() throws FormatQueryException {
+	public JsonObject toJson() throws FormatQueryException {
 		JsonObject boolObject = new JsonObject();
-		if (null != mininumShouldMatch && mininumShouldMatch > shouldSubQuery.size()) {
+		if (null != minimumShouldMatch && minimumShouldMatch > shouldSubQuery.size()) {
 			System.out.format("bool query minimum_should_match[%d] bigger than should query size[%d], "
-					+ "result will be empty\n", mininumShouldMatch, shouldSubQuery.size());
+					+ "result will be empty\n", minimumShouldMatch, shouldSubQuery.size());
 		}
 		if (!mustSubQuery.isEmpty()) {
 			JsonArray must = new JsonArray();
@@ -97,17 +95,17 @@ public class BoolQuery extends QueryDSL {
 		}
 		if (!mustNotSubQuery.isEmpty()) {
 			JsonArray mustNot = new JsonArray();
-			for (QueryDSL subQuery: mustSubQuery) { mustNot.add(subQuery.toJson()); }
+			for (QueryDSL subQuery: mustNotSubQuery) { mustNot.add(subQuery.toJson()); }
 			boolObject.add("must_not", mustNot);
 		}
-		if (null != mininumShouldMatch) {
-			boolObject.addProperty("minimum_should_match", mininumShouldMatch);
+		if (null != minimumShouldMatch) {
+			boolObject.addProperty("minimum_should_match", minimumShouldMatch);
 		}
 		if (null != boost) {
 			boolObject.addProperty("boost", boost);
 		}
 		JsonObject queryDSL = new JsonObject();
 		queryDSL.add(type, boolObject);
-		return JsonUtil.toJson(queryDSL);
+		return queryDSL;
 	}
 }

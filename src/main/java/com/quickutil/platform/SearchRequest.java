@@ -3,6 +3,7 @@ package com.quickutil.platform;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.quickutil.platform.aggs.AggsDSL;
+import com.quickutil.platform.aggs.Order;
 import com.quickutil.platform.query.QueryDSL;
 import java.util.LinkedList;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.List;
 public class SearchRequest {
 	private Integer size = null, from = null;
 	private List<String> includeSource = new LinkedList<>();
+	private List<Order> sort = new LinkedList<>();
 
 	private QueryDSL query = null;
 	private AggsDSL aggs = null;
@@ -37,6 +39,9 @@ public class SearchRequest {
 		this.from = from; return this;
 	}
 
+	public SearchRequest addSort(Order order) {
+		sort.add(order); return this;
+	}
 	/**
 	 * 增加返回的源字段,不设置默认返回全部的 source, 支持通配符,用于文档很大,只需要某些字段的情况
 	 * @param sourceField
@@ -49,7 +54,7 @@ public class SearchRequest {
 	public String toJson() throws FormatQueryException {
 		JsonObject queryObject = new JsonObject();
 		if (null != query) {
-			queryObject.addProperty("query", query.toJson());
+			queryObject.add("query", query.toJson());
 		}
 		if (null != aggs) {
 			queryObject.addProperty("aggs", aggs.toJson());
@@ -59,6 +64,11 @@ public class SearchRequest {
 		}
 		if (null != from) {
 			queryObject.addProperty("from", from);
+		}
+		if (!sort.isEmpty()) {
+			JsonArray sortList = new JsonArray();
+			for (Order order: sort) { sortList.add(order.toJson()); }
+			queryObject.add("sort", sortList);
 		}
 		if (!includeSource.isEmpty()) {
 			JsonArray source = new JsonArray();

@@ -9,11 +9,11 @@ public class Order {
 	private String field = null;
 	private Sort sort = Sort.desc;
 
-	Order(String field) {
+	public Order(String field) {
 		this.field = field;
 	}
 
-	Order(String field, Sort sort) {
+	public Order(String field, Sort sort) {
 		this.field = field;
 		this.sort = sort;
 	}

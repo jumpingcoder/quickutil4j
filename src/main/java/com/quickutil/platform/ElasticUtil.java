@@ -1,19 +1,29 @@
 package com.quickutil.platform;
 
+import static com.quickutil.platform.BulkResponse.itemFalse;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.quickutil.platform.aggs.Order;
+import com.quickutil.platform.aggs.Order.Sort;
+import com.quickutil.platform.query.BoolQuery;
+import com.quickutil.platform.query.MatchAllQuery;
+import com.quickutil.platform.query.QueryStringQuery;
+import com.quickutil.platform.query.QueryStringQuery.Operator;
+import com.quickutil.platform.query.RangeQuery;
+import com.quickutil.platform.query.ScriptQuery;
+import com.quickutil.platform.query.TermQuery;
+import com.quickutil.platform.query.WildcardQuery;
 import java.io.File;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import javafx.util.Pair;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -38,11 +48,9 @@ import org.apache.http.util.EntityUtils;
 
 /**
  * @author shijie.ruan
- * 使用连接池
  */
 public class ElasticUtil {
 	private static final String[] replaceArray = { "\t", "\n" };
-	private static final String failException = "failreason--exception";
 
 	private static final String hostFormat = "%s/";
 	private static final String hostIndexFormat = "%s/%s/";
@@ -102,7 +110,46 @@ public class ElasticUtil {
 
 	public static void main(String[] args) {
 		ElasticUtil elasticUtil = new ElasticUtil("http://10.10.3.166:9200", Version.es5);
-		elasticUtil.insert("test", "logs", "AVzpI2YikGEMXtpBv0BO", "");
+//		JsonObject a = new JsonObject();
+//		a.addProperty("len", 100);
+//		JsonObject b = new JsonObject();
+//		b.addProperty("len", 101);
+//		JsonObject c = new JsonObject();
+//		c.addProperty("len", 102);
+//		JsonObject d = new JsonObject();
+//		d.addProperty("len", 103);
+//		Map<String, JsonObject> sources = new HashMap<>();
+//		sources.put("300", a);
+//		sources.put("301", b);
+//		sources.put("302", c);
+//		sources.put("303", d);
+//		BulkResponse bulkResponse = elasticUtil.bulkUpdateByScript("test1", "logs", sources, "test", true);
+//		if (bulkResponse.hasFail()) {
+//			for (int i = 0; i < bulkResponse.getResponseItem().length; i++) {
+//				if (0 != bulkResponse.getResponseItem()[i]) {
+//					System.out.println(i + " request has error");
+//				}
+//			}
+//		}
+		MatchAllQuery matchAllQuery = new MatchAllQuery();
+		BoolQuery boolQuery = new BoolQuery().addMustNotQuery (matchAllQuery);
+		String stringQuery = "100 101 102";
+		QueryStringQuery queryStringQuery = new QueryStringQuery(stringQuery).setDefaultField("len").setDefaultOperator(
+				Operator.OR);
+		RangeQuery rangeQuery = new RangeQuery("postDate").setGte("20170626").setFormat("yyyyMMdd").setTimeZone("-12:00");
+		ScriptQuery scriptQuery = new ScriptQuery("test_query");
+		JsonObject params = new JsonObject();
+		params.addProperty("len1", 101);
+		scriptQuery.setParams(params);
+		TermQuery termQuery = new TermQuery("alias", "jie");
+		WildcardQuery wildcardQuery = new WildcardQuery("alias", "ji*");
+		SearchRequest searchRequest = new SearchRequest(queryStringQuery);
+		searchRequest.setSize(20);
+		Order order = new Order("len", Sort.asc);
+		searchRequest.addSort(order);
+		String response = elasticUtil.search("test", "logs", searchRequest);
+
+		System.out.println(response);
 	}
 
 	private HttpUriRequest getMethod(String url) {
@@ -204,18 +251,23 @@ public class ElasticUtil {
 	public boolean insert(String index, String type, String id, JsonObject source) {
 		String url = null;
 		try {
+			if (null == index || null == type || id == null) {
+				System.out.println("[index], [type], [id] must be not null"); return false;
+			}
 			url = String.format("%s/%s/%s/%s", host, index, type, id).replace(" ", "");
-			HttpResponse response = client.execute(postMethod(url, JsonUtil.toJson(source)));
+			String sourceString = (null == source ? "{}" : JsonUtil.toJson(source));
+			HttpResponse response = client.execute(postMethod(url, sourceString));
 			// index response status can be 201 or 200, 201 indicate first create, 200 indicate update
 			if (200 == response.getStatusLine().getStatusCode() ||
 					201 == response.getStatusLine().getStatusCode()) {
 				return true;
 			} else {
-				System.out.println("fail on url: " + url + "\n" + source + "\n");
+				System.out.println("fail on url: " + url + "\nwith source: " + sourceString +
+						"\nresponse: " + getEntity(response));
 				return false;
 			}
 		} catch (Exception e) {
-			System.out.println("fail on url: " + url + "\n" + source + "\n");
+			System.out.println("fail on url: " + url);
 			e.printStackTrace();
 		}
 		return false;
@@ -232,14 +284,18 @@ public class ElasticUtil {
 	 * @return
 	 */
 	public boolean update(String index, String type, String id, JsonObject source, boolean isUpsert) {
-		String sourceStr = null, url = null;
+		String sourceString = null, url = null;
 		try {
-			url = String.format("/%s/%s/%s/_update", index, type, id).replace(" ", "");
+			if (null == index || null == type || id == null) {
+				System.out.println("[index], [type], [id] must be not null"); return false;
+			}
+			url = String.format("%s/%s/%s/%s/_update", host, index, type, id).replace(" ", "");
 			Map<String, Object> map = new HashMap<String, Object>();
+			if (null == source) { source = new JsonObject(); }
 			map.put("doc", source);
 			map.put("doc_as_upsert", isUpsert);
-			sourceStr = JsonUtil.toJson(map);
-			HttpResponse response = client.execute(postMethod(url, sourceStr));
+			sourceString = JsonUtil.toJson(map);
+			HttpResponse response = client.execute(postMethod(url, sourceString));
 			if (200 == response.getStatusLine().getStatusCode() ||
 					201 == response.getStatusLine().getStatusCode()) {
 				return true;
@@ -247,18 +303,20 @@ public class ElasticUtil {
 				System.out.format("[%s][%s][%s]: document missing\n", index, type, id);
 				return false;
 			} else {
-				System.out.println("fail on url: " + url + "\n" + sourceStr + "\n");
+				System.out.println("fail on url: " + url + "\nwith source: " + sourceString +
+						"\nresponse: " + getEntity(response));
 				return false;
 			}
 		} catch (Exception e) {
-			System.out.println("fail on url: " + url + "\n" + sourceStr + "\n");
+			System.out.println("fail on url: " + url + "\n" + sourceString + "\n");
 			e.printStackTrace();
 		}
 		return false;
 	}
 
 	/**
-	 * 发起批量请求
+	 * 发起批量请求, 支持 index, create, update, delete(被屏蔽), 其中 index, update, create 下一行都需要是
+	 * 文档的内容, delete 下一行不能是文档的内容
 	 * @param url
 	 * @param entity
 	 * @return
@@ -269,31 +327,53 @@ public class ElasticUtil {
 			HttpResponse response = client.execute(postMethod(url, entity));
 			if (200 != response.getStatusLine().getStatusCode()) {
 				System.out.println("bulk insert error, with resposne: " + getEntity(response));
-				Arrays.fill(responseItems, BulkResponse.itemFalse);
-				return new BulkResponse(false, responseItems);
+				return getAllFlaseResponse(size);
 			} else {
 				JsonObject responseObject = JsonUtil.toJsonMap(getEntity(response));
-				boolean isSuccess = responseObject.get("errors").getAsBoolean();
-				if (isSuccess) {
+				boolean hasErrors = responseObject.get("errors").getAsBoolean();
+				if (!hasErrors) {
 					return new BulkResponse(true, responseItems);
 				} else {
+					System.out.println(responseObject);
 					JsonArray responseArray = responseObject.getAsJsonArray("items");
 					for (int i = 0; i < responseArray.size(); i++) {
-						int status = responseArray.get(i).getAsJsonObject().get("status").getAsInt();
-						if (200 != status && 201 != status) { responseItems[i] = BulkResponse.itemFalse; }
+						int status = getBulkItemStatus(responseArray.get(i).getAsJsonObject());
+						if (200 != status && 201 != status) { responseItems[i] = itemFalse; }
 					}
 					return new BulkResponse(false, responseItems);
 				}
 			}
 		} catch (Exception e) {
 			System.out.println("bulk operation error for url: " + url);
-			Arrays.fill(responseItems, BulkResponse.itemFalse);
-			return new BulkResponse(false, responseItems);
+			e.printStackTrace();
+		  return getAllFlaseResponse(size);
 		}
 	}
 
+	private int getBulkItemStatus(JsonObject item) {
+		if (item.has("create")) {
+			return item.getAsJsonObject("create").get("status").getAsInt();
+		} else if (item.has("index")) {
+			return item.getAsJsonObject("index").get("status").getAsInt();
+		} else if (item.has("update")) {
+			return item.getAsJsonObject("update").get("status").getAsInt();
+		} else if (item.has("delete")) {
+			return item.getAsJsonObject("delete").get("status").getAsInt();
+		} else {
+			System.out.println("unknown bulk action for response item: " + item);
+			return 400;
+		}
+	}
+
+	private BulkResponse getAllFlaseResponse(int size) {
+		byte[] responseItems = new byte[size];
+		Arrays.fill(responseItems, itemFalse);
+		return new BulkResponse(false, responseItems);
+	}
+
 	/**
-	 * 缓存队列式批量写入，每秒写入一次, 时间不到1s, 返回写入成功,其实在程序缓存中
+	 * 缓存队列式批量写入，每秒写入一次, 时间不到1s, 返回写入成功,其实在程序缓存中,
+	 * 这时候如果程序崩溃或者重启会丢失这一秒的数据
 	 *
 	 * @param index-ES的index
 	 * @param type-ES的type
@@ -318,11 +398,12 @@ public class ElasticUtil {
 				System.out.println("content count:" + count);
 				count = 0;
 				BulkResponse response = bulk(String.format("%s/_bulk", host), entity, count);
-				if (response.isSuccess()) {
-					return true;
-				} else { // 如果请求失败,这里打印了所有的请求,有可能量很大, TODO:@massage 如果不是用它来记录客户端上报的数据的话我想删掉这行打印
+				if (response.hasFail()) {
+					// 如果请求失败,这里打印了所有的请求,有可能量很大, TODO:@massage 如果不是用它来记录客户端上报的数据的话我想删掉这行打印
 					System.out.println("bulk insert buffer fail, the source is:\n" + entity);
 					return false;
+				} else {
+					return true;
 				}
 			} else {
 				return true;
@@ -335,24 +416,6 @@ public class ElasticUtil {
 	}
 
 	/**
-	 * 批量插入,为每一个 source 指定不同的 index 和 type
-	 *
-	 * @param source-bulk 操作,
-	 * 前一行是action_and_meta,比如{ "index" : { "_index" : "test", "_type" : "type1", "_id" : "1" } }
-	 * 后一行是optional_source,比如{ "field1" : "value1" }
-	 * @return
-	 */
-	public BulkResponse bulkInsert(List<Pair<String, String>> source) {
-		StringBuilder entity = new StringBuilder();
-		Iterator<Pair<String, String>> it = source.iterator();
-		while (it.hasNext()) {
-			Pair<String, String> pair = it.next();
-			entity.append(pair.getKey() + "\n" + pair.getValue() + "\n");
-		}
-		return bulk(String.format("%s/_bulk", host), entity.toString(), source.size());
-	}
-
-	/**
 	 * 批量写入,写入同一个 index 和 type
 	 *
 	 * @param index-ES的index
@@ -361,42 +424,78 @@ public class ElasticUtil {
 	 * @return
 	 */
 	public BulkResponse bulkInsert(String index, String type, Map<String, String> source) {
-		String actionAndMeta = "{\"index\":{\"_id\":\"%s\"}}\n";
+		String idFormat = "{\"index\": {\"_id\": \"%s\"}}\n";
+		if (null == index || null == type) {
+			System.out.println("bulk insert into one index and type must specify index and type");
+			return getAllFlaseResponse(source.size());
+		}
 		StringBuilder entity = new StringBuilder();
-		Iterator it = source.keySet().iterator();
-		while (it.hasNext()) {
-			String key = (String)it.next();
-			entity.append(String.format(actionAndMeta, key) + source.get(key) + "\n");
+		for (String id: source.keySet()) {
+			entity.append(String.format(idFormat, id)).append(source.get(id)).append("\n");
 		}
 		String urlFormat = "%s/%s/%s/_bulk";
 		return bulk(String.format(urlFormat, host, index, type), entity.toString(), source.size());
 	}
 
 	/**
-	 * 批量更新,使用同一个脚本同一个 index 和 type
+	 * 批量更新,同一个 index 和 type
 	 *
 	 * @param index-ES的index
 	 * @param type-ES的type
 	 * @param source-更新的内容, key为id，value为source
-	 * @param script-放在 elasticsearch home 目录下的 config/script 目录下的groovy脚本,
+	 * @param upsert-文档不存在时插入,其实控制粒度是对于每一个文档的,但是这里为了方便输入,粒度为同一次批量的文档
+	 * @return
+	 */
+	public BulkResponse bulkUpdate(String index, String type, Map<String, JsonObject> source,
+			boolean upsert) {
+		String idFormat = "{\"update\": {\"_id\": \"%s\"}}\n";
+		if (null == index || null == type) {
+			System.out.println("bulk update into one index and type must specify index and type");
+			return getAllFlaseResponse(source.size());
+		}
+		StringBuilder entity = new StringBuilder();
+		for (String id : source.keySet()) {
+			JsonObject item = new JsonObject();
+			item.add("doc", source.get(id));
+			if (upsert) { item.addProperty("doc_as_upsert", true); }
+			entity.append(String.format(idFormat, id)).append(item).append("\n");
+		}
+		String urlFormat = "%s/%s/%s/_bulk";
+		return bulk(String.format(urlFormat, host, index, type), entity.toString(), source.size());
+	}
+
+	/**
+	 * 批量更新,使用同一个脚本同一个 index 和 type.
+	 * @param index-ES的index
+	 * @param type-ES的type
+	 * @param source-更新的内容, key为id，value为source
+	 * @param scriptFile-放在 elasticsearch home 目录下的 config/script 目录下的groovy脚本,
 	 * 为了安全,不支持在请求中带上脚本
 	 * 之所以是 groovy 脚本,因为 groovy 是 2.x 和 5.x 都支持的
 	 * @param upsert-文档不存在时插入,其实控制粒度是对于每一个文档的,但是这里为了方便输入,粒度为同一次批量的文档
 	 * @return
 	 */
-	public BulkResponse bulkUpdate(String index, String type, Map<String, Object> source,
-			String script, boolean upsert) {
-		String actionAndMeta = "{\"update\":{\"_id\":\"%s\"}}\n";
+	public BulkResponse bulkUpdateByScript(String index, String type, Map<String, JsonObject> source,
+			String scriptFile, boolean upsert) {
+		String idFormat = "{\"update\": {\"_id\": \"%s\"}}\n";
+		if (null == index || null == type) {
+			System.out.println("bulk update into one index and type must specify index and type");
+			byte[] responseItems = new byte[source.size()];
+			Arrays.fill(responseItems, itemFalse);
+			return new BulkResponse(false, responseItems);
+		}
 		StringBuilder entity = new StringBuilder();
-		for (String key : source.keySet()) {
-			StringBuilder item = new StringBuilder();
-			item.append(
-					String.format("{\"script\":{ \"lang\":\"groovy\",\"file\":\"%s\",\"params\": %s}}",
-					script, JsonUtil.toJson(source.get(key))));
+		for (String id : source.keySet()) {
+			JsonObject item = new JsonObject();
+			JsonObject scriptObject = new JsonObject();
+			scriptObject.addProperty("lang", "groovy");
+			scriptObject.addProperty("file", scriptFile);
+			scriptObject.add("params", source.get(id));
+			item.add("script", scriptObject);
 			if (upsert) {
-				item.append(",{\"scripted_upsert\":true,}");
+				item.add("upsert", source.get(id));
 			}
-			entity.append(String.format(actionAndMeta, key) + source.get(key) + "\n");
+			entity.append(String.format(idFormat, id)).append(item).append("\n");
 		}
 		String urlFormat = "%s/%s/%s/_bulk";
 		return bulk(String.format(urlFormat, host, index, type), entity.toString(), source.size());
@@ -413,9 +512,10 @@ public class ElasticUtil {
 		try {
 		 	String url = null == type ? String.format(hostIndexFormat, host, index) + "_search" :
 				  String.format(hostIndexTypeFormat, host, index, type) + "_search";
+			System.out.println(searchRequest.toJson());
 		 	HttpResponse response = client.execute(postMethod(url, searchRequest.toJson()));
 			if (200 != response.getStatusLine().getStatusCode()) {
-				System.out.println("search fail on url: " + url);
+				System.out.println("search fail on url: " + url + ", response:\n" + getEntity(response));
 				return null;
 			}
 			return getEntity(response);
@@ -615,27 +715,6 @@ public class ElasticUtil {
 		} catch (Exception var3) {
 			var3.printStackTrace();
 			return null;
-		}
-	}
-
-	/**
-	 * 根据 mapping 文件创建 index
-	 * @param mappingsFile
-	 */
-	public void initIndex(String host, String mappingsFile) {
-		JsonArray indexArray = JsonUtil.toJsonArray(
-				FileUtil.stream2string(PropertiesUtil.getInputStream(mappingsFile)));
-		for(JsonElement e : indexArray) {
-			String indexName = e.getAsJsonObject().get("index").getAsString();
-			System.out.println("indexName: " + indexName);
-			e.getAsJsonObject().remove("index");
-			String createIndexJson = e.getAsJsonObject().toString();
-			System.out.println(e.getAsJsonObject());
-			if (checkIndexExist(indexName)) {
-				System.out.println("index: " + indexName + " already exist");
-			} else {
-				createIndex(indexName, createIndexJson);
-			}
 		}
 	}
 
