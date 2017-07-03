@@ -42,9 +42,6 @@ import org.apache.http.util.EntityUtils;
  */
 public class ElasticUtil {
 	private static final String[] replaceArray = { "\t", "\n" };
-	private static final String successBatchLog = "success--%s--%s";
-	private static final String failLog = "fail--/%s/%s/%s--%s";
-	private static final String failreason = "failreason--";
 	private static final String failException = "failreason--exception";
 
 	private static final String hostFormat = "%s/";
@@ -204,20 +201,21 @@ public class ElasticUtil {
 	 * @param source-写入的内容
 	 * @return
 	 */
-	public boolean insert(String index, String type, String id, String source) {
+	public boolean insert(String index, String type, String id, JsonObject source) {
 		String url = null;
 		try {
 			url = String.format("%s/%s/%s/%s", host, index, type, id).replace(" ", "");
-			HttpResponse response = client.execute(postMethod(url, source));
+			HttpResponse response = client.execute(postMethod(url, JsonUtil.toJson(source)));
 			// index response status can be 201 or 200, 201 indicate first create, 200 indicate update
 			if (200 == response.getStatusLine().getStatusCode() ||
 					201 == response.getStatusLine().getStatusCode()) {
 				return true;
 			} else {
+				System.out.println("fail on url: " + url + "\n" + source + "\n");
 				return false;
 			}
 		} catch (Exception e) {
-			System.out.println(failException + "\n" + url + source + "\n");
+			System.out.println("fail on url: " + url + "\n" + source + "\n");
 			e.printStackTrace();
 		}
 		return false;
@@ -233,7 +231,7 @@ public class ElasticUtil {
 	 * @param isUpsert-true 表示如果文档不存在则插入,false 时如果不存在则不插入
 	 * @return
 	 */
-	public boolean update(String index, String type, String id, Object source, boolean isUpsert) {
+	public boolean update(String index, String type, String id, JsonObject source, boolean isUpsert) {
 		String sourceStr = null, url = null;
 		try {
 			url = String.format("/%s/%s/%s/_update", index, type, id).replace(" ", "");
@@ -249,11 +247,11 @@ public class ElasticUtil {
 				System.out.format("[%s][%s][%s]: document missing\n", index, type, id);
 				return false;
 			} else {
-				System.out.println(response.getStatusLine().getStatusCode());
+				System.out.println("fail on url: " + url + "\n" + sourceStr + "\n");
 				return false;
 			}
 		} catch (Exception e) {
-			System.out.println(failException + "\n" + url + sourceStr + "\n");
+			System.out.println("fail on url: " + url + "\n" + sourceStr + "\n");
 			e.printStackTrace();
 		}
 		return false;
@@ -322,7 +320,7 @@ public class ElasticUtil {
 				BulkResponse response = bulk(String.format("%s/_bulk", host), entity, count);
 				if (response.isSuccess()) {
 					return true;
-				} else { // 这里打印了所有的请求,有可能量很大, TODO:@massage 如果不是用它来记录客户端上报的数据的话我想删掉这行打印
+				} else { // 如果请求失败,这里打印了所有的请求,有可能量很大, TODO:@massage 如果不是用它来记录客户端上报的数据的话我想删掉这行打印
 					System.out.println("bulk insert buffer fail, the source is:\n" + entity);
 					return false;
 				}
@@ -330,7 +328,7 @@ public class ElasticUtil {
 				return true;
 			}
 		} catch (Exception e) {
-			System.out.println(failException + "\n" + entity);
+			System.out.println("bulk insert buffer fail, the source is:\n" + entity);
 			e.printStackTrace();
 		}
 		return false;
@@ -405,25 +403,54 @@ public class ElasticUtil {
 	}
 
 	/**
-	 * 对同一个 index 和 type( 可以为空) 进行批量搜索
+	 * 查询或者聚合请求
+	 * @param index ES的index(可以包含*作为通配符)
+	 * @param type ES的type(可以为空)
+	 * @param searchRequest
+	 * @return
+	 */
+	public String search(String index, String type, SearchRequest searchRequest) {
+		try {
+		 	String url = null == type ? String.format(hostIndexFormat, host, index) + "_search" :
+				  String.format(hostIndexTypeFormat, host, index, type) + "_search";
+		 	HttpResponse response = client.execute(postMethod(url, searchRequest.toJson()));
+			if (200 != response.getStatusLine().getStatusCode()) {
+				System.out.println("search fail on url: " + url);
+				return null;
+			}
+			return getEntity(response);
+		} catch (Exception e) {
+			System.out.println("format search request fail, pls check");
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	/**
+	 * 对同一个 index(可以包含*作为通配符) 和 type(可以为空) 进行批量搜索
 	 *
 	 * @param index-ES的index
 	 * @param type-ES的type(可以为空)
-	 * @param queries-query 的列表
+	 * @param searches-请求的列表
 	 * @return
 	 */
-	public String mSearch(String index, String type, List<Query> queries) {
+	public String mSearch(String index, String type, List<SearchRequest> searches) {
 		String url = null;
 		try {
 			url = null == type ? String.format(hostIndexFormat, host, index) + "_msearch" :
 					String.format(hostIndexTypeFormat, host, index, type) + "_msearch";
-			HttpResponse response = client.execute(postMethod(url, url));
-			String content = getEntity(response);
-			String fLog = failreason + content + "\n" + url;
-			handleResp(response, null, fLog);
-			return content;
+			StringBuilder entity = new StringBuilder();
+			for (SearchRequest searchRequest: searches) {
+				entity.append("{}\n"); entity.append(searchRequest.toJson());
+			}
+			HttpResponse response = client.execute(postMethod(url, entity.toString()));
+			if (200 != response.getStatusLine().getStatusCode()) {
+				System.out.println("search fail on url: " + url + "with source:\n" + entity.toString());
+				return null;
+			}
+			return getEntity(response);
 		} catch (Exception e) {
-			System.out.println(failException + "\n" + url);
+			System.out.println("search fail on url: " + url);
 			e.printStackTrace();
 		}
 		return null;
@@ -434,10 +461,9 @@ public class ElasticUtil {
 	 * @return
 	 */
 	public String[] getIndexName(String indexNameReg) {
-		String url = host + "/_cat/indices/" + indexNameReg;
 		try {
 			HttpResponse response = client.execute(getMethod(host + "/_cat/indices/" + indexNameReg));
-			if (!isSuccess(response)) {
+			if (200 != response.getStatusLine().getStatusCode()) {
 				System.out.println("get index name error, with response: " + getEntity(response));
 				return null;
 			}
@@ -455,39 +481,34 @@ public class ElasticUtil {
 		}
 	}
 
-	/**
-	 * 获取首次 scroll 查询
-	 * @param index
-	 * @return
-	 */
-	public String getFirstScrollSearch(String index, String query) {
-		return getFirstScrollSearch(index, null, query);
+	public String getFirstScrollSearch(String index) {
+		return getFirstScrollSearch(index, null, null);
+	}
+
+	public String getFirstScrollSearch(String index, SearchRequest searchRequest) {
+		return getFirstScrollSearch(index, null, searchRequest);
 	}
 
 	/**
 	 * 获取首次 scroll 查询
-	 * @param index
-	 * @param type
+	 * @param index 可以是通配符,不能为空
+	 * @param type 可以为空
+	 * @param searchRequest 可以为空
 	 * @return
 	 */
-	public String getFirstScrollSearch(String index, String type, String query) {
-		long start = System.currentTimeMillis();
+	public String getFirstScrollSearch(String index, String type, SearchRequest searchRequest) {
 		String url = null == type ? String.format(hostIndexFormat + "_search?scroll=5m", host, index) :
 				String.format(hostIndexTypeFormat + "_search?scroll=5m", host, index, type);
-		if (null == query) {
-			query = "";
-		}
 		try {
+			String query = (null ==  searchRequest? "" : searchRequest.toJson());
 			HttpResponse response = client.execute(postMethod(url, query));
-			String content = getEntity(response);
-			String sLog = String.format("success--scroll--%s", System.currentTimeMillis() - start);
-			String fLog = failreason + content + "\n" + query;
-			if (!handleResp(response, sLog, fLog)) {
+			if (200 != response.getStatusLine().getStatusCode()) {
+				System.out.println("fail on scroll search :" + url + "\n response: " + getEntity(response));
 				return null;
 			}
-			return content;
+			return getEntity(response);
 		} catch (Exception e) {
-			System.out.println(failException + "\n" + query);
+			System.out.println("fail on scroll search url: " + url);
 			e.printStackTrace();
 		}
 		return null;
@@ -500,18 +521,15 @@ public class ElasticUtil {
 	 */
 	public String getScrollSearch(String scrollId) {
 		String url = String.format("%s/_search/scroll?scroll=5m&scroll_id=%s", host, scrollId);
-		long start = System.currentTimeMillis();
 		try {
 			HttpResponse response = client.execute(getMethod(url));
-			String content = getEntity(response);
-			String sLog = String.format("success--scroll--%s", System.currentTimeMillis() - start);
-			String fLog = failreason + content;
-			if (!handleResp(response, sLog, fLog)) {
+			if (200 != response.getStatusLine().getStatusCode()) {
+				System.out.println("fail on scroll search :" + url + "\n response: " + getEntity(response));
 				return null;
 			}
-			return content;
+			return getEntity(response);
 		} catch (Exception e) {
-			System.out.println(failException);
+			System.out.println("fail on scroll search url: " + url);
 			e.printStackTrace();
 		}
 		return null;
@@ -564,7 +582,7 @@ public class ElasticUtil {
 	}
 
 	/**
-	 * 创建索引
+	 * 创建索引, 请先运行 checkIndexExist 判断是否存在,不要直接运行
 	 * @param index
 	 * @param mappings
 	 * @return
@@ -647,29 +665,22 @@ public class ElasticUtil {
 	 * 查询 es 的结果保存成 csv
 	 * @param index
 	 * @param type
-	 * @param query
+	 * @param searchRequest
 	 * @param filePath
 	 * @param jObjectToCsvFunc
 	 */
 	public void dumpESDataToCsv(
 			String index,
 			String type,
-			String query,
+			SearchRequest searchRequest,
 			String filePath,
 			Function<JsonObject, String> jObjectToCsvFunc) {
 		assert(index != null && filePath != null && jObjectToCsvFunc != null);
-		if (null == query) {
-			query = "{}";
-		}
 		try {
 			File f = new File(filePath);
-			if (!f.exists()) {
-				f.createNewFile();
-			}
-			String resp = getFirstScrollSearch(index, type, query);
-			if (null == resp && responseHasError(resp)) {
-				return;
-			}
+			if (!f.exists()) { f.createNewFile(); }
+			String resp = getFirstScrollSearch(index, type, searchRequest);
+			if (null == resp) { System.out.println("search get empty result, terminate."); return; }
 			JsonObject result = JsonUtil.toJsonMap(resp);
 			String scrollId;
 			JsonArray array = result.getAsJsonObject("hits").getAsJsonArray("hits");
@@ -696,82 +707,9 @@ public class ElasticUtil {
 						.getAsJsonObject("hits").getAsJsonArray("hits");
 				System.out.println("index: " + index + TimeUtil.printProgress((double)count/total));
 			}
-		} catch (IOException ex) {
+		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
-	}
-
-	private boolean isSuccess(HttpResponse response) {
-		return 200 == response.getStatusLine().getStatusCode()
-				|| 201 == response.getStatusLine().getStatusCode();
-	}
-
-	private boolean handleResp(HttpResponse resp, String successLog, String failLog) {
-		if (isSuccess(resp)) {
-			if (null != successLog) {
-				System.out.println(successLog);
-			}
-			return true;
-		} else {
-			System.out.println(failLog);
-			return false;
-		}
-	}
-
-	/**
-	 * 判断 es 返回的 response 是否包含错误
-	 * 批量接口错误返回 errors 的值为 true, 单条接口错误返回 error
-	 * @param response
-	 * @return
-	 */
-	public boolean responseHasError(JsonObject response) {
-		if (response.has("error")) {
-			return true;
-		}
-		if (response.has("errors") && "true".equals(response.get("errors").toString())) {
-			return true;
-		}
-		return false;
-	}
-
-	/**
-	 * 由于批量操作时 response 很大,将字符串变成 json 代价大,所以使用查看前 100 个字符中是否包含 error,errors,
-	 * 如果没有则返回 false, 有则进一步解析 json 看是否值真的有 error, 还是由于内容中包含 error 关键词引起的
-	 * @param response
-	 * @return
-	 */
-	public boolean responseHasError(String response) {
-		String prefix = response.substring(0, 100);
-		if (prefix.contains("error") ||
-				(prefix.contains("errors") && prefix.contains("true"))) {
-			return responseHasError(JsonUtil.toJsonMap(response));
-		} else {
-			return false;
-		}
-	}
-
-	public static JsonArray getError(JsonObject response) {
-		if (response.has("error")) {
-			JsonArray result = new JsonArray();
-			result.add(response);
-			return result;
-		}
-		if (response.has("errors") && "true".equals(response.get("errors").toString())) {
-			JsonArray result = new JsonArray();
-			for (JsonElement elem: response.getAsJsonArray("items")) {
-				JsonObject item = elem.getAsJsonObject();
-				if (item.toString().contains("error")) {
-					System.out.println("get a error:" + item);
-					result.add(item);
-				}
-			}
-			return result;
-		}
-		return new JsonArray();
-	}
-
-	public static JsonArray getError(String response) {
-		return getError(JsonUtil.toJsonMap(response));
 	}
 
 	public enum Version { es2, es5 }
