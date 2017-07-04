@@ -10,15 +10,16 @@ import com.quickutil.platform.JsonUtil;
 public class DateHistogramAggs extends AggsDSL {
 	private String fieldName = null, format = null, timeZone, interval = null;
 	private Boolean keyed;
+	private Integer minDocCount;
 
 	public DateHistogramAggs(String aggsName, String fieldName, Interval interval) {
-		super("data_histogram", aggsName);
+		super("date_histogram", aggsName);
 		this.fieldName = fieldName;
 		this.interval = interval.toString();
 	}
 
 	public DateHistogramAggs(String aggsName, String fieldName, String interval) {
-		super("data_histogram", aggsName);
+		super("date_histogram", aggsName);
 		this.fieldName = fieldName;
 		this.interval = interval;
 	}
@@ -79,7 +80,12 @@ public class DateHistogramAggs extends AggsDSL {
 		return this;
 	}
 
-	public String toJson() throws FormatQueryException {
+	public DateHistogramAggs setMinDocCount(int minDocCount) {
+		this.minDocCount = minDocCount;
+		return this;
+	}
+
+	public JsonObject toJson() throws FormatQueryException {
 		JsonObject dateHistogramObject = new JsonObject();
 		dateHistogramObject.addProperty("field", fieldName);
 		dateHistogramObject.addProperty("interval", interval);

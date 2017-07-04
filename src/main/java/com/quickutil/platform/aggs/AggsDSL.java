@@ -1,6 +1,7 @@
 package com.quickutil.platform.aggs;
 
 import com.google.gson.JsonObject;
+import com.quickutil.platform.ElasticUtil.Version;
 import com.quickutil.platform.FormatQueryException;
 import com.quickutil.platform.JsonUtil;
 
@@ -33,16 +34,16 @@ public abstract class AggsDSL {
 		this.aggsName = aggsName;
 	}
 
-	public abstract String toJson() throws FormatQueryException;
+	public abstract JsonObject toJson() throws FormatQueryException;
 
-	protected String warpAggs(JsonObject child) throws FormatQueryException {
+	protected JsonObject warpAggs(JsonObject child) throws FormatQueryException {
 		JsonObject wrap = new JsonObject();
 		wrap.add(type, child);
 		if (null != subAggs) {
-			wrap.addProperty("aggs", subAggs.toJson());
+			wrap.add("aggs", subAggs.toJson());
 		}
 		JsonObject aggs = new JsonObject();
 		aggs.add(aggsName, wrap);
-		return JsonUtil.toJson(aggs);
+		return aggs;
 	}
 }

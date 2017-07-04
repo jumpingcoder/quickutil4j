@@ -9,9 +9,22 @@ import com.quickutil.platform.FormatQueryException;
 public class CardinalityAggs extends AggsDSL {
 	private String fieldName = null, missing = null;
 	private Integer precisionThreshold = null;
+	private Boolean isKeyWord = null;
 
-	public CardinalityAggs(String aggsName, String fieldName) {
+	/**
+	 *
+	 * @param aggsName
+	 * @param fieldName
+	 * @param isKeyword 2.x 不支持 keyword, 设置为 false,
+	 * 5.x 的字符串字段要设置 keyword 为 true, 数值和日期字段要设置为 false,也就是只有 5.x 的字符字段为 true
+	 */
+	public CardinalityAggs(String aggsName, String fieldName, boolean isKeyword) {
 		super("cardinality", aggsName);
+		this.fieldName = fieldName;
+		if (isKeyword) {
+			this.fieldName += ".keyword";
+		}
+		this.isKeyWord = isKeyword;
 	}
 
 	/**
@@ -33,7 +46,7 @@ public class CardinalityAggs extends AggsDSL {
 		return this;
 	}
 
-	public String toJson() throws FormatQueryException {
+	public JsonObject toJson() throws FormatQueryException {
 		JsonObject cardinalityObject = new JsonObject();
 		cardinalityObject.addProperty("field", fieldName);
 		if (null != missing) {

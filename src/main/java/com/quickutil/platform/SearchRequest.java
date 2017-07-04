@@ -57,7 +57,7 @@ public class SearchRequest {
 			queryObject.add("query", query.toJson());
 		}
 		if (null != aggs) {
-			queryObject.addProperty("aggs", aggs.toJson());
+			queryObject.add("aggs", aggs.toJson());
 		}
 		if (null != size) {
 			queryObject.addProperty("size", size);

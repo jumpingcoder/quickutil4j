@@ -43,7 +43,7 @@ public class HistogramAggs extends AggsDSL {
 	}
 
 	@Override
-	public String toJson() throws FormatQueryException {
+	public JsonObject toJson() throws FormatQueryException {
 		JsonObject histogramObject = new JsonObject();
 		histogramObject.addProperty("field", fieldName);
 		histogramObject.addProperty("interval", interval);

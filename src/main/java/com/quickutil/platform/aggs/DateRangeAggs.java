@@ -40,6 +40,17 @@ public class DateRangeAggs extends AggsDSL {
 	}
 
 	/**
+	 * 默认情况下是 false, 如果设置为 key, 返回的 buckets 就是一个 JsonObject 而不是 JsonArray,
+	 * buckets 中的每一个 bucket 都有一个 key
+	 * @param keyed
+	 * @return
+	 */
+	public DateRangeAggs setKeyed(boolean keyed) {
+		this.keyed = keyed;
+		return this;
+	}
+
+	/**
 	 * es 中的时间字段是使用 utc 时间存储的,所以聚合默认也是使用 utc 时间,如果制定了 timezone 字段,则聚合是按照
 	 * 指定的时区进行的,会将 es 中存储的 utc 时间变成指定时区的时间再进行聚合
 	 * 支持 ISO 8601 UTC offset (e.g. +01:00 or -08:00) 或者是时区 id 例如 America/Los_Angeles
@@ -52,7 +63,7 @@ public class DateRangeAggs extends AggsDSL {
 	}
 
 	@Override
-	public String toJson() throws FormatQueryException {
+	public JsonObject toJson() throws FormatQueryException {
 		if (ranges.isEmpty()) {
 			throw new FormatQueryException("ranges must be not empty");
 		}

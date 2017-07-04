@@ -36,7 +36,7 @@ public class RangeAggs extends AggsDSL {
 	}
 
 	@Override
-	public String toJson() throws FormatQueryException {
+	public JsonObject toJson() throws FormatQueryException {
 		if (ranges.isEmpty()) {
 			throw new FormatQueryException("ranges must be not empty");
 		}

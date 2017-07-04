@@ -11,20 +11,21 @@ import com.quickutil.platform.JsonUtil;
  * @author shijie.ruan
  */
 public class ExtendedStatsAggs extends AggsDSL {
-	private String fieldName = null, missing = null;
+	private String fieldName = null;
+	private Number missing = null;
 
 	public ExtendedStatsAggs(String aggsName, String fieldName) {
 		super("extended_stats", aggsName);
 		this.fieldName = fieldName;
 	}
 
-	public ExtendedStatsAggs setMissing(String missing) {
+	public ExtendedStatsAggs setMissing(Number missing) {
 		this.missing = missing;
 		return this;
 	}
 
 	@Override
-	public String toJson() throws FormatQueryException {
+	public JsonObject toJson() throws FormatQueryException {
 		JsonObject statObject = new JsonObject();
 		statObject.addProperty("field", fieldName);
 		if (null != missing) {

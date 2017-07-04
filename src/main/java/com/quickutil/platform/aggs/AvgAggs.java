@@ -25,7 +25,7 @@ public class AvgAggs extends AggsDSL {
 		return this;
 	}
 
-	public String toJson() throws FormatQueryException {
+	public JsonObject toJson() throws FormatQueryException {
 		JsonObject avgObject = new JsonObject();
 		avgObject.addProperty("field", fieldName);
 		if (null != missing) {

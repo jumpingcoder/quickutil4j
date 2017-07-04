@@ -10,12 +10,16 @@ import com.quickutil.platform.JsonUtil;
 public class TermsAggs extends AggsDSL {
 	private String fieldName;
 	private Order order;
-	private Integer size;
-	private Integer minDocCount;
+	private Integer size, minDocCount;
+	private Boolean isKeyword;
 
-	public TermsAggs(String aggsName, String fieldName) {
+	public TermsAggs(String aggsName, String fieldName, boolean isKeyword) {
 		super("terms", aggsName);
 		this.fieldName = fieldName;
+		if (isKeyword) {
+			this.fieldName += ".keyword";
+		}
+		this.isKeyword = isKeyword;
 	}
 
 	public TermsAggs setSize(int size) { this.size = size; return this; }
@@ -25,7 +29,7 @@ public class TermsAggs extends AggsDSL {
 	public TermsAggs setMinDocCount(int minDocCount) { this.minDocCount = minDocCount; return this; }
 
 	@Override
-	public String toJson() throws FormatQueryException {
+	public JsonObject toJson() throws FormatQueryException {
 		JsonObject termsObject = new JsonObject();
 		termsObject.addProperty("field", fieldName);
 		if (null != size) {
