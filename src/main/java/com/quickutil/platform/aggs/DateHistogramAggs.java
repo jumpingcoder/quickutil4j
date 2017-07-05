@@ -9,6 +9,7 @@ import com.quickutil.platform.JsonUtil;
  */
 public class DateHistogramAggs extends AggsDSL {
 	private String fieldName = null, format = null, timeZone, interval = null;
+	private String extendedBoundMin, extendedBoundMax;
 	private Boolean keyed;
 	private Integer minDocCount;
 
@@ -85,6 +86,24 @@ public class DateHistogramAggs extends AggsDSL {
 		return this;
 	}
 
+	public DateHistogramAggs setExtendedBoundMin(Long extendedBoundMin) {
+		return setExtendedBoundMin(Long.toString(extendedBoundMin));
+	}
+
+	public DateHistogramAggs setExtendedBoundMin(String extendedBoundMin) {
+		this.extendedBoundMin = extendedBoundMin;
+		return this;
+	}
+
+	public DateHistogramAggs setExtendedBoundMax(Long extendedBoundMax) {
+		return setExtendedBoundMax(Long.toString(extendedBoundMax));
+	}
+
+	public DateHistogramAggs setExtendedBoundMax(String extendedBoundMax) {
+		this.extendedBoundMax = extendedBoundMax;
+		return this;
+	}
+
 	public JsonObject toJson() throws FormatQueryException {
 		JsonObject dateHistogramObject = new JsonObject();
 		dateHistogramObject.addProperty("field", fieldName);
@@ -97,6 +116,12 @@ public class DateHistogramAggs extends AggsDSL {
 		}
 		if (null != keyed) {
 			dateHistogramObject.addProperty("keyed", keyed);
+		}
+		if (null != extendedBoundMin || null != extendedBoundMax) {
+			JsonObject extendedBounds = new JsonObject();
+			if (null != extendedBoundMin) {extendedBounds.addProperty("min", extendedBoundMin);}
+			if (null != extendedBoundMin) {extendedBounds.addProperty("max", extendedBoundMax);}
+			dateHistogramObject.add("extended_bounds", extendedBounds);
 		}
 		return warpAggs(dateHistogramObject);
 	}

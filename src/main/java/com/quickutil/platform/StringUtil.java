@@ -51,6 +51,11 @@ public class StringUtil {
 	 * @return
 	 */
 	public static String mkORSubQuery(String[] array) {
+		for(int i = 0; i < array.length; i++) {
+			if (array[i].contains(" "))
+				array[i] = "\"" + array[i] + "\"";
+//				array[i] = array[i].replace(" ", "\\\\ ");
+		}
 		return mkString(array, " OR ", "(", ")");
 	}
 

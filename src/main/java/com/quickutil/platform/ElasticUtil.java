@@ -5,7 +5,6 @@ import static com.quickutil.platform.BulkResponse.itemFalse;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.quickutil.platform.aggs.AggsDSL;
 import com.quickutil.platform.aggs.AvgAggs;
 import com.quickutil.platform.aggs.CardinalityAggs;
 import com.quickutil.platform.aggs.DateHistogramAggs;
@@ -17,6 +16,7 @@ import com.quickutil.platform.aggs.Order;
 import com.quickutil.platform.aggs.Order.Sort;
 import com.quickutil.platform.aggs.Range;
 import com.quickutil.platform.aggs.RangeAggs;
+import com.quickutil.platform.aggs.SumAggs;
 import com.quickutil.platform.aggs.TermsAggs;
 import com.quickutil.platform.query.BoolQuery;
 import com.quickutil.platform.query.MatchAllQuery;
@@ -119,7 +119,7 @@ public class ElasticUtil {
 				.setRetryHandler(httpRequestRetryHandler).build();
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws FormatQueryException {
 		ElasticUtil elasticUtil = new ElasticUtil("http://10.10.3.166:9200", Version.es5);
 //		JsonObject a = new JsonObject();
 //		a.addProperty("len", 100);
@@ -179,7 +179,19 @@ public class ElasticUtil {
 		TermsAggs termsAggsFor2 = new TermsAggs("termsa", "name", false);
 		termsAggsFor2.setOrder(new Order("_count"));
 
-		searchRequest = new SearchRequest(matchAllQuery, termsAggsFor5);
+
+
+		String[] sumAggsFields = { "pageviews","sessions","newUsers" };
+		String[] avgAggsFields = { "pageviewsPerSession","bounceRate" };
+		for (String sumAggsField: sumAggsFields) {
+			termsAggsFor2.addSubAggs(new SumAggs(sumAggsField, sumAggsField));
+		}
+		for (String avgAggsField: avgAggsFields) {
+			termsAggsFor2.addSubAggs(new AvgAggs(avgAggsField, avgAggsField));
+		}
+		searchRequest = new SearchRequest(matchAllQuery, termsAggsFor2);
+		System.out.println(termsAggsFor2.getSubAggsSize());
+		System.out.println(searchRequest.toJson());
 
 		searchRequest.setSize(0);
 		Order order = new Order("len", Sort.asc);
@@ -188,6 +200,8 @@ public class ElasticUtil {
 
 		System.out.println(response);
 	}
+
+	public Version getVersion() { return this.version; }
 
 	private HttpUriRequest getMethod(String url) {
 		HttpGet httpGet = new HttpGet(url);
@@ -226,51 +240,6 @@ public class ElasticUtil {
 				return getEntity(response);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	/**
-	 * 使用模板查询数据
-	 * 尽量不要使用,因为你需要自己处理 response 解析内容
-	 *
-	 * @param requestUrl-请求的ES的URL
-	 * @param template-查询的DSL模板
-	 * @param paramMap-参数
-	 * @return
-	 */
-	public String selectByTemplate(String requestUrl, String template, Map<String, Object> paramMap) {
-		try {
-			for (String paramKey : paramMap.keySet()) {
-				String json = JsonUtil.toJson(paramMap.get(paramKey));
-				template = template.replace("@" + paramKey, json);
-			}
-			for (String replace : replaceArray) {
-				template = template.replace(replace, "");
-			}
-			String result = selectByJson(requestUrl, template);
-			return result;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	/**
-	 * 使用json查询数据
-	 * 尽量不要使用,因为你需要自己处理 response 解析内容
-	 *
-	 * @param url-请求的ES的URL,除去 Host
-	 * @param entity-查询的DSL
-	 * @return
-	 */
-	public String selectByJson(String url, String entity) {
-		try {
-			HttpResponse response = client.execute(postMethod(url, entity));
-			if (null == response) { return null; }
-			return getEntity(response);
-		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return null;

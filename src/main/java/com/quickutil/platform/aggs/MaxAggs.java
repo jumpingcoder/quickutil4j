@@ -6,12 +6,11 @@ import com.quickutil.platform.FormatQueryException;
 /**
  * @author shijie.ruan
  */
-public class AvgAggs extends AggsDSL {
+public class MaxAggs extends AggsDSL {
+	private String fieldName, missing = null;;
 
-	private String fieldName = null, missing = null;
-
-	public AvgAggs(String aggsName, String fieldName) {
-		super("avg", aggsName);
+	public MaxAggs(String aggsName, String fieldName) {
+		super("max", aggsName);
 		this.fieldName = fieldName;
 	}
 
@@ -20,7 +19,7 @@ public class AvgAggs extends AggsDSL {
 	 * @param missing
 	 * @return
 	 */
-	public AvgAggs setMissing(String missing) {
+	public MaxAggs setMissing(String missing) {
 		this.missing = missing;
 		return this;
 	}

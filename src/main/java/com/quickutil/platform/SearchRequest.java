@@ -17,18 +17,22 @@ public class SearchRequest {
 	private List<Order> sort = new LinkedList<>();
 
 	private QueryDSL query = null;
-	private AggsDSL aggs = null;
+	private List<AggsDSL> aggsList = new LinkedList<>();
 
 	public SearchRequest(QueryDSL query) {
 		this.query = query;
 	}
 
 	public SearchRequest(AggsDSL aggs) {
-		this.aggs = aggs;
+		this.aggsList.add(aggs);
 	}
 
 	public SearchRequest(QueryDSL query, AggsDSL aggs) {
-		this.query = query; this.aggs = aggs;
+		this.query = query; this.aggsList.add(aggs);
+	}
+
+	public SearchRequest addAggs(AggsDSL aggs) {
+		this.aggsList.add(aggs); return this;
 	}
 
 	public SearchRequest setSize(int size) {
@@ -56,8 +60,16 @@ public class SearchRequest {
 		if (null != query) {
 			queryObject.add("query", query.toJson());
 		}
-		if (null != aggs) {
-			queryObject.add("aggs", aggs.toJson());
+		if (!aggsList.isEmpty()) {
+			if (1 == aggsList.size()) {
+				queryObject.add("aggs", aggsList.get(0).toJson());
+			} else {
+				JsonObject aggsObject = new JsonObject();
+				for (AggsDSL aggs: aggsList) {
+					aggsObject.add(aggs.getAggsName(), aggs.toJson().getAsJsonObject(aggs.getAggsName()));
+				}
+				queryObject.add("aggs", aggsObject);
+			}
 		}
 		if (null != size) {
 			queryObject.addProperty("size", size);

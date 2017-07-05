@@ -18,16 +18,48 @@ public class RangeQuery extends QueryDSL {
 		this.field = field;
 	}
 
+	public RangeQuery setGte(Integer gte) {
+		return setGte(Integer.toString(gte));
+	}
+
+	public RangeQuery setGte(Long gte) {
+		return setGte(Long.toString(gte));
+	}
+
 	public RangeQuery setGte(String gte) {
 		this.gte = gte; return this;
+	}
+
+	public RangeQuery setLte(Integer lte) {
+		return setLte(Integer.toString(lte));
+	}
+
+	public RangeQuery setLte(Long lte) {
+		return setLte(Long.toString(lte));
 	}
 
 	public RangeQuery setLte(String lte) {
 		this.lte = lte; return this;
 	}
 
+	public RangeQuery setLt(Integer lt) {
+		return setLt(Integer.toString(lt));
+	}
+
+	public RangeQuery setLt(Long lt) {
+		return setLt(Long.toString(lt));
+	}
+
 	public RangeQuery setLt(String lt) {
 		this.lt = lt; return this;
+	}
+
+	public RangeQuery setGt(Integer gt) {
+		return setGt(Integer.toString(gt));
+	}
+
+	public RangeQuery setGt(Long gt) {
+		return setGt(Long.toString(gt));
 	}
 
 	public RangeQuery setGt(String gt) {
