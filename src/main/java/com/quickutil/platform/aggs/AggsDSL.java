@@ -1,10 +1,7 @@
 package com.quickutil.platform.aggs;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.quickutil.platform.ElasticUtil.Version;
 import com.quickutil.platform.FormatQueryException;
-import com.quickutil.platform.JsonUtil;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -37,15 +34,22 @@ public abstract class AggsDSL {
 		this.aggsName = aggsName;
 	}
 
-	public AggsDSL  addSubAggs(AggsDSL subAggs) {
-		this.subAggsList.add(subAggs); return this;
+	public AggsDSL addSubAggs(AggsDSL subAggs) {
+		this.subAggsList.add(subAggs);
+		return this;
 	}
 
-	public String getAggsName() { return this.aggsName; }
+	public String getAggsName() {
+		return this.aggsName;
+	}
 
-	public List<AggsDSL> getSubAggsList() { return this.subAggsList; }
+	public List<AggsDSL> getSubAggsList() {
+		return this.subAggsList;
+	}
 
-	public int getSubAggsSize() { return this.subAggsList.size(); }
+	public int getSubAggsSize() {
+		return this.subAggsList.size();
+	}
 
 	public abstract JsonObject toJson() throws FormatQueryException;
 
@@ -57,7 +61,7 @@ public abstract class AggsDSL {
 				wrap.add("aggs", subAggsList.get(0).toJson());
 			} else {
 				JsonObject subAggsObject = new JsonObject();
-				for (AggsDSL subAggs: subAggsList) {
+				for (AggsDSL subAggs : subAggsList) {
 					subAggsObject.add(subAggs.aggsName, subAggs.toJson().getAsJsonObject(subAggs.aggsName));
 				}
 				wrap.add("aggs", subAggsObject);

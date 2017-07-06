@@ -2,12 +2,10 @@ package com.quickutil.platform.aggs;
 
 import com.google.gson.JsonObject;
 import com.quickutil.platform.FormatQueryException;
-import com.quickutil.platform.JsonUtil;
 
 /**
- * 扩展的 stat 聚合,包含count, max, min, avg, sum, sum_of_squares, variance, std_deviation,
- * std_deviation_bounds(upper, lower)
- * 可以应用于数值字段(或者用脚本根据字段生成数值,暂不支持)
+ * 扩展的 stat 聚合,包含count, max, min, avg, sum, sum_of_squares, variance, std_deviation, std_deviation_bounds(upper, lower) 可以应用于数值字段(或者用脚本根据字段生成数值,暂不支持)
+ * 
  * @author shijie.ruan
  */
 public class ExtendedStatsAggs extends AggsDSL {

@@ -3,7 +3,6 @@ package com.quickutil.platform.aggs;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.quickutil.platform.FormatQueryException;
-import com.quickutil.platform.JsonUtil;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -43,7 +42,9 @@ public class RangeAggs extends AggsDSL {
 		JsonObject rangeObject = new JsonObject();
 		rangeObject.addProperty("field", fieldName);
 		JsonArray rangesArray = new JsonArray();
-		for (Range range: ranges) { rangesArray.add(range.toJson()); }
+		for (Range range : ranges) {
+			rangesArray.add(range.toJson());
+		}
 		rangeObject.add("ranges", rangesArray);
 		if (null != keyed) {
 			rangeObject.addProperty("keyed", keyed);

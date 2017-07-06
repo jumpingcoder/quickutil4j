@@ -3,7 +3,6 @@ package com.quickutil.platform.aggs;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.quickutil.platform.FormatQueryException;
-import com.quickutil.platform.JsonUtil;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -22,15 +21,18 @@ public class DateRangeAggs extends AggsDSL {
 
 	/**
 	 * 增加一个 range
+	 * 
 	 * @param range
 	 * @return
 	 */
-	public DateRangeAggs addRange(Range range) { ranges.add(range); return this; }
+	public DateRangeAggs addRange(Range range) {
+		ranges.add(range);
+		return this;
+	}
 
 	/**
-	 * 返回的 key_as_string 中的时间格式,支持 joda 中的时间格式
-	 * http://www.joda.org/joda-time/apidocs/org/joda/time/format/DateTimeFormat.html
-	 * 常见的为 yyyy-MM-dd
+	 * 返回的 key_as_string 中的时间格式,支持 joda 中的时间格式 http://www.joda.org/joda-time/apidocs/org/joda/time/format/DateTimeFormat.html 常见的为 yyyy-MM-dd
+	 * 
 	 * @param format
 	 * @return
 	 */
@@ -40,8 +42,8 @@ public class DateRangeAggs extends AggsDSL {
 	}
 
 	/**
-	 * 默认情况下是 false, 如果设置为 key, 返回的 buckets 就是一个 JsonObject 而不是 JsonArray,
-	 * buckets 中的每一个 bucket 都有一个 key
+	 * 默认情况下是 false, 如果设置为 key, 返回的 buckets 就是一个 JsonObject 而不是 JsonArray, buckets 中的每一个 bucket 都有一个 key
+	 * 
 	 * @param keyed
 	 * @return
 	 */
@@ -51,9 +53,9 @@ public class DateRangeAggs extends AggsDSL {
 	}
 
 	/**
-	 * es 中的时间字段是使用 utc 时间存储的,所以聚合默认也是使用 utc 时间,如果制定了 timezone 字段,则聚合是按照
-	 * 指定的时区进行的,会将 es 中存储的 utc 时间变成指定时区的时间再进行聚合
-	 * 支持 ISO 8601 UTC offset (e.g. +01:00 or -08:00) 或者是时区 id 例如 America/Los_Angeles
+	 * es 中的时间字段是使用 utc 时间存储的,所以聚合默认也是使用 utc 时间,如果制定了 timezone 字段,则聚合是按照 指定的时区进行的,会将 es 中存储的 utc 时间变成指定时区的时间再进行聚合 支持 ISO 8601 UTC offset (e.g. +01:00 or -08:00) 或者是时区 id 例如
+	 * America/Los_Angeles
+	 * 
 	 * @param timeZone
 	 * @return
 	 */
@@ -70,13 +72,18 @@ public class DateRangeAggs extends AggsDSL {
 		JsonObject dateRangeObject = new JsonObject();
 		dateRangeObject.addProperty("field", fieldName);
 		JsonArray rangesArray = new JsonArray();
-		for (Range range: ranges) { rangesArray.add(range.toJson()); }
+		for (Range range : ranges) {
+			rangesArray.add(range.toJson());
+		}
 		dateRangeObject.add("ranges", rangesArray);
 		if (null != format) {
 			dateRangeObject.addProperty("format", format);
 		}
 		if (null != keyed) {
 			dateRangeObject.addProperty("keyed", keyed);
+		}
+		if (null != timeZone) {
+			dateRangeObject.addProperty("time_zone", timeZone);
 		}
 		return warpAggs(dateRangeObject);
 	}
