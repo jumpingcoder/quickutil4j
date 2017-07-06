@@ -6,6 +6,7 @@
  */
 package com.quickutil.platform;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.cert.CertificateException;
