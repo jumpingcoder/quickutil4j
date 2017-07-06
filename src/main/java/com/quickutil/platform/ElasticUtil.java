@@ -1,10 +1,12 @@
 package com.quickutil.platform;
 
-import static com.quickutil.platform.BulkResponse.itemFalse;
+import static com.quickutil.platform.def.BulkResponse.itemFalse;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.quickutil.platform.def.BulkResponse;
+import com.quickutil.platform.def.SearchRequest;
 import java.io.File;
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -400,6 +402,17 @@ public class ElasticUtil {
 		}
 		String urlFormat = "%s/%s/%s/_bulk";
 		return bulk(String.format(urlFormat, host, index, type), entity.toString(), source.size());
+	}
+
+	/**
+	 * 批量更新,使用 stringBuffer
+	 * @param stringBuffer-由调用者编写批量插入的内容,可以不是同一个 index 和 type
+	 * @param size 批量文档的数量,请保证这个 size 和stringBuffer包含的请求书一致,否则可能会引起错误
+	 * @return
+	 */
+	public BulkResponse bulkUpdateByStringBuffer(StringBuffer stringBuffer, int size) {
+		String urlFormat = "%s/_bulk";
+		return bulk(String.format(urlFormat, host), stringBuffer.toString(), size);
 	}
 
 	/**

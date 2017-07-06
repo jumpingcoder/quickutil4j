@@ -1,7 +1,9 @@
-package com.quickutil.platform;
+package com.quickutil.platform.def;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.quickutil.platform.FormatQueryException;
+import com.quickutil.platform.JsonUtil;
 import com.quickutil.platform.aggs.AggsDSL;
 import com.quickutil.platform.aggs.Order;
 import com.quickutil.platform.query.QueryDSL;
