@@ -1,27 +1,54 @@
 package com.quickutil.platform.def;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
 /**
  * @author shijie.ruan
  * 批量请求的返回类型
- * 包含一个 boolean 值表示是否全部成功
- * 和一个 byte 数组表示每一条请求的错误码, 0 表示成功, 1 表示失败,后续可再增加错误码
+ * 一个 byte 值 isAllSuccess 表示 bulk 请求是否全部成功
+ * bulkRequestError, 表示整个 bulk 请求失败的时候的错误信息
+ * responseItems, bulk 中每一个请求的响应信息
+ * isAllSuccess 为 0 时, 表示全部成功, bulkRequestError 和 responseItems 都为空
+ * isAllSuccess 为 1 时表示 bulk 请求失败, 请获取 bulkRequestError
+ * isAllSuccess 为 2 时表示部分请求失败, 请获取 responseItems
  */
 public class BulkResponse {
-	public static byte itemFalse = 1;
+	public static byte Success = 0;
+	public static byte BulkRequestFail = 1;
+	public static byte PortionFail = 2;
 
-	private boolean isSuccess;
-	private byte[] responseItem;
+	private byte isSuccess;
+	private JsonObject bulkRequestError = null;
+	private JsonArray responseItems = null;
 
-	public BulkResponse(boolean isSuccess, byte[] responseItem) {
+	public BulkResponse(byte isSuccess, JsonArray responseItems) {
 		this.isSuccess = isSuccess;
-		this.responseItem = responseItem;
+		this.responseItems = responseItems;
 	}
 
-	public boolean hasFail() {
-		return !isSuccess;
+	public BulkResponse(byte isSuccess, JsonObject bulkRequestError) {
+		this.bulkRequestError = bulkRequestError;
+		this.isSuccess = isSuccess;
 	}
 
-	public byte[] getResponseItem() {
-		return responseItem;
+	public BulkResponse(byte isSuccess) {
+		this.isSuccess = isSuccess;
+	}
+
+	public boolean isSuccess() {
+		return 0 == isSuccess;
+	}
+
+	public byte getIsSuccess() {
+		return this.isSuccess;
+	}
+
+	public JsonArray getResponseItems() {
+		return this.responseItems;
+	}
+
+	public JsonObject getBulkRequestError() {
+		return this.bulkRequestError;
 	}
 }
