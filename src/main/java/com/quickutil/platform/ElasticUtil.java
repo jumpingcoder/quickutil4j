@@ -1,10 +1,14 @@
 package com.quickutil.platform;
 
-import static com.quickutil.platform.BulkResponse.itemFalse;
+import static com.quickutil.platform.def.BulkResponse.BulkRequestFail;
+import static com.quickutil.platform.def.BulkResponse.PortionFail;
+import static com.quickutil.platform.def.BulkResponse.Success;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.quickutil.platform.def.BulkResponse;
+import com.quickutil.platform.def.SearchRequest;
 import java.io.File;
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -220,34 +224,27 @@ public class ElasticUtil {
 	 * @param entity
 	 * @return
 	 */
-	private BulkResponse bulk(String url, String entity, int size) {
-		byte[] responseItems = new byte[size];
+	private BulkResponse bulk(String url, String entity) {
 		try {
 			HttpResponse response = client.execute(postMethod(url, entity));
 			if (200 != response.getStatusLine().getStatusCode()) {
-				System.out.println("bulk insert error, with resposne: " + getEntity(response));
-				return getAllFlaseResponse(size);
+				JsonObject bulkRequestError = JsonUtil.toJsonMap(getEntity(response)).getAsJsonObject("error");
+				return new BulkResponse(BulkRequestFail, bulkRequestError);
 			} else {
 				JsonObject responseObject = JsonUtil.toJsonMap(getEntity(response));
 				boolean hasErrors = responseObject.get("errors").getAsBoolean();
 				if (!hasErrors) {
-					return new BulkResponse(true, responseItems);
+					return new BulkResponse(Success);
 				} else {
-					System.out.println(responseObject);
 					JsonArray responseArray = responseObject.getAsJsonArray("items");
-					for (int i = 0; i < responseArray.size(); i++) {
-						int status = getBulkItemStatus(responseArray.get(i).getAsJsonObject());
-						if (200 != status && 201 != status) {
-							responseItems[i] = itemFalse;
-						}
-					}
-					return new BulkResponse(false, responseItems);
+					return new BulkResponse(PortionFail, responseArray);
 				}
 			}
 		} catch (Exception e) {
-			System.out.println("bulk operation error for url: " + url);
-			e.printStackTrace();
-			return getAllFlaseResponse(size);
+			e.printStackTrace(); // TODO: delete this sout
+			JsonObject exception = new JsonObject();
+			exception.addProperty("program error", e.toString());
+		  return new BulkResponse(BulkRequestFail, exception);
 		}
 	}
 
@@ -264,12 +261,6 @@ public class ElasticUtil {
 			System.out.println("unknown bulk action for response item: " + item);
 			return 400;
 		}
-	}
-
-	private BulkResponse getAllFlaseResponse(int size) {
-		byte[] responseItems = new byte[size];
-		Arrays.fill(responseItems, itemFalse);
-		return new BulkResponse(false, responseItems);
 	}
 
 	/**
@@ -290,15 +281,14 @@ public class ElasticUtil {
 		try {
 			String actionAndMeta = "{\"index\":{\"_index\":\"%s\",\"_type\":\"%s\",\"_id\":\"%s\"}}\n";
 			sb.append(String.format(actionAndMeta, index, type, id) + source + "\n");
-			count++;
 			if (System.currentTimeMillis() - lasttime > 1000) {
 				entity = sb.toString();
 				lasttime = System.currentTimeMillis();
 				sb = new StringBuffer();
 				System.out.println("content count:" + count);
-				count = 0;
-				BulkResponse response = bulk(String.format("%s/_bulk", host), entity, count);
-				if (response.hasFail()) {
+				BulkResponse response = bulk(String.format("%s/_bulk", host), entity);
+				if (!response.isSuccess()) {
+					// 如果请求失败,这里打印了所有的请求,有可能量很大, TODO:@massage 如果不是用它来记录客户端上报的数据的话我想删掉这行打印
 					System.out.println("bulk insert buffer fail, the source is:\n" + entity);
 					return false;
 				} else {
@@ -325,15 +315,16 @@ public class ElasticUtil {
 	public BulkResponse bulkInsert(String index, String type, Map<String, String> source) {
 		String idFormat = "{\"index\": {\"_id\": \"%s\"}}\n";
 		if (null == index || null == type) {
-			System.out.println("bulk insert into one index and type must specify index and type");
-			return getAllFlaseResponse(source.size());
+			JsonObject insertError = new JsonObject();
+			insertError.addProperty("msg", "bulk insert must specify index and type");
+			return new BulkResponse(BulkRequestFail,insertError);
 		}
 		StringBuilder entity = new StringBuilder();
 		for (String id : source.keySet()) {
 			entity.append(String.format(idFormat, id)).append(source.get(id)).append("\n");
 		}
 		String urlFormat = "%s/%s/%s/_bulk";
-		return bulk(String.format(urlFormat, host, index, type), entity.toString(), source.size());
+		return bulk(String.format(urlFormat, host, index, type), entity.toString());
 	}
 
 	/**
@@ -349,8 +340,9 @@ public class ElasticUtil {
 	public BulkResponse bulkUpdate(String index, String type, Map<String, JsonObject> source, boolean upsert) {
 		String idFormat = "{\"update\": {\"_id\": \"%s\"}}\n";
 		if (null == index || null == type) {
-			System.out.println("bulk update into one index and type must specify index and type");
-			return getAllFlaseResponse(source.size());
+			JsonObject insertError = new JsonObject();
+			insertError.addProperty("msg", "bulk update must specify index and type");
+			return new BulkResponse(BulkRequestFail,insertError);
 		}
 		StringBuilder entity = new StringBuilder();
 		for (String id : source.keySet()) {
@@ -362,7 +354,7 @@ public class ElasticUtil {
 			entity.append(String.format(idFormat, id)).append(item).append("\n");
 		}
 		String urlFormat = "%s/%s/%s/_bulk";
-		return bulk(String.format(urlFormat, host, index, type), entity.toString(), source.size());
+		return bulk(String.format(urlFormat, host, index, type), entity.toString());
 	}
 
 	/**
@@ -380,10 +372,9 @@ public class ElasticUtil {
 	public BulkResponse bulkUpdateByScript(String index, String type, Map<String, JsonObject> source, String scriptFile, boolean upsert) {
 		String idFormat = "{\"update\": {\"_id\": \"%s\"}}\n";
 		if (null == index || null == type) {
-			System.out.println("bulk update into one index and type must specify index and type");
-			byte[] responseItems = new byte[source.size()];
-			Arrays.fill(responseItems, itemFalse);
-			return new BulkResponse(false, responseItems);
+			JsonObject insertError = new JsonObject();
+			insertError.addProperty("msg", "bulk update must specify index and type");
+			return new BulkResponse(BulkRequestFail,insertError);
 		}
 		StringBuilder entity = new StringBuilder();
 		for (String id : source.keySet()) {
@@ -399,7 +390,17 @@ public class ElasticUtil {
 			entity.append(String.format(idFormat, id)).append(item).append("\n");
 		}
 		String urlFormat = "%s/%s/%s/_bulk";
-		return bulk(String.format(urlFormat, host, index, type), entity.toString(), source.size());
+		return bulk(String.format(urlFormat, host, index, type), entity.toString());
+	}
+
+	/**
+	 * 批量更新,使用 stringBuffer
+	 * @param stringBuffer-由调用者编写批量插入的内容,可以不是同一个 index 和 type
+	 * @return
+	 */
+	public BulkResponse bulkUpdateByStringBuffer(StringBuffer stringBuffer) {
+		String urlFormat = "%s/_bulk";
+		return bulk(String.format(urlFormat, host), stringBuffer.toString());
 	}
 
 	/**
