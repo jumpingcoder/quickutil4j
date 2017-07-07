@@ -2,7 +2,8 @@ package com.quickutil.platform.aggs;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.quickutil.platform.FormatQueryException;
+import com.quickutil.platform.exception.FormatQueryException;
+
 import java.util.LinkedList;
 import java.util.List;
 

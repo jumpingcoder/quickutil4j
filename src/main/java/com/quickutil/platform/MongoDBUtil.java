@@ -393,32 +393,32 @@ public class MongoDBUtil {
 				where = where.trim();
 				String[] splitArray = where.split(LTE);
 				if (splitArray.length == 2) {
-					filterList.add(Filters.lte(splitArray[0], SafeCharsetUtil.getObjectFromString(splitArray[1])));
+					filterList.add(Filters.lte(splitArray[0], StringUtil.getObjectFromString(splitArray[1])));
 					continue;
 				}
 				splitArray = where.split(LT);
 				if (splitArray.length == 2) {
-					filterList.add(Filters.lt(splitArray[0], SafeCharsetUtil.getObjectFromString(splitArray[1])));
+					filterList.add(Filters.lt(splitArray[0], StringUtil.getObjectFromString(splitArray[1])));
 					continue;
 				}
 				splitArray = where.split(GTE);
 				if (splitArray.length == 2) {
-					filterList.add(Filters.gte(splitArray[0], SafeCharsetUtil.getObjectFromString(splitArray[1])));
+					filterList.add(Filters.gte(splitArray[0], StringUtil.getObjectFromString(splitArray[1])));
 					continue;
 				}
 				splitArray = where.split(GT);
 				if (splitArray.length == 2) {
-					filterList.add(Filters.gt(splitArray[0], SafeCharsetUtil.getObjectFromString(splitArray[1])));
+					filterList.add(Filters.gt(splitArray[0], StringUtil.getObjectFromString(splitArray[1])));
 					continue;
 				}
 				splitArray = where.split(NEQ);
 				if (splitArray.length == 2) {
-					filterList.add(Filters.ne(splitArray[0], SafeCharsetUtil.getObjectFromString(splitArray[1])));
+					filterList.add(Filters.ne(splitArray[0], StringUtil.getObjectFromString(splitArray[1])));
 					continue;
 				}
 				splitArray = where.split(EQ);
 				if (splitArray.length == 2) {
-					filterList.add(Filters.eq(splitArray[0], SafeCharsetUtil.getObjectFromString(splitArray[1])));
+					filterList.add(Filters.eq(splitArray[0], StringUtil.getObjectFromString(splitArray[1])));
 					continue;
 				}
 			}
@@ -447,8 +447,8 @@ public class MongoDBUtil {
 			String limitStr = sql.substring(limitIndex + 7);
 			String[] splitArray = limitStr.split(COMMA);
 			if (splitArray.length == 2) {
-				int start = (int) SafeCharsetUtil.getObjectFromString(splitArray[0]);
-				int end = (int) SafeCharsetUtil.getObjectFromString(splitArray[1]);
+				int start = (int) StringUtil.getObjectFromString(splitArray[0]);
+				int end = (int) StringUtil.getObjectFromString(splitArray[1]);
 				limit = end - start;
 			}
 		}
@@ -490,7 +490,7 @@ public class MongoDBUtil {
 			String[] splitArray = set.split(EQ);
 			if (splitArray.length != 2)
 				return null;
-			updateList.add(Updates.set(splitArray[0], SafeCharsetUtil.getObjectFromString(splitArray[1])));
+			updateList.add(Updates.set(splitArray[0], StringUtil.getObjectFromString(splitArray[1])));
 		}
 		// where
 		if (whereIndex != -1) {
@@ -500,32 +500,32 @@ public class MongoDBUtil {
 				where = where.trim();
 				String[] splitArray = where.split(LTE);
 				if (splitArray.length == 2) {
-					filterList.add(Filters.lte(splitArray[0], SafeCharsetUtil.getObjectFromString(splitArray[1])));
+					filterList.add(Filters.lte(splitArray[0], StringUtil.getObjectFromString(splitArray[1])));
 					continue;
 				}
 				splitArray = where.split(LT);
 				if (splitArray.length == 2) {
-					filterList.add(Filters.lt(splitArray[0], SafeCharsetUtil.getObjectFromString(splitArray[1])));
+					filterList.add(Filters.lt(splitArray[0], StringUtil.getObjectFromString(splitArray[1])));
 					continue;
 				}
 				splitArray = where.split(GTE);
 				if (splitArray.length == 2) {
-					filterList.add(Filters.gte(splitArray[0], SafeCharsetUtil.getObjectFromString(splitArray[1])));
+					filterList.add(Filters.gte(splitArray[0], StringUtil.getObjectFromString(splitArray[1])));
 					continue;
 				}
 				splitArray = where.split(GT);
 				if (splitArray.length == 2) {
-					filterList.add(Filters.gt(splitArray[0], SafeCharsetUtil.getObjectFromString(splitArray[1])));
+					filterList.add(Filters.gt(splitArray[0], StringUtil.getObjectFromString(splitArray[1])));
 					continue;
 				}
 				splitArray = where.split(NEQ);
 				if (splitArray.length == 2) {
-					filterList.add(Filters.ne(splitArray[0], SafeCharsetUtil.getObjectFromString(splitArray[1])));
+					filterList.add(Filters.ne(splitArray[0], StringUtil.getObjectFromString(splitArray[1])));
 					continue;
 				}
 				splitArray = where.split(EQ);
 				if (splitArray.length == 2) {
-					filterList.add(Filters.eq(splitArray[0], SafeCharsetUtil.getObjectFromString(splitArray[1])));
+					filterList.add(Filters.eq(splitArray[0], StringUtil.getObjectFromString(splitArray[1])));
 					continue;
 				}
 			}

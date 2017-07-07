@@ -1,4 +1,4 @@
-package com.quickutil.platform;
+package com.quickutil.platform.exception;
 
 /**
  * @author shijie.ruan

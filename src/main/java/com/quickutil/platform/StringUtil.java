@@ -1,43 +1,199 @@
-package com.quickutil.platform;
-
-import java.util.Objects;
-import java.util.Random;
-import java.util.StringJoiner;
-
 /**
+ * 字符串工具
+ * 
+ * @class StringUtil
+ * @author 0.5
  * @author shijie.ruan
  */
-public class StringUtil {
-	private static final char[] symbols;
+package com.quickutil.platform;
 
-	static {
-		StringBuilder tmp = new StringBuilder();
-		for (char ch = '0'; ch <= '9'; ++ch)
-			tmp.append(ch);
-		for (char ch = 'a'; ch <= 'z'; ++ch)
-			tmp.append(ch);
-		for (char ch = 'A'; ch <= 'Z'; ++ch)
-			tmp.append(ch);
-		symbols = tmp.toString().toCharArray();
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.StringJoiner;
+
+public class StringUtil {
+
+	public enum ObjectType {
+		integer, longer, doubler, string, list, map, other;
 	}
 
 	/**
-	 * 把数组构造成字符串
-	 * eg: array = {"a","b"}, delimiter = " OR ", prefix = "(" , suffix = ")"
-	 * result = (a OR b)
-	 * @param array
-	 * @param delimiter 分隔符(required)
-	 * @param prefix 前缀(optional, default empty)
-	 * @param suffix 后缀(optional, default empty)
+	 * string转数值
+	 * 
+	 * @param content-输入的字符串
 	 * @return
 	 */
-	public static String mkString(String[] array, String delimiter, String prefix, String suffix) {
+	public static Object getObjectFromString(String content) {
+		ObjectType type = getObjectTypeFromString(content);
+		switch (type) {
+		case integer:
+			return Integer.parseInt(content);
+		case longer:
+			return Long.parseLong(content);
+		case doubler:
+			return Double.parseDouble(content);
+		default:
+			return content;
+		}
+	}
+
+	/**
+	 * 获取object原始类型
+	 * 
+	 * @param object-输入的对象
+	 * @return
+	 */
+	public static ObjectType getObjectType(Object object) {
+		if (object instanceof Integer) {
+			return ObjectType.integer;
+		}
+		if (object instanceof Long) {
+			return ObjectType.longer;
+		}
+		if (object instanceof Double) {
+			return ObjectType.doubler;
+		}
+		if (object instanceof String) {
+			return ObjectType.string;
+		}
+		if (object instanceof List) {
+			return ObjectType.list;
+		}
+		if (object instanceof Map) {
+			return ObjectType.map;
+		}
+		return ObjectType.other;
+	}
+
+	/**
+	 * 获取string原始类型
+	 * 
+	 * @param content-输入的字符串
+	 * @return
+	 */
+	public static ObjectType getObjectTypeFromString(String content) {
+		if (content.matches("^[-+]?([0-9]+)[.]([0-9]+)$"))
+			return ObjectType.doubler;
+		if (content.matches("^[-+]?[0-9]+")) {
+			long number = Long.parseLong(content);
+			if (number < Integer.MAX_VALUE && number > Integer.MIN_VALUE)
+				return ObjectType.integer;
+			return ObjectType.longer;
+		}
+		return ObjectType.string;
+	}
+
+	/**
+	 * 是否安全SQL语句
+	 * 
+	 * @param sql-SQL语句
+	 * @return
+	 */
+	public static boolean safeSQL(String sql) {
+		sql = sql.toLowerCase();
+		if (sql.contains(" delete ") || sql.contains(" drop "))
+			return false;
+		return true;
+	}
+
+	/**
+	 * 判断是否为字母+数字
+	 * 
+	 * @param content-输入的字符串
+	 * @param minLength-最小长度
+	 * @param maxLength-最大长度
+	 * @return
+	 */
+	public static boolean letNumLegal(String content, int minLength, int maxLength) {
+		return content.matches("[0-9a-zA-Z]{" + minLength + "," + maxLength + "}");
+	}
+
+	/**
+	 * 判断是否为数字
+	 * 
+	 * @param content-输入的字符串
+	 * @param minLength-最小长度
+	 * @param maxLength-最大长度
+	 * @return
+	 */
+	public static boolean numLegal(String content, int minLength, int maxLength) {
+		return content.matches("[0-9]{" + minLength + "," + maxLength + "}");
+	}
+
+	/**
+	 * 判断是否为用户名格式
+	 * 
+	 * @param content-输入的字符串
+	 * @return
+	 */
+	public static boolean usernameLegal(String content) {
+		return content.matches("[0-9a-zA-Z_]{5,16}");
+	}
+
+	/**
+	 * 判断是否为密码格式
+	 * 
+	 * @param content-输入的字符串
+	 * @return
+	 */
+	public static boolean passwordLegal(String content) {
+		return content.matches("(?![a-z]+$|[0-9]+$)^[a-zA-Z0-9]{6,16}$");
+	}
+
+	/**
+	 * 判断是否为昵称格式
+	 * 
+	 * @param content-输入的字符串
+	 * @return
+	 */
+	public static boolean nickLegal(String content) {
+		return content.matches("[a-zA-Z0-9\u4e00-\u9fa5]{3,8}");
+	}
+
+	/**
+	 * 判断是否为中国大陆手机号
+	 * 
+	 * @param content-输入的字符串
+	 * @return
+	 */
+	public static boolean mobileLegal(String content) {
+		return content.matches("^((13[0-9])|(14[0-9])|(15[0-9])|(17[0-9])|(18[0-9]))\\d{8}$");
+	}
+
+	/**
+	 * 判断是否为邮箱格式
+	 * 
+	 * @param content-输入的字符串
+	 * @return
+	 */
+	public static boolean emailLegal(String content) {
+		return content.matches("^([a-z0-9A-Z]+[-|\\.]?)+[a-z0-9A-Z]@([a-z0-9A-Z]+(-[a-z0-9A-Z]+)?\\.)+[a-zA-Z]{2,}$");
+	}
+
+	/**
+	 * 把数组构造成字符串 eg: array = {"a","b"}, delimiter = " OR ", prefix = "(" , suffix = ")" result = (a OR b)
+	 * 
+	 * @param array
+	 * @param delimiter
+	 *            分隔符(required)
+	 * @param prefix
+	 *            前缀(optional, default empty)
+	 * @param suffix
+	 *            后缀(optional, default empty)
+	 * @return
+	 */
+	public static String joinString(String[] array, String delimiter, String prefix, String suffix) {
 		Objects.requireNonNull(delimiter, "The delimiter must not be null");
-		if (null == prefix) prefix = "";
-		if (null == suffix) suffix = "";
+		if (null == prefix)
+			prefix = "";
+		if (null == suffix)
+			suffix = "";
 		StringJoiner sj = new StringJoiner(delimiter, prefix, suffix);
 		if (array != null && 0 != array.length) {
-			for (String e: array) { sj.add(e); }
+			for (String e : array) {
+				sj.add(e);
+			}
 			return sj.toString();
 		} else {
 			System.out.println("empty array");
@@ -45,74 +201,4 @@ public class StringUtil {
 		}
 	}
 
-	/**
-	 * 把某个字段的多个可匹配值作为或条件子查询
-	 * @param array
-	 * @return
-	 */
-	public static String mkORSubQuery(String[] array) {
-		for(int i = 0; i < array.length; i++) {
-			if (array[i].contains(" "))
-				array[i] = "\"" + array[i] + "\"";
-//				array[i] = array[i].replace(" ", "\\\\ ");
-		}
-		return mkString(array, " OR ", "(", ")");
-	}
-
-	/**
-	 * {a,b}
-	 * 用中括号和逗号进行包装, 用于聚合返回的结果中带上多个源字段，或者搜索多个字段
-	 * ["a", "b"]
-	 * @param array
-	 * @return
-	 */
-	public static String mkStringForMultiFields(String[] array) {
-		for(int i = 0; i < array.length; i++) { array[i] = "\"" + array[i] + "\""; }
-		return mkString(array, ",", "[", "]");
-	}
-
-	/**
-	 * 返回一个有字母数字组成的字符串
-	 * @param len
-	 * @return
-	 */
-	public static String getRandomString(int len) {
-		char[] buf = new char[len];
-		Random random = new Random();
-		for (int i = 0; i < buf.length; i++) {
-			buf[i] = symbols[random.nextInt(symbols.length)];
-		}
-		return new String(buf);
-	}
-
-	/**
-	 * 主要用于净化客户端上报的 firmware_sign 取最后两个等号的位置
-	 * @param str
-	 * @returnHttpStatusCodes.STATUS_CODE_OK
-	 */
-	public static String correctBase64(String str) {
-		String origin = str.trim();
-		int lastIndexOfEqual = origin.lastIndexOf("=");
-		if (lastIndexOfEqual == -1) {
-			System.out.println("error base64: " + origin);
-			return null;
-		}
-		// TODO: 还有4个等号的
-		origin = origin.substring(0, lastIndexOfEqual + 1);
-		if (origin.length() > 24) {
-			if (origin.length() == 26 && origin.endsWith("====")) { // 三个等号结尾脏数据,去除最后两个等号
-				return origin.substring(0, origin.length() - 2);
-			} else if (origin.length() == 25 && origin.endsWith("===")) {// 三个等号结尾脏数据,去除最后一个等号
-				return origin.substring(0, origin.length() - 1);
-			} else if (22 == origin.lastIndexOf("==")) { // 双等号后还有别的信息的脏数据,去掉之后的
-				return origin.substring(0, 24);
-			} else {
-				System.out.println("error base64: " + origin);
-				return null;
-			}
-		} else {
-			return origin;
-		}
-	}
 }
-

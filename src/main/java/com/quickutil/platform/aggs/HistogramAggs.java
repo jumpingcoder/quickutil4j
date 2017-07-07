@@ -1,7 +1,7 @@
 package com.quickutil.platform.aggs;
 
 import com.google.gson.JsonObject;
-import com.quickutil.platform.FormatQueryException;
+import com.quickutil.platform.exception.FormatQueryException;
 
 /**
  * @author shijie.ruan 应用于数值类型的 histogram 聚合

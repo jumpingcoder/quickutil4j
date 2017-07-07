@@ -1,7 +1,7 @@
 package com.quickutil.platform.query;
 
 import com.google.gson.JsonObject;
-import com.quickutil.platform.FormatQueryException;
+import com.quickutil.platform.exception.FormatQueryException;
 
 /**
  * @author shijie.ruan

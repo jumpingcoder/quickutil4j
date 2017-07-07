@@ -49,4 +49,24 @@ public class ShellUtil {
 			return null;
 		}
 	}
+
+	/**
+	 * 打印进度条
+	 * 
+	 * @param percentage
+	 */
+	public static synchronized String printProgress(double percentage) {
+		StringBuilder sb = new StringBuilder();
+		final int len = 50;
+		int i = 0;
+		sb.append("[");
+		for (; i <= (int) (percentage * len); i++) {
+			sb.append("=");
+		}
+		for (; i <= len; i++) {
+			sb.append(" ");
+		}
+		sb.append("]");
+		return sb.toString();
+	}
 }

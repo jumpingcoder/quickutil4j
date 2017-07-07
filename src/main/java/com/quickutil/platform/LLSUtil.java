@@ -12,7 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import com.quickutil.platform.SafeCharsetUtil.ObjectType;
+import com.quickutil.platform.StringUtil.ObjectType;
 
 public class LLSUtil {
 
@@ -28,7 +28,7 @@ public class LLSUtil {
 		if (list.size() == 0)
 			return null;
 		Object object = list.get(0);
-		if (SafeCharsetUtil.getObjectType(object) != ObjectType.other)
+		if (StringUtil.getObjectType(object) != ObjectType.other)
 			return null;
 		List<List<Object>> LLS = new LinkedList<List<Object>>();
 		List<Object> headList = new LinkedList<Object>();

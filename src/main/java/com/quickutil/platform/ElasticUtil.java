@@ -649,8 +649,8 @@ public class ElasticUtil {
 	 * @param filePath
 	 * @param jObjectToCsvFunc
 	 */
-	public void dumpESDataToCsv(String index, String type, SearchRequest searchRequest, String filePath, Function<JsonObject, String> jObjectToCsvFunc) {
-		assert (index != null && filePath != null && jObjectToCsvFunc != null);
+	public void dumpESDataToCsv(String index, String type, SearchRequest searchRequest, String filePath, Function<JsonObject, String> jsonToCSV) {
+		assert (index != null && filePath != null && jsonToCSV != null);
 		try {
 			File f = new File(filePath);
 			if (!f.exists()) {
@@ -670,7 +670,7 @@ public class ElasticUtil {
 				StringBuilder bulk = new StringBuilder();
 				for (JsonElement e : array) {
 					JsonObject doc = e.getAsJsonObject();
-					String csvLine = jObjectToCsvFunc.apply(doc);
+					String csvLine = jsonToCSV.apply(doc);
 					if (csvLine != null) {
 						bulk.append(csvLine + "\n");
 						count++;
@@ -684,7 +684,7 @@ public class ElasticUtil {
 					return;
 				}
 				array = JsonUtil.toJsonMap(resp).getAsJsonObject("hits").getAsJsonArray("hits");
-				System.out.println("index: " + index + TimeUtil.printProgress((double) count / total));
+				System.out.println("index: " + index + ShellUtil.printProgress((double) count / total));
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
