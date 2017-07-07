@@ -24,7 +24,7 @@ public class AliOSSUtil {
 	/**
 	 * 初始化
 	 * 
-	 * @param properties
+	 * @param properties-配置
 	 * @return
 	 */
 	public static boolean init(Properties properties) {
@@ -53,7 +53,7 @@ public class AliOSSUtil {
 	/**
 	 * 获取客户端实例
 	 * 
-	 * @param ossName
+	 * @param ossName-ossName
 	 * @return
 	 */
 	public static OSSClient buildClient(String ossName) {
@@ -63,8 +63,8 @@ public class AliOSSUtil {
 	/**
 	 * 获取文件列表
 	 * 
-	 * @param ossName
-	 * @param prefix
+	 * @param ossName-ossName
+	 * @param prefix-文件前缀
 	 * @return
 	 */
 	public static List<String> list(String ossName, String prefix) {
@@ -80,10 +80,10 @@ public class AliOSSUtil {
 	/**
 	 * 上传
 	 * 
-	 * @param ossName
-	 * @param bt
-	 * @param filePath
-	 * @param contentType
+	 * @param ossName-ossName
+	 * @param bt-文件内容
+	 * @param filePath-文件路径
+	 * @param contentType-文件类型
 	 * @return
 	 */
 	public static String uploadFile(String ossName, byte[] bt, String filePath, String contentType) {
@@ -108,8 +108,8 @@ public class AliOSSUtil {
 	/**
 	 * 下载
 	 * 
-	 * @param ossName
-	 * @param filePath
+	 * @param ossName-ossName
+	 * @param filePath-文件路径
 	 * @return
 	 */
 	public static byte[] downloadFile(String ossName, String filePath) {
@@ -120,8 +120,8 @@ public class AliOSSUtil {
 	/**
 	 * 删除
 	 * 
-	 * @param ossName
-	 * @param filePath
+	 * @param ossName-ossName
+	 * @param filePath-文件路径
 	 */
 	public static void deleteFile(String ossName, String filePath) {
 		buildClient(ossName).deleteObject(bucketMap.get(ossName).get("bucketname"), filePath);

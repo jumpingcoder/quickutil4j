@@ -1,3 +1,9 @@
+/**
+ * 阿里大鱼短信工具
+ * 
+ * @class AliCellUtil
+ * @author 0.5
+ */
 package com.quickutil.platform;
 
 import java.net.URLEncoder;
@@ -21,7 +27,7 @@ public class AliCellUtil {
 	/**
 	 * 初始化大鱼配置
 	 * 
-	 * @param properties
+	 * @param properties-配置文件
 	 * @return
 	 */
 	public static boolean init(Properties properties) {
@@ -53,17 +59,17 @@ public class AliCellUtil {
 	/**
 	 * 
 	 * 
-	 * @param Ali大鱼-Key
+	 * @param dayuName-大鱼名称
 	 * @param cell-手机号
 	 * @param message-发送的信息
 	 * @return
 	 */
-	public static boolean sendMessage(String dayuKey, String cell, String message) {
+	public static boolean sendMessage(String dayuName, String cell, String message) {
 		try {
-			String appkey = dayuMap.get(dayuKey).get("appkey");
-			String signname = dayuMap.get(dayuKey).get("signname");
-			String template = dayuMap.get(dayuKey).get("template");
-			String appsecret = dayuMap.get(dayuKey).get("appsecret");
+			String appkey = dayuMap.get(dayuName).get("appkey");
+			String signname = dayuMap.get(dayuName).get("signname");
+			String template = dayuMap.get(dayuName).get("template");
+			String appsecret = dayuMap.get(dayuName).get("appsecret");
 			Map<String, Object> sms_param_map = new HashMap<String, Object>();
 			sms_param_map.put("content", message);
 			String sms_param = JsonUtil.toJson(sms_param_map);
@@ -84,17 +90,17 @@ public class AliCellUtil {
 
 	/**
 	 * 
-	 * @param Ali大鱼-Key
+	 * @param dayuName-大鱼名称
 	 * @param cell-手机号
 	 * @param message-发送的信息模板
 	 * @return
 	 */
-	public static boolean sendMessage(String dayuKey, String cell, Map<String, Object> smsParamMap) {
+	public static boolean sendMessage(String dayuName, String cell, Map<String, Object> smsParamMap) {
 		try {
-			String appkey = dayuMap.get(dayuKey).get("appkey");
-			String signname = dayuMap.get(dayuKey).get("signname");
-			String template = dayuMap.get(dayuKey).get("template");
-			String appsecret = dayuMap.get(dayuKey).get("appsecret");
+			String appkey = dayuMap.get(dayuName).get("appkey");
+			String signname = dayuMap.get(dayuName).get("signname");
+			String template = dayuMap.get(dayuName).get("template");
+			String appsecret = dayuMap.get(dayuName).get("appsecret");
 			String sms_param = JsonUtil.toJson(smsParamMap);
 			String timestamp = sdf.format(new Date());
 			String signContent = String.format(signFormat, appkey, cell, signname, sms_param, template, timestamp);

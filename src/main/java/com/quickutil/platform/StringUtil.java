@@ -174,13 +174,10 @@ public class StringUtil {
 	/**
 	 * 把数组构造成字符串 eg: array = {"a","b"}, delimiter = " OR ", prefix = "(" , suffix = ")" result = (a OR b)
 	 * 
-	 * @param array
-	 * @param delimiter
-	 *            分隔符(required)
-	 * @param prefix
-	 *            前缀(optional, default empty)
-	 * @param suffix
-	 *            后缀(optional, default empty)
+	 * @param array-字符串数组
+	 * @param delimiter-分隔符(required)
+	 * @param prefix-前缀(optional,default empty)
+	 * @param suffix-后缀(optional,default empty)
 	 * @return
 	 */
 	public static String joinString(String[] array, String delimiter, String prefix, String suffix) {

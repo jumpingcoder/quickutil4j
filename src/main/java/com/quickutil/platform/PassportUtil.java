@@ -145,7 +145,7 @@ public class PassportUtil {
 	}
 
 	/**
-	 * 短信发送
+	 * 短信发送服务
 	 * 
 	 * @param cellList-手机号数组
 	 * @param content-短信的内容

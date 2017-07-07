@@ -23,6 +23,7 @@ import com.amazonaws.services.s3.model.GroupGrantee;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.Permission;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 
 public class AWSS3Util {
@@ -32,7 +33,7 @@ public class AWSS3Util {
 	/**
 	 * 初始化
 	 * 
-	 * @param properties
+	 * @param properties-配置
 	 * @return
 	 */
 	public static boolean init(Properties properties) {
@@ -62,7 +63,7 @@ public class AWSS3Util {
 	/**
 	 * 获取客户端实例
 	 * 
-	 * @param s3Name
+	 * @param s3Name-S3Name
 	 * @return
 	 */
 	public static AmazonS3 buildClient(String s3Name) {
@@ -75,8 +76,8 @@ public class AWSS3Util {
 	/**
 	 * 获取文件列表
 	 * 
-	 * @param s3Name
-	 * @param prefix
+	 * @param s3Name-S3Name
+	 * @param prefix-文件前缀
 	 * @return
 	 */
 	public static List<String> list(String s3Name, String prefix) {
@@ -97,10 +98,10 @@ public class AWSS3Util {
 	/**
 	 * 上传
 	 * 
-	 * @param s3Name
-	 * @param bt
-	 * @param filePath
-	 * @param contentType
+	 * @param s3Name-S3Name
+	 * @param bt-文件内容
+	 * @param filePath-文件路径
+	 * @param contentType-文件类型
 	 */
 	public static String uploadFile(String s3Name, byte[] bt, String filePath, String contentType) {
 		InputStream is = new ByteArrayInputStream(bt);
@@ -115,10 +116,22 @@ public class AWSS3Util {
 	}
 
 	/**
+	 * 下载
+	 * 
+	 * @param s3Name-S3Name
+	 * @param filePath-文件路径
+	 * @return
+	 */
+	public static byte[] downloadFile(String s3Name, String filePath) {
+		S3Object object = buildClient(s3Name).getObject(bucketMap.get(s3Name).get("bucketname"), filePath);
+		return FileUtil.stream2byte(object.getObjectContent());
+	}
+
+	/**
 	 * 删除
 	 * 
-	 * @param s3Name
-	 * @param filePath
+	 * @param s3Name-S3Name
+	 * @param filePath-文件路径
 	 */
 	public static void deleteFile(String s3Name, String filePath) {
 		buildClient(s3Name).deleteObject(bucketMap.get(s3Name).get("bucketname"), filePath);

@@ -1,3 +1,9 @@
+/**
+ * 邮件发送工具
+ * 
+ * @class MailUtil
+ * @author 0.5
+ */
 package com.quickutil.platform;
 
 import java.util.List;
@@ -16,19 +22,18 @@ import javax.mail.internet.MimeMultipart;
 import javax.mail.util.ByteArrayDataSource;
 
 import com.quickutil.platform.CryptoUtil;
-
-/**
- * 邮件模块
- * 
- * @class MailUtil
- * @author 0.5
- */
+import com.quickutil.platform.def.AttachmentDef;
 
 public class MailUtil {
 	private static final String format = "text/html;charset=UTF-8";
 	private static Properties mailProperties = null;
 	private static Authenticator authenticator = null;
 
+	/**
+	 * 初始化
+	 * 
+	 * @param properties-配置
+	 */
 	public static void initMail(Properties properties) {
 		mailProperties = properties;
 		authenticator = new Authenticator() {
@@ -41,16 +46,31 @@ public class MailUtil {
 		};
 	}
 
-	public static boolean send(String[] toMails, String[] ccMails, String[] bccMails, String title, String text, List<byte[]> imageList) {
+	/**
+	 * 发送邮件
+	 * 
+	 * @param toMails-收件人
+	 * @param ccMails-抄送人
+	 * @param bccMails-密送人
+	 * @param title-邮件标题
+	 * @param text-邮件内容
+	 * @param attachmentList-附件
+	 * @return
+	 */
+	public static boolean send(String[] toMails, String[] ccMails, String[] bccMails, String title, String text, List<AttachmentDef> attachmentList) {
 		try {
 			InternetAddress[] toAddresses = new InternetAddress[toMails.length];
 			for (int i = 0; i < toMails.length; i++) {
 				toAddresses[i] = new InternetAddress(toMails[i]);
 			}
+			if (ccMails == null)
+				ccMails = new String[0];
 			InternetAddress[] ccAddresses = new InternetAddress[ccMails.length];
 			for (int i = 0; i < ccMails.length; i++) {
 				ccAddresses[i] = new InternetAddress(ccMails[i]);
 			}
+			if (bccMails == null)
+				bccMails = new String[0];
 			InternetAddress[] bccAddresses = new InternetAddress[bccMails.length];
 			for (int i = 0; i < bccMails.length; i++) {
 				bccAddresses[i] = new InternetAddress(bccMails[i]);
@@ -63,25 +83,23 @@ public class MailUtil {
 			message.setRecipients(RecipientType.TO, toAddresses);
 			message.setRecipients(RecipientType.CC, ccAddresses);
 			message.setRecipients(RecipientType.BCC, bccAddresses);
-			if (imageList != null) {
-				// 构建图片资源
-				MimeMultipart bodyMultipart = new MimeMultipart("related");
-				MimeBodyPart htmlPart = new MimeBodyPart();
-				StringBuilder content = new StringBuilder("<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" width=\"1280\"  style=\"width:1280px;\">");
-				String random = CryptoUtil.randomMd5Code();
-				for (int i = 0; i < imageList.size(); i++) {
-					MimeBodyPart picPart = new MimeBodyPart();
-					DataHandler picDataHandler = new DataHandler(new ByteArrayDataSource(imageList.get(i), "application/octet-stream"));
-					picPart.setDataHandler(picDataHandler);
-					picPart.setFileName(i + ".png");
-					picPart.setHeader("Content-ID", random + i);
-					bodyMultipart.addBodyPart(picPart);
-					content.append("<tr><td><img src=\"cid:" + random + i + "\"/></td></tr>");
-				}
-				content.append("</table>");
-				htmlPart.setContent(content.toString(), format);
-				bodyMultipart.addBodyPart(htmlPart);
+			if (attachmentList != null) {
+				MimeMultipart bodyMultipart = new MimeMultipart("related");// 附件部分
 				message.setContent(bodyMultipart);
+				MimeBodyPart htmlPart = new MimeBodyPart();// 使用html嵌套
+				bodyMultipart.addBodyPart(htmlPart);
+				StringBuilder htmlContent = new StringBuilder("<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" width=\"1280\">");
+				String random = CryptoUtil.randomMd5Code();
+				for (int i = 0; i < attachmentList.size(); i++) {
+					MimeBodyPart previewPart = new MimeBodyPart();
+					bodyMultipart.addBodyPart(previewPart);
+					previewPart.setDataHandler(new DataHandler(new ByteArrayDataSource(attachmentList.get(i).file, "application/octet-stream")));
+					previewPart.setFileName(attachmentList.get(i).fileName);
+					previewPart.setHeader("Content-ID", random + i);
+					htmlContent.append("<tr><td><img src=\"cid:" + random + i + "\"/></td></tr>");
+				}
+				htmlContent.append("</table>");
+				htmlPart.setContent(htmlContent.toString(), format);
 			}
 			// 生成邮件
 			message.saveChanges();

@@ -176,8 +176,7 @@ public class ElasticUtil {
 	 * @param type-ES的type
 	 * @param id-ES的id
 	 * @param source-更新的内容
-	 * @param isUpsert-true
-	 *            表示如果文档不存在则插入,false 时如果不存在则不插入
+	 * @param isUpsert-true,表示如果文档不存在则插入,false,时如果不存在则不插入
 	 * @return
 	 */
 	public boolean update(String index, String type, String id, JsonObject source, boolean isUpsert) {
