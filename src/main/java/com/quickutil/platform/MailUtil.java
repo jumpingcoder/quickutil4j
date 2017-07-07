@@ -47,9 +47,9 @@ public class MailUtil {
 			for (int i = 0; i < toMails.length; i++) {
 				toAddresses[i] = new InternetAddress(toMails[i]);
 			}
-			InternetAddress[] ccAddresses = new InternetAddress[toMails.length];
-			for (int i = 0; i < bccMails.length; i++) {
-				ccAddresses[i] = new InternetAddress(bccMails[i]);
+			InternetAddress[] ccAddresses = new InternetAddress[ccMails.length];
+			for (int i = 0; i < ccMails.length; i++) {
+				ccAddresses[i] = new InternetAddress(ccMails[i]);
 			}
 			InternetAddress[] bccAddresses = new InternetAddress[bccMails.length];
 			for (int i = 0; i < bccMails.length; i++) {
@@ -63,24 +63,26 @@ public class MailUtil {
 			message.setRecipients(RecipientType.TO, toAddresses);
 			message.setRecipients(RecipientType.CC, ccAddresses);
 			message.setRecipients(RecipientType.BCC, bccAddresses);
-			// 构建图片资源
-			MimeMultipart bodyMultipart = new MimeMultipart("related");
-			MimeBodyPart htmlPart = new MimeBodyPart();
-			StringBuilder content = new StringBuilder("<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" width=\"1280\"  style=\"width:1280px;\">");
-			String random = CryptoUtil.randomMd5Code();
-			for (int i = 0; i < imageList.size(); i++) {
-				MimeBodyPart picPart = new MimeBodyPart();
-				DataHandler picDataHandler = new DataHandler(new ByteArrayDataSource(imageList.get(i), "application/octet-stream"));
-				picPart.setDataHandler(picDataHandler);
-				picPart.setFileName(i + ".png");
-				picPart.setHeader("Content-ID", random + i);
-				bodyMultipart.addBodyPart(picPart);
-				content.append("<tr><td><img src=\"cid:" + random + i + "\"/></td></tr>");
+			if (imageList != null) {
+				// 构建图片资源
+				MimeMultipart bodyMultipart = new MimeMultipart("related");
+				MimeBodyPart htmlPart = new MimeBodyPart();
+				StringBuilder content = new StringBuilder("<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" width=\"1280\"  style=\"width:1280px;\">");
+				String random = CryptoUtil.randomMd5Code();
+				for (int i = 0; i < imageList.size(); i++) {
+					MimeBodyPart picPart = new MimeBodyPart();
+					DataHandler picDataHandler = new DataHandler(new ByteArrayDataSource(imageList.get(i), "application/octet-stream"));
+					picPart.setDataHandler(picDataHandler);
+					picPart.setFileName(i + ".png");
+					picPart.setHeader("Content-ID", random + i);
+					bodyMultipart.addBodyPart(picPart);
+					content.append("<tr><td><img src=\"cid:" + random + i + "\"/></td></tr>");
+				}
+				content.append("</table>");
+				htmlPart.setContent(content.toString(), format);
+				bodyMultipart.addBodyPart(htmlPart);
+				message.setContent(bodyMultipart);
 			}
-			content.append("</table>");
-			htmlPart.setContent(content, format);
-			bodyMultipart.addBodyPart(htmlPart);
-			message.setContent(bodyMultipart);
 			// 生成邮件
 			message.saveChanges();
 			Transport.send(message);
