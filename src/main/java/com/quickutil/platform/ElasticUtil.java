@@ -693,4 +693,29 @@ public class ElasticUtil {
 	public enum Version {
 		es2, es5
 	}
+
+	/**
+	 * {a,b}
+	 * 用中括号和逗号进行包装, 用于聚合返回的结果中带上多个源字段，或者搜索多个字段
+	 * ["a", "b"]
+	 * @param array
+	 * @return
+	 */
+	public static String joinStringForMultiFields(String[] array) {
+		for(int i = 0; i < array.length; i++) { array[i] = "\"" + array[i] + "\""; }
+		return StringUtil.joinString(array, ",", "[", "]");
+	}
+
+	/**
+	 * 把某个字段的多个可匹配值作为或条件子查询
+	 * @param array
+	 * @return
+	 */
+	public static String joinORSubQuery(String[] array) {
+		for(int i = 0; i < array.length; i++) {
+			if (array[i].contains(" "))
+				array[i] = "\"" + array[i] + "\"";
+		}
+		return StringUtil.joinString(array, " OR ", "(", ")");
+	}
 }
