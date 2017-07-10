@@ -307,6 +307,17 @@ public class ElasticUtil {
 	}
 
 	/**
+	 * 批量插入,使用 stringBuffer
+	 *
+	 * @param stringBuffer-由调用者编写批量插入的内容,可以不是同一个 index 和 type
+	 * @return
+	 */
+	public BulkResponse bulkInsertByStringBuffer(StringBuffer stringBuffer) {
+		String urlFormat = "%s/_bulk";
+		return bulk(String.format(urlFormat, host), stringBuffer.toString());
+	}
+
+	/**
 	 * 批量更新,同一个 index 和 type
 	 *
 	 * @param index-ES的index
