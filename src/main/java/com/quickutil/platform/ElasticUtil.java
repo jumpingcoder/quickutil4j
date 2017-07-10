@@ -530,29 +530,6 @@ public class ElasticUtil {
 	}
 
 	/**
-	 * 替换 json 文件中的占位符 拷贝自 ElasticsearchUtil, 由于 ElasticsearchUtil 不提供返回只替换完占位符后的 json, 所以拷贝到这里使用
-	 * 
-	 * @param template
-	 * @param paramMap
-	 * @return
-	 */
-	public static String formatTemplate(String template, Map<String, Object> paramMap) {
-		try {
-			for (String paramKey : paramMap.keySet()) {
-				String json = JsonUtil.toJson(paramMap.get(paramKey));
-				template = template.replace("@" + paramKey, json);
-			}
-			for (String replace : replaceArray) {
-				template = template.replace(replace, "");
-			}
-			return template;
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			return null;
-		}
-	}
-
-	/**
 	 * 查看 index 是否存在
 	 * 
 	 * @param index
@@ -646,7 +623,7 @@ public class ElasticUtil {
 	 * @param type
 	 * @param searchRequest
 	 * @param filePath
-	 * @param jObjectToCsvFunc
+	 * @param jsonToCSV 将 hit 变成 csv 的一行
 	 */
 	public void dumpESDataToCsv(String index, String type, SearchRequest searchRequest, String filePath, Function<JsonObject, String> jsonToCSV) {
 		assert (index != null && filePath != null && jsonToCSV != null);
