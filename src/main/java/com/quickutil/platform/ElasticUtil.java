@@ -39,8 +39,6 @@ import org.apache.http.util.EntityUtils;
  * @author shijie.ruan
  */
 public class ElasticUtil {
-	private static final String[] replaceArray = { "\t", "\n" };
-
 	private static final String hostIndexFormat = "%s/%s/";
 	private static final String hostIndexTypeFormat = "%s/%s/%s/";
 
@@ -708,7 +706,9 @@ public class ElasticUtil {
 	 * @return
 	 */
 	public static String joinStringForMultiFields(String[] array) {
-		for(int i = 0; i < array.length; i++) { array[i] = "\"" + array[i] + "\""; }
+		for (int i = 0; i < array.length; i++) {
+			array[i] = "\"" + array[i] + "\"";
+		}
 		return StringUtil.joinString(array, ",", "[", "]");
 	}
 
@@ -718,7 +718,7 @@ public class ElasticUtil {
 	 * @return
 	 */
 	public static String joinORSubQuery(String[] array) {
-		for(int i = 0; i < array.length; i++) {
+		for (int i = 0; i < array.length; i++) {
 			if (array[i].contains(" "))
 				array[i] = "\"" + array[i] + "\"";
 		}
