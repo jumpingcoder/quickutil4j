@@ -66,6 +66,8 @@ public class TermsAggs extends AggsDSL {
 			throw new FormatQueryException("terms aggregation must init by field name or script file");
 		}
 		if (null != size) {
+			if (0 == size) //https://www.elastic.co/guide/en/elasticsearch/reference/current/breaking_50_aggregations_changes.html, size = 0, is no longer supported in 5.x
+				size = 10000;
 			termsObject.addProperty("size", size);
 		}
 		if (null != order) {
