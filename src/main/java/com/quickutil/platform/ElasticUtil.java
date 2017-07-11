@@ -396,6 +396,24 @@ public class ElasticUtil {
 	}
 
 	/**
+	 * 批量删除, 注意输入参数中的三个 list 长度需要一致
+	 *
+	 * @param indices-删除的 index
+	 * @param types-删除的 type
+	 * @param ids-删除的 id
+	 * @return
+	 */
+	public BulkResponse bulkDelete(List<String> indices, List<String> types, List<String> ids) {
+		String deleteFormat = "{\"delete\":{\"_index\":\"%s\",\"_type\":\"%s\",\"_id\":\"%s\"}}\n";
+		StringBuilder bulk = new StringBuilder();
+		for (int i = 0; i < indices.size(); i++) {
+			bulk.append(String.format(deleteFormat, indices.get(i), types.get(i), ids.get(i)));
+		}
+		String urlFormat = "%s/_bulk";
+		return bulk(String.format(urlFormat, host), bulk.toString());
+	}
+
+	/**
 	 * 查询或者聚合请求
 	 * 
 	 * @param index
