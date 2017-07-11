@@ -7,7 +7,7 @@ import com.quickutil.platform.exception.FormatQueryException;
  * @author shijie.ruan
  */
 public class SumAggs extends AggsDSL {
-	private String fieldName, missing = null;;
+	private String fieldName, missing = null;
 
 	public SumAggs(String aggsName, String fieldName) {
 		super("sum", aggsName);
