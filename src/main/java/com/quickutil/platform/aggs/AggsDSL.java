@@ -52,6 +52,11 @@ public abstract class AggsDSL {
 		return this.subAggsList.size();
 	}
 
+	public AggsDSL clearSubAggs() {
+		this.subAggsList.clear();
+		return this;
+	}
+
 	public abstract JsonObject toJson() throws FormatQueryException;
 
 	protected JsonObject warpAggs(JsonObject child) throws FormatQueryException {
