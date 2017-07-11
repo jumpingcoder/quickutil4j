@@ -1,15 +1,17 @@
 package com.quickutil.platform.aggs;
 
 import com.google.gson.JsonObject;
+import com.quickutil.platform.def.SearchRequest;
 import com.quickutil.platform.exception.FormatQueryException;
 
 /**
  * @author shijie.ruan
  */
 public class TermsAggs extends AggsDSL {
-	private String fieldName;
+	private String fieldName = null, scriptFileName = null;
 	private Order order;
 	private Integer size, minDocCount;
+	private JsonObject params;
 
 	public TermsAggs(String aggsName, String fieldName, boolean isKeyword) {
 		super("terms", aggsName);
@@ -17,6 +19,15 @@ public class TermsAggs extends AggsDSL {
 		if (isKeyword) {
 			this.fieldName += ".keyword";
 		}
+	}
+
+	/**
+	 * 仅支持 groovy 脚本文件
+	 * @param scriptFileName-脚本文件名,不含后缀
+	 */
+	public TermsAggs(String aggsName, String scriptFileName) {
+		super("terms", aggsName);
+		this.scriptFileName = scriptFileName;
 	}
 
 	public TermsAggs setSize(int size) {
@@ -34,10 +45,26 @@ public class TermsAggs extends AggsDSL {
 		return this;
 	}
 
+	public TermsAggs setParams(JsonObject params) {
+		this.params = params;
+		return this;
+	}
+
 	@Override
 	public JsonObject toJson() throws FormatQueryException {
 		JsonObject termsObject = new JsonObject();
-		termsObject.addProperty("field", fieldName);
+		if (null != fieldName) {
+			termsObject.addProperty("field", fieldName);
+		} else if (null != scriptFileName) {
+			JsonObject scriptObject = new JsonObject();
+			scriptObject.addProperty("file", scriptFileName);
+			scriptObject.addProperty("lang", "groovy");
+			if (null != params)
+				scriptObject.add("params", params);
+			termsObject.add("script", scriptObject);
+		} else {
+			throw new FormatQueryException("terms aggregation must init by field name or script file");
+		}
 		if (null != size) {
 			termsObject.addProperty("size", size);
 		}
@@ -48,5 +75,13 @@ public class TermsAggs extends AggsDSL {
 			termsObject.addProperty("min_doc_count", minDocCount);
 		}
 		return warpAggs(termsObject);
+	}
+
+	public static void main(String[] args) throws FormatQueryException {
+		TermsAggs termsAggs = new TermsAggs("aa", "assistant_concat")
+				.setSize(0).setOrder(new Order("_count"));
+		SearchRequest searchRequest = new SearchRequest(termsAggs).setSize(0);
+		System.out.println(searchRequest.toJson());
+		;
 	}
 }
