@@ -723,4 +723,6 @@ public class ElasticUtil {
 		}
 		return StringUtil.joinString(array, " OR ", "(", ")");
 	}
+
+
 }
