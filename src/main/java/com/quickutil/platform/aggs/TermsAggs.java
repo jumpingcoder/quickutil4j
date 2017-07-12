@@ -12,7 +12,7 @@ public class TermsAggs extends AggsDSL {
 	private Order order;
 	private Integer size, minDocCount;
 	private JsonObject params;
-	private Boolean useKeyWord;
+	private Boolean useKeyWord = false;
 
 	public TermsAggs(String aggsName, String fieldName) {
 		super("terms", aggsName);
