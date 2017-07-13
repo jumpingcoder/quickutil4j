@@ -17,7 +17,6 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
-
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.NoHttpResponseException;
@@ -47,7 +46,7 @@ public class ElasticUtil {
 
 	public final HttpClient client;
 
-	private static RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(60000).setConnectTimeout(60000).setSocketTimeout(60000).build();
+	private static RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(2*60000).setConnectTimeout(2*60000).setSocketTimeout(60000).build();
 
 	private static PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
 
@@ -63,7 +62,7 @@ public class ElasticUtil {
 				return false;
 			}
 			if (exception instanceof InterruptedIOException) {// 超时
-				return false;
+				return true;
 			}
 			if (exception instanceof UnknownHostException) {// 目标服务器不可达
 				return false;
@@ -724,4 +723,6 @@ public class ElasticUtil {
 		}
 		return StringUtil.joinString(array, " OR ", "(", ")");
 	}
+
+
 }
