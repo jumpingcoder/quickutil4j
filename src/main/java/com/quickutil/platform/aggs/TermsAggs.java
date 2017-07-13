@@ -21,7 +21,6 @@ public class TermsAggs extends AggsDSL {
 
 	public TermsAggs(String aggsName) {
 		super("terms", aggsName);
-		this.scriptFileName = scriptFileName;
 	}
 
 	public TermsAggs setFieldName(String fieldName) {
@@ -108,6 +107,5 @@ public class TermsAggs extends AggsDSL {
 				.setSize(0).setOrder(new Order("_count"));
 		SearchRequest searchRequest = new SearchRequest(termsAggs).setSize(0);
 		System.out.println(searchRequest.toJson());
-		;
 	}
 }
