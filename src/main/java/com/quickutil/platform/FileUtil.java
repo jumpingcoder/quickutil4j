@@ -178,8 +178,9 @@ public class FileUtil {
 	 * @return
 	 */
 	public static boolean string2File(String filePath, String content, boolean append) {
-		mkdirByFile(filePath);
 		File file = new File(filePath);
+		File parent = file.getParentFile();
+		mkdirByFile(parent.getAbsolutePath());
 		OutputStreamWriter out = null;
 		try {
 			out = new OutputStreamWriter(new FileOutputStream(file, append), "UTF-8");
