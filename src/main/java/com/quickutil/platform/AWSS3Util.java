@@ -47,11 +47,11 @@ public class AWSS3Util {
 		for (String key : keyList) {
 			try {
 				Map<String, String> map = new HashMap<String, String>();
-				map.put("accessKeyId", properties.getProperty(key + ".accessKeyId"));
-				map.put("accessKeySecret", properties.getProperty(key + ".accessKeySecret"));
+				map.put("access_key", properties.getProperty(key + ".access_key"));
+				map.put("secret_key", properties.getProperty(key + ".secret_key"));
 				map.put("endpoint", properties.getProperty(key + ".endpoint"));
 				map.put("region", properties.getProperty(key + ".region"));
-				map.put("bucketname", properties.getProperty(key + ".bucketname"));
+				map.put("bucket", properties.getProperty(key + ".bucket"));
 				bucketMap.put(key, map);
 			} catch (Exception e) {
 				LogUtil.error(e, "S3配置参数错误");
@@ -68,7 +68,7 @@ public class AWSS3Util {
 	 */
 	public static AmazonS3 buildClient(String s3Name) {
 		AmazonS3ClientBuilder s3Builder = AmazonS3ClientBuilder.standard();
-		s3Builder.setCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(bucketMap.get(s3Name).get("accessKeyId"), bucketMap.get(s3Name).get("accessKeySecret"))));
+		s3Builder.setCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(bucketMap.get(s3Name).get("access_key"), bucketMap.get(s3Name).get("secret_key"))));
 		s3Builder.setEndpointConfiguration(new EndpointConfiguration(bucketMap.get(s3Name).get("endpoint"), bucketMap.get(s3Name).get("region")));
 		return s3Builder.build();
 	}
@@ -82,7 +82,9 @@ public class AWSS3Util {
 	 */
 	public static List<String> list(String s3Name, String prefix) {
 		List<String> filePaths = new ArrayList<String>();
-		final ListObjectsV2Request req = new ListObjectsV2Request().withBucketName(bucketMap.get(s3Name).get("bucketname")).withMaxKeys(100);
+		final ListObjectsV2Request req = new ListObjectsV2Request().withBucketName(bucketMap.get(s3Name)
+				.get("bucket")).withMaxKeys(100);
+		req.setPrefix(prefix);
 		ListObjectsV2Result result;
 		do {
 			result = buildClient(s3Name).listObjectsV2(req);
@@ -92,7 +94,6 @@ public class AWSS3Util {
 			req.setContinuationToken(result.getNextContinuationToken());
 		} while (result.isTruncated());
 		return filePaths;
-
 	}
 
 	/**
@@ -111,8 +112,8 @@ public class AWSS3Util {
 			metadata.setContentType(contentType);
 		AccessControlList acl = new AccessControlList();
 		acl.grantPermission(GroupGrantee.AllUsers, Permission.Read);
-		buildClient(s3Name).putObject(new PutObjectRequest(bucketMap.get(s3Name).get("bucketname"), filePath, is, metadata).withAccessControlList(acl));
-		return bucketMap.get(s3Name).get("endpoint") + "/" + bucketMap.get(s3Name).get("bucketname") + "/" + filePath;
+		buildClient(s3Name).putObject(new PutObjectRequest(bucketMap.get(s3Name).get("bucket"), filePath, is, metadata).withAccessControlList(acl));
+		return bucketMap.get(s3Name).get("endpoint") + "/" + bucketMap.get(s3Name).get("bucket") + "/" + filePath;
 	}
 
 	/**
@@ -123,7 +124,7 @@ public class AWSS3Util {
 	 * @return
 	 */
 	public static byte[] downloadFile(String s3Name, String filePath) {
-		S3Object object = buildClient(s3Name).getObject(bucketMap.get(s3Name).get("bucketname"), filePath);
+		S3Object object = buildClient(s3Name).getObject(bucketMap.get(s3Name).get("bucket"), filePath);
 		return FileUtil.stream2byte(object.getObjectContent());
 	}
 
@@ -134,6 +135,6 @@ public class AWSS3Util {
 	 * @param filePath-文件路径
 	 */
 	public static void deleteFile(String s3Name, String filePath) {
-		buildClient(s3Name).deleteObject(bucketMap.get(s3Name).get("bucketname"), filePath);
+		buildClient(s3Name).deleteObject(bucketMap.get(s3Name).get("bucket"), filePath);
 	}
 }

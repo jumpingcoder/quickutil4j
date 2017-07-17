@@ -8,10 +8,12 @@ import com.quickutil.platform.def.SearchRequest;
 import java.io.File;
 import java.io.IOException;
 import java.io.InterruptedIOException;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.function.Function;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
@@ -26,6 +28,7 @@ import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.HttpRoute;
@@ -49,7 +52,10 @@ public class ElasticUtil {
 
 	public final HttpClient client;
 
-	private static RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(2*60000).setConnectTimeout(2*60000).setSocketTimeout(60000).build();
+	private static RequestConfig requestConfig = RequestConfig.custom()
+			.setConnectionRequestTimeout(2*60000)
+			.setConnectTimeout(2*60000)
+			.setSocketTimeout(2*60000).build();
 
 	private static PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
 
@@ -63,6 +69,9 @@ public class ElasticUtil {
 			}
 			if (exception instanceof SSLHandshakeException) {// 不要重试SSL握手异常
 				return false;
+			}
+			if (exception instanceof SocketTimeoutException) {
+				return true;
 			}
 			if (exception instanceof InterruptedIOException) {// 超时
 				return true;
@@ -392,8 +401,8 @@ public class ElasticUtil {
 	}
 
 	/**
- * 使用 groovy 脚本
-	 */
+	* 使用 groovy 脚本
+	*/
 	public BulkResponse bulkUpdateByScript(String index, String type, Map<String, JsonObject> source, String scriptFile, boolean upsert) {
 		return bulkUpdateByScript(index, type, source, scriptFile, "groovy", upsert);
 	}
@@ -754,5 +763,69 @@ public class ElasticUtil {
 		return StringUtil.joinString(array, " OR ", "(", ")");
 	}
 
+	private static String[] propertiesKey =
+			{"bucket", "region", "endpoint", "access_key", "secret_key"};
 
+	/**
+	 * 新建一个 s3 repository
+	 * @param properties-需要包含bucket, regoin, endpoint, accessKey, secretKey 具体参数的意义请参考 es 文档
+	 * @param repo repository 的名字
+	 * @return
+	 */
+	public boolean createS3Repository(String repo, Properties properties) {
+		JsonObject settings = new JsonObject();
+		for (String key: propertiesKey) {
+			if (properties.containsKey(key))
+				settings.addProperty(key, properties.getProperty(key));
+		}
+		JsonObject repository = new JsonObject();
+		repository.addProperty("type", "s3");
+		repository.add("settings", settings);
+		String url = String.format("%s/_snapshot/%s", host, repo);
+		HttpPut httpPut = new HttpPut(url);
+		httpPut.setConfig(requestConfig);
+		httpPut.setEntity(new ByteArrayEntity(settings.toString().getBytes()));
+		try {
+			HttpResponse response = client.execute(httpPut);
+			if (200 == response.getStatusLine().getStatusCode())
+				return true;
+			return false;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public boolean checkRepositoryExist(String repo) {
+		String url = String.format("%s/_snapshot/%s", host, repo);
+		try {
+			HttpResponse response = client.execute(getMethod(url));
+			if (200 == response.getStatusLine().getStatusCode())
+				return true;
+			return false;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	/**
+	 * 在某个 repository 下生成 snapshot
+	 * @param repositoryName
+	 * @param snapshotName
+	 * @param config
+	 */
+	public boolean createSnapshot(String repositoryName, String snapshotName, JsonObject config) {
+		String url = String.format("%s/_snapshot/%s/%s", host, repositoryName, snapshotName);
+		HttpPut httpPut = new HttpPut(url);
+		httpPut.setConfig(requestConfig);
+		httpPut.setEntity(new ByteArrayEntity(config.toString().getBytes()));
+		try {
+			client.execute(httpPut);
+			return true;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
 }
