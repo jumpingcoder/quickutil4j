@@ -784,11 +784,12 @@ public class ElasticUtil {
 		String url = String.format("%s/_snapshot/%s", host, repo);
 		HttpPut httpPut = new HttpPut(url);
 		httpPut.setConfig(requestConfig);
-		httpPut.setEntity(new ByteArrayEntity(settings.toString().getBytes()));
+		httpPut.setEntity(new ByteArrayEntity(repository.toString().getBytes()));
 		try {
 			HttpResponse response = client.execute(httpPut);
 			if (200 == response.getStatusLine().getStatusCode())
 				return true;
+			System.out.println(getEntity(response));
 			return false;
 		} catch (IOException e) {
 			e.printStackTrace();
