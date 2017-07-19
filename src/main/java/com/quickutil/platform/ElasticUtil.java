@@ -829,4 +829,24 @@ public class ElasticUtil {
 		}
 		return false;
 	}
+
+	/**
+	 * 从某个 repository 下恢复 snapshot
+	 * @param repositoryName
+	 * @param snapshotName
+	 * @param config
+	 */
+	public boolean restoreSnapshot(String repositoryName, String snapshotName, JsonObject config) {
+		String url = String.format("%s/_snapshot/%s/%s/_restore", host, repositoryName, snapshotName);
+		HttpPut httpPut = new HttpPut(url);
+		httpPut.setConfig(requestConfig);
+		httpPut.setEntity(new ByteArrayEntity(config.toString().getBytes()));
+		try {
+			client.execute(httpPut);
+			return true;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
 }
