@@ -8,10 +8,12 @@ import com.quickutil.platform.def.SearchRequest;
 import java.io.File;
 import java.io.IOException;
 import java.io.InterruptedIOException;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.function.Function;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
@@ -20,11 +22,13 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.NoHttpResponseException;
+import org.apache.http.TruncatedChunkException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.HttpRoute;
@@ -46,7 +50,10 @@ public class ElasticUtil {
 
 	public final HttpClient client;
 
-	private static RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(2*60000).setConnectTimeout(2*60000).setSocketTimeout(60000).build();
+	private static RequestConfig requestConfig = RequestConfig.custom()
+			.setConnectionRequestTimeout(2*60000)
+			.setConnectTimeout(2*60000)
+			.setSocketTimeout(2*60000).build();
 
 	private static PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
 
@@ -61,6 +68,9 @@ public class ElasticUtil {
 			if (exception instanceof SSLHandshakeException) {// 不要重试SSL握手异常
 				return false;
 			}
+			if (exception instanceof SocketTimeoutException) {
+				return true;
+			}
 			if (exception instanceof InterruptedIOException) {// 超时
 				return true;
 			}
@@ -69,6 +79,9 @@ public class ElasticUtil {
 			}
 			if (exception instanceof SSLException) {// SSL握手异常
 				return false;
+			}
+			if (exception instanceof TruncatedChunkException) {
+				return true;
 			}
 			HttpClientContext clientContext = HttpClientContext.adapt(context);
 			HttpRequest request = clientContext.getRequest();
@@ -217,11 +230,14 @@ public class ElasticUtil {
 	 */
 	private BulkResponse bulk(String url, String entity) {
 		try {
+			long start = System.currentTimeMillis();
 			HttpResponse response = client.execute(postMethod(url, entity));
+			System.out.println("time for execute bulk:" + (System.currentTimeMillis() - start));
 			if (200 != response.getStatusLine().getStatusCode()) {
 				JsonObject bulkRequestError = JsonUtil.toJsonMap(getEntity(response)).getAsJsonObject("error");
 				return new BulkResponse(BulkResponse.RequestFail, bulkRequestError);
 			} else {
+				start = System.currentTimeMillis();
 				JsonObject responseObject = JsonUtil.toJsonMap(getEntity(response));
 				boolean hasErrors = responseObject.get("errors").getAsBoolean();
 				if (!hasErrors) {
@@ -353,10 +369,11 @@ public class ElasticUtil {
 	 *            key为id，value为source
 	 * @param scriptFile-放在
 	 *            elasticsearch home 目录下的 config/script 目录下的groovy脚本, 为了安全,不支持在请求中带上脚本 之所以是 groovy 脚本,因为 groovy 是 2.x 和 5.x 都支持的
+	 * @param lang-脚本的语言类型, 支持 groovy, painless
 	 * @param upsert-文档不存在时插入,其实控制粒度是对于每一个文档的,但是这里为了方便输入,粒度为同一次批量的文档
 	 * @return
 	 */
-	public BulkResponse bulkUpdateByScript(String index, String type, Map<String, JsonObject> source, String scriptFile, boolean upsert) {
+	public BulkResponse bulkUpdateByScript(String index, String type, Map<String, JsonObject> source, String scriptFile, String lang, boolean upsert) {
 		String idFormat = "{\"update\": {\"_id\": \"%s\"}}\n";
 		if (null == index || null == type) {
 			JsonObject insertError = new JsonObject();
@@ -367,7 +384,7 @@ public class ElasticUtil {
 		for (String id : source.keySet()) {
 			JsonObject item = new JsonObject();
 			JsonObject scriptObject = new JsonObject();
-			scriptObject.addProperty("lang", "groovy");
+			scriptObject.addProperty("lang", lang);
 			scriptObject.addProperty("file", scriptFile);
 			scriptObject.add("params", source.get(id));
 			item.add("script", scriptObject);
@@ -381,6 +398,13 @@ public class ElasticUtil {
 	}
 
 	/**
+	* 使用 groovy 脚本
+	*/
+	public BulkResponse bulkUpdateByScript(String index, String type, Map<String, JsonObject> source, String scriptFile, boolean upsert) {
+		return bulkUpdateByScript(index, type, source, scriptFile, "groovy", upsert);
+	}
+
+	/**
 	 * 批量更新,使用 stringBuffer
 	 * 
 	 * @param stringBuffer-由调用者编写批量插入的内容,可以不是同一个
@@ -390,6 +414,20 @@ public class ElasticUtil {
 	public BulkResponse bulkUpdateByStringBuffer(StringBuffer stringBuffer) {
 		String urlFormat = "%s/_bulk";
 		return bulk(String.format(urlFormat, host), stringBuffer.toString());
+	}
+
+	/**
+	 * 批量更新,使用 stringBuffer
+	 *
+	 * @param index-写入的 index
+	 * @param type-写入的 type
+	 * @param stringBuffer-由调用者编写批量插入的内容,可以不是同一个
+	 *            index 和 type
+	 * @return
+	 */
+	public BulkResponse bulkUpdateByStringBuffer(String index, String type, StringBuffer stringBuffer) {
+		String urlFormat = "%s/%s/%s/_bulk";
+		return bulk(String.format(urlFormat, host, index, type), stringBuffer.toString());
 	}
 
 	/**
@@ -724,5 +762,90 @@ public class ElasticUtil {
 		return StringUtil.joinString(array, " OR ", "(", ")");
 	}
 
+	private static String[] propertiesKey =
+			{"bucket", "region", "endpoint", "access_key", "secret_key"};
 
+	/**
+	 * 新建一个 s3 repository
+	 * @param properties-需要包含bucket, regoin, endpoint, accessKey, secretKey 具体参数的意义请参考 es 文档
+	 * @param repo repository 的名字
+	 * @return
+	 */
+	public boolean createS3Repository(String repo, Properties properties) {
+		JsonObject settings = new JsonObject();
+		for (String key: propertiesKey) {
+			if (properties.containsKey(key))
+				settings.addProperty(key, properties.getProperty(key));
+		}
+		JsonObject repository = new JsonObject();
+		repository.addProperty("type", "s3");
+		repository.add("settings", settings);
+		String url = String.format("%s/_snapshot/%s", host, repo);
+		HttpPut httpPut = new HttpPut(url);
+		httpPut.setConfig(requestConfig);
+		httpPut.setEntity(new ByteArrayEntity(repository.toString().getBytes()));
+		try {
+			HttpResponse response = client.execute(httpPut);
+			if (200 == response.getStatusLine().getStatusCode())
+				return true;
+			System.out.println(getEntity(response));
+			return false;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public boolean checkRepositoryExist(String repo) {
+		String url = String.format("%s/_snapshot/%s", host, repo);
+		try {
+			HttpResponse response = client.execute(getMethod(url));
+			if (200 == response.getStatusLine().getStatusCode())
+				return true;
+			return false;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	/**
+	 * 在某个 repository 下生成 snapshot
+	 * @param repositoryName
+	 * @param snapshotName
+	 * @param config
+	 */
+	public boolean createSnapshot(String repositoryName, String snapshotName, JsonObject config) {
+		String url = String.format("%s/_snapshot/%s/%s", host, repositoryName, snapshotName);
+		HttpPut httpPut = new HttpPut(url);
+		httpPut.setConfig(requestConfig);
+		httpPut.setEntity(new ByteArrayEntity(config.toString().getBytes()));
+		try {
+			client.execute(httpPut);
+			return true;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	/**
+	 * 从某个 repository 下恢复 snapshot
+	 * @param repositoryName
+	 * @param snapshotName
+	 * @param config
+	 */
+	public boolean restoreSnapshot(String repositoryName, String snapshotName, JsonObject config) {
+		String url = String.format("%s/_snapshot/%s/%s/_restore", host, repositoryName, snapshotName);
+		HttpPut httpPut = new HttpPut(url);
+		httpPut.setConfig(requestConfig);
+		httpPut.setEntity(new ByteArrayEntity(config.toString().getBytes()));
+		try {
+			client.execute(httpPut);
+			return true;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
 }
