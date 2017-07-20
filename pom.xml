@@ -4,15 +4,13 @@
 	<groupId>com.quickutil</groupId>
 	<artifactId>platform</artifactId>
 	<packaging>jar</packaging>
-	<version>1.1.5</version>
+	<version>1.1.6</version>
 	<name>quickutil-platform</name>
 	<url>http://www.quickutil.com</url>
 	<distributionManagement>
 		<repository>
-			<!--<id>com.quickutil</id>-->
-			<!--<url>http://nexus.quickutil.com/content/reprm ositories/com.quickutil</url>-->
-			<id>releases</id>
-			<url>http://localhost:8081/repository/com.shijie/</url>
+			<id>com.quickutil</id>
+			<url>http://nexus.quickutil.com/content/reprm ositories/com.quickutil</url>
 		</repository>
 	</distributionManagement>
 	<dependencies>

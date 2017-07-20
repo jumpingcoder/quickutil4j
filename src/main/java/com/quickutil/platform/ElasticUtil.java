@@ -241,7 +241,6 @@ public class ElasticUtil {
 			} else {
 				start = System.currentTimeMillis();
 				JsonObject responseObject = JsonUtil.toJsonMap(getEntity(response));
-				System.out.println("time for parse response Json:" + (System.currentTimeMillis() - start));
 				boolean hasErrors = responseObject.get("errors").getAsBoolean();
 				if (!hasErrors) {
 					return new BulkResponse(BulkResponse.Success);
