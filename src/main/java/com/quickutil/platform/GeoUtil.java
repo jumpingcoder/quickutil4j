@@ -10,22 +10,25 @@ package com.quickutil.platform;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.URLEncoder;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.http.HttpResponse;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.maxmind.geoip2.DatabaseReader;
-import com.maxmind.geoip2.exception.GeoIp2Exception;
 import com.maxmind.geoip2.model.CityResponse;
 import com.quickutil.platform.def.GeoDef;
 
 public class GeoUtil {
 
 	private static DatabaseReader databaseReader = null;
+	private static Map<String, String> countryCodeByCountryNameMap = new HashMap<String, String>();
+	private static Map<String, String> stateCodeByStateNameMap = new HashMap<String, String>();
+	private static Map<String, String> stateNameByStateNameChineseMap = new HashMap<String, String>();
 
 	static {
 		init();
@@ -44,6 +47,13 @@ public class GeoUtil {
 			}
 			databaseReader = new DatabaseReader.Builder(database).build();
 			System.out.println("GeoUtil loaded successfully");
+			HttpResponse response = HttpUtil.httpGet("http://quickutil.oss-cn-shenzhen.aliyuncs.com/country_state.json");
+			List<Map<String, Object>> list = JsonUtil.toList(FileUtil.stream2string(response.getEntity().getContent()));
+			for (Map<String, Object> map : list) {
+				countryCodeByCountryNameMap.put((String) map.get("country_name"), (String) map.get("country_code"));
+				stateCodeByStateNameMap.put((String) map.get("state_name"), (String) map.get("state_code"));
+				stateNameByStateNameChineseMap.put((String) map.get("state_chinese"), (String) map.get("state_name"));
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -55,28 +65,30 @@ public class GeoUtil {
 	 * @param ip-ip地址
 	 * @return
 	 */
+	private static final String UNKNOWN = "Unknown";
+
 	public static GeoDef GeoIPByMMDB(String ip) {
+		String countryCode = UNKNOWN;
+		String country = UNKNOWN;
+		String stateCode = UNKNOWN;
+		String state = UNKNOWN;
+		String city = UNKNOWN;
+		Double latitude = 0.0;
+		Double longitude = 0.0;
 		try {
 			InetAddress ipAddr = InetAddress.getByName(ip);
 			CityResponse result = databaseReader.city(ipAddr);
-			String countryCode = result.getCountry().getIsoCode();
-			String country = result.getCountry().getName();
-			String stateCode = result.getMostSpecificSubdivision().getIsoCode();
-			String state = result.getMostSpecificSubdivision().getName();
-			String city = result.getCity().getName();
-			Double latitude = result.getLocation().getLatitude();
-			Double longitude = result.getLocation().getLongitude();
-			if (latitude == null)
-				latitude = 0.0;
-			if (longitude == null)
-				longitude = 0.0;
-			return new GeoDef(latitude, longitude, countryCode, country, stateCode, state, city, "");
-		} catch (UnknownHostException e) {
-		} catch (GeoIp2Exception e) {
+			countryCode = result.getCountry().getIsoCode();
+			country = result.getCountry().getName();
+			stateCode = result.getMostSpecificSubdivision().getIsoCode();
+			state = result.getMostSpecificSubdivision().getName();
+			city = result.getCity().getName();
+			latitude = result.getLocation().getLatitude();
+			longitude = result.getLocation().getLongitude();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return null;
+		return new GeoDef(latitude, longitude, countryCode, country, stateCode, state, city, "");
 	}
 
 	/**
@@ -121,14 +133,34 @@ public class GeoUtil {
 			String queryUrl = String.format("http://api.map.baidu.com/geocoder/v2/?ak=%s&location=%s,%s&output=json", apiKey, delta[0], delta[1]);
 			JsonObject object = JsonUtil.toJsonMap(FileUtil.stream2string(HttpUtil.httpGet(queryUrl).getEntity().getContent()));
 			String country = object.getAsJsonObject("result").getAsJsonObject("addressComponent").get("country").getAsString();
-			String province = object.getAsJsonObject("result").getAsJsonObject("addressComponent").get("province").getAsString();
+			if (country.equals("中国"))
+				country = "China";
+			String countryCode = countryCodeByCountryName(country);
+			String state = object.getAsJsonObject("result").getAsJsonObject("addressComponent").get("province").getAsString();
+			state = stateNameByStateNameChinese(state);// 中文转英文
+			String stateCode = stateCodeByStateName(state);
 			String city = object.getAsJsonObject("result").getAsJsonObject("addressComponent").get("city").getAsString();
 			String description = object.getAsJsonObject("result").getAsJsonObject("addressComponent").get("district").getAsString();
-			return new GeoDef(latitude, longitude, "", country, "", province, city, description);
+			return new GeoDef(latitude, longitude, countryCode, country, stateCode, state, city, description);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	private static String countryCodeByCountryName(String countryName) {
+		return countryCodeByCountryNameMap.get(countryName);
+	}
+
+	private static String stateCodeByStateName(String stateName) {
+		return stateCodeByStateNameMap.get(stateName);
+	}
+
+	private static String stateNameByStateNameChinese(String stateNameChinese) {
+		String stateName = stateNameByStateNameChineseMap.get(stateNameChinese);
+		if (stateName == null)
+			return stateNameChinese;
+		return stateName;
 	}
 
 	/**
@@ -154,9 +186,17 @@ public class GeoUtil {
 			JsonArray array = object.getAsJsonArray("areas");
 			List<GeoDef> geodefList = new ArrayList<GeoDef>();
 			for (int i = 0; i < points.size(); i = i + 2) {
-				geodefList.add(new GeoDef(points.get(i), points.get(i + 1), "", array.get(i / 2).getAsJsonObject().get("country").getAsString(), "",
-						array.get(i / 2).getAsJsonObject().get("province").getAsString(), array.get(i / 2).getAsJsonObject().get("city").getAsString(),
-						array.get(i / 2).getAsJsonObject().get("district").getAsString()));
+				object = array.get(i / 2).getAsJsonObject();
+				String country = object.get("country").getAsString();
+				if (country.equals("中国"))
+					country = "China";
+				String countryCode = countryCodeByCountryName(country);
+				String state = object.get("province").getAsString();
+				state = stateNameByStateNameChinese(state);// 中文转英文
+				String stateCode = stateCodeByStateName(state);
+				String city = object.get("city").getAsString();
+				String description = object.get("district").getAsString();
+				geodefList.add(new GeoDef(points.get(i), points.get(i + 1), countryCode, country, stateCode, state, city, description));
 			}
 			return geodefList;
 		} catch (Exception e) {
