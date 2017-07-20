@@ -32,8 +32,14 @@ public class AWSS3Util {
 
 	/**
 	 * 初始化
+	 * 使用的 S3 配置的 Properties 应该包含
+	 * $S3Name.access_key
+	 * $S3Name.secret_key
+	 * $S3Name.endpoint
+	 * $S3Name.region
+	 * $S3Name.bucket
 	 * 
-	 * @param properties-配置
+	 * @param properties-S3配置
 	 * @return
 	 */
 	public static boolean init(Properties properties) {
