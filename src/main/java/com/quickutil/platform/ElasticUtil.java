@@ -837,11 +837,11 @@ public class ElasticUtil {
 	 */
 	public boolean restoreSnapshot(String repositoryName, String snapshotName, JsonObject config) {
 		String url = String.format("%s/_snapshot/%s/%s/_restore", host, repositoryName, snapshotName);
-		HttpPut httpPut = new HttpPut(url);
-		httpPut.setConfig(requestConfig);
-		httpPut.setEntity(new ByteArrayEntity(config.toString().getBytes()));
+		HttpPost httpPost = new HttpPost(url);
+		httpPost.setConfig(requestConfig);
+		httpPost.setEntity(new ByteArrayEntity(config.toString().getBytes()));
 		try {
-			client.execute(httpPut);
+			client.execute(httpPost);
 			return true;
 		} catch (IOException e) {
 			e.printStackTrace();
