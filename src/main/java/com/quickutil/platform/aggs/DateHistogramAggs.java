@@ -122,10 +122,21 @@ public class DateHistogramAggs extends AggsDSL {
 		if (null != extendedBoundMin || null != extendedBoundMax) {
 			JsonObject extendedBounds = new JsonObject();
 			if (null != extendedBoundMin) {
-				extendedBounds.addProperty("min", extendedBoundMin);
+				try {
+					Long extendedBoundMinLong = Long.parseLong(extendedBoundMin);
+					extendedBounds.addProperty("min", extendedBoundMinLong);
+				} catch (NumberFormatException e) {
+					extendedBounds.addProperty("min", extendedBoundMin);
+				}
 			}
-			if (null != extendedBoundMin) {
-				extendedBounds.addProperty("max", extendedBoundMax);
+			if (null != extendedBoundMax) {
+				try {
+					Long extendedBoundMaxLong = Long.parseLong(extendedBoundMax);
+					extendedBounds.addProperty("max", extendedBoundMaxLong);
+				} catch (NumberFormatException e) {
+					extendedBounds.addProperty("max", extendedBoundMax);
+				}
+
 			}
 			dateHistogramObject.add("extended_bounds", extendedBounds);
 		}

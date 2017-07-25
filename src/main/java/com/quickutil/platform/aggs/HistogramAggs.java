@@ -54,7 +54,7 @@ public class HistogramAggs extends AggsDSL {
 			if (null != extendedBoundMin) {
 				extendedBounds.addProperty("min", extendedBoundMin);
 			}
-			if (null != extendedBoundMin) {
+			if (null != extendedBoundMax) {
 				extendedBounds.addProperty("max", extendedBoundMax);
 			}
 			histogramObject.add("extended_bounds", extendedBounds);
