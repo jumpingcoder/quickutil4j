@@ -53,7 +53,7 @@ public class ShellUtil {
 	/**
 	 * 打印进度条
 	 * 
-	 * @param percentage
+	 * @param percentage-进度
 	 */
 	public static synchronized String printProgress(double percentage) {
 		StringBuilder sb = new StringBuilder();
