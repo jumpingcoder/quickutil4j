@@ -507,7 +507,7 @@ public class ElasticUtil {
 			StringBuilder entity = new StringBuilder();
 			for (SearchRequest searchRequest : searches) {
 				entity.append("{}\n");
-				entity.append(searchRequest.toJson());
+				entity.append(searchRequest.toJson()).append("\n");
 			}
 			response = client.execute(postMethod(url, entity.toString()));
 			if (200 != response.getStatusLine().getStatusCode()) {
