@@ -36,24 +36,32 @@ public class GeoUtil {
 
 	private static void init() {
 		try {
-			String mmdbFile = FileUtil.getCurrentPath() + "/GeoIP2-City.mmdb";
-			File database = new File(mmdbFile);
-			if (!database.exists()) {
+			String mmdbPath = FileUtil.getCurrentPath() + "/GeoIP2-City.mmdb";
+			File mmdbFile = new File(mmdbPath);
+			if (!mmdbFile.exists()) {
 				HttpResponse response = HttpUtil.httpGet("http://quickutil.oss-cn-shenzhen.aliyuncs.com/GeoIP2-City.mmdb");
 				byte[] mmdb = FileUtil.stream2byte(response.getEntity().getContent());
 				if (mmdb != null)
-					FileUtil.byte2File(mmdbFile, mmdb);
-				database = new File(mmdbFile);
+					FileUtil.byte2File(mmdbPath, mmdb);
+				mmdbFile = new File(mmdbPath);
 			}
-			databaseReader = new DatabaseReader.Builder(database).build();
-			System.out.println("GeoUtil loaded successfully");
-			HttpResponse response = HttpUtil.httpGet("http://quickutil.oss-cn-shenzhen.aliyuncs.com/country_state.json");
-			List<Map<String, Object>> list = JsonUtil.toList(FileUtil.stream2string(response.getEntity().getContent()));
+			databaseReader = new DatabaseReader.Builder(mmdbFile).build();
+			//
+			String countryStatePath = FileUtil.getCurrentPath() + "/country_state.json";
+			File countryStateFile = new File(countryStatePath);
+			if (!countryStateFile.exists()) {
+				HttpResponse response = HttpUtil.httpGet("http://quickutil.oss-cn-shenzhen.aliyuncs.com/country_state.json");
+				byte[] countryState = FileUtil.stream2byte(response.getEntity().getContent());
+				if (countryState != null)
+					FileUtil.byte2File(countryStatePath, countryState);
+			}
+			List<Map<String, Object>> list = JsonUtil.toList(FileUtil.file2String(countryStatePath));
 			for (Map<String, Object> map : list) {
 				countryCodeByCountryNameMap.put((String) map.get("country_name"), (String) map.get("country_code"));
 				stateCodeByStateNameMap.put((String) map.get("state_name"), (String) map.get("state_code"));
 				stateNameByStateNameChineseMap.put((String) map.get("state_chinese"), (String) map.get("state_name"));
 			}
+			System.out.println("GeoUtil loaded successfully");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
