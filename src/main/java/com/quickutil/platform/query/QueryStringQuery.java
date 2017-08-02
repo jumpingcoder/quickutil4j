@@ -61,6 +61,8 @@ public class QueryStringQuery extends QueryDSL {
 
 	@Override
 	public JsonObject toJson() {
+		if (null == query || query.isEmpty())
+			return new MatchAllQuery().toJson();
 		JsonObject stringQuery = new JsonObject();
 		stringQuery.addProperty("query", query);
 		if (null != defaultField) { stringQuery.addProperty("default_field", defaultField); }
