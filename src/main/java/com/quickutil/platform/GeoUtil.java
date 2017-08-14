@@ -20,6 +20,7 @@ import org.apache.http.HttpResponse;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.maxmind.geoip2.DatabaseReader;
+import com.maxmind.geoip2.exception.AddressNotFoundException;
 import com.maxmind.geoip2.model.CityResponse;
 import com.quickutil.platform.def.GeoDef;
 
@@ -85,7 +86,8 @@ public class GeoUtil {
 		Double longitude = 0.0;
 		try {
 			InetAddress ipAddr = InetAddress.getByName(ip);
-			CityResponse result = databaseReader.city(ipAddr);
+			CityResponse result;
+			result = databaseReader.city(ipAddr);
 			countryCode = result.getCountry().getIsoCode();
 			country = result.getCountry().getName();
 			stateCode = result.getMostSpecificSubdivision().getIsoCode();
@@ -93,6 +95,7 @@ public class GeoUtil {
 			city = result.getCity().getName();
 			latitude = result.getLocation().getLatitude();
 			longitude = result.getLocation().getLongitude();
+		} catch (AddressNotFoundException e) {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
