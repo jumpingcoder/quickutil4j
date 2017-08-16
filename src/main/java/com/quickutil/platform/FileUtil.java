@@ -88,7 +88,9 @@ public class FileUtil {
 	 */
 	public static boolean byte2File(String filePath, byte[] bt) {
 		try {
-			mkdirByFile(filePath);
+			File file = new File(filePath);
+			if (!file.getParentFile().exists())
+				file.getParentFile().mkdirs();
 			FileOutputStream out = new FileOutputStream(filePath, false);// true追加
 			out.write(bt);
 			out.flush();
@@ -395,9 +397,9 @@ public class FileUtil {
 	}
 
 	public enum FileType {
-		jpg("FFD8FF"), png("89504E47"), gif("47494638"), tiff("49492A00"), bmp("424D"), dwg("41433130"), psd("38425053"), rtf("7B5C7274"), xml("3C3F786D"), html(
-				"68746D6C"), xls_doc("D0CF11E0"), pdf("25504446"), zip("504B0304"), rar("52617221"), wav(
-						"57415645"), avi("41564920"), ram("2E7261FD"), mp4("000000"), rm("2E524D46"), mpg("000001BA"), mov("6D6F6F76"), mid("4D546864"), mp3("49443303");
+		jpg("FFD8FF"), png("89504E47"), gif("47494638"), tiff("49492A00"), bmp("424D"), dwg("41433130"), psd("38425053"), rtf("7B5C7274"), xml("3C3F786D"), html("68746D6C"), xls_doc("D0CF11E0"), pdf(
+				"25504446"), zip("504B0304"), rar(
+						"52617221"), wav("57415645"), avi("41564920"), ram("2E7261FD"), mp4("000000"), rm("2E524D46"), mpg("000001BA"), mov("6D6F6F76"), mid("4D546864"), mp3("49443303");
 		private String value = "";
 
 		private FileType(String value) {

@@ -7,6 +7,8 @@
  */
 package com.quickutil.platform;
 
+import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -16,26 +18,6 @@ public class StringUtil {
 
 	public enum ObjectType {
 		integer, longer, doubler, string, list, map, other;
-	}
-
-	/**
-	 * string转数值
-	 * 
-	 * @param content-输入的字符串
-	 * @return
-	 */
-	public static Object getObjectFromString(String content) {
-		ObjectType type = getObjectTypeFromString(content);
-		switch (type) {
-		case integer:
-			return Integer.parseInt(content);
-		case longer:
-			return Long.parseLong(content);
-		case doubler:
-			return Double.parseDouble(content);
-		default:
-			return content;
-		}
 	}
 
 	/**
@@ -67,6 +49,26 @@ public class StringUtil {
 	}
 
 	/**
+	 * string转数值
+	 * 
+	 * @param content-输入的字符串
+	 * @return
+	 */
+	public static Object getObjectFromString(String content) {
+		ObjectType type = getObjectTypeFromString(content);
+		switch (type) {
+		case integer:
+			return Integer.parseInt(content);
+		case longer:
+			return Long.parseLong(content);
+		case doubler:
+			return Double.parseDouble(content);
+		default:
+			return content;
+		}
+	}
+
+	/**
 	 * 获取string原始类型
 	 * 
 	 * @param content-输入的字符串
@@ -85,16 +87,21 @@ public class StringUtil {
 	}
 
 	/**
-	 * 是否安全SQL语句
+	 * object转成map
 	 * 
-	 * @param sql-SQL语句
+	 * @param object-对象
 	 * @return
 	 */
-	public static boolean safeSQL(String sql) {
-		sql = sql.toLowerCase();
-		if (sql.contains(" delete ") || sql.contains(" drop "))
-			return false;
-		return true;
+	public static Map<String, Object> objectToMap(Object object) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		try {
+			for (Field field : object.getClass().getFields()) {
+				map.put(field.getName(), field.get(object));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return map;
 	}
 
 	/**
