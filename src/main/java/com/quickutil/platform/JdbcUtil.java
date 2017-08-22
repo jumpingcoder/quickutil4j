@@ -510,7 +510,7 @@ public class JdbcUtil {
 	}
 
 	/**
-	 * 批量插入数据
+	 * 批量插入数据-适用于MySQL
 	 * 
 	 * @param dbName-数据库名称
 	 * @param tableName-表名
@@ -578,6 +578,69 @@ public class JdbcUtil {
 			}
 			sqlBuf.deleteCharAt(sqlBuf.length() - 1);
 			sqlBuf.append("),");
+		}
+		sqlBuf.deleteCharAt(sqlBuf.length() - 1);
+		return sqlBuf.toString();
+	}
+
+	/**
+	 * 批量upsert数据-适用于Postgre
+	 * 
+	 * @param dbName-数据库名称
+	 * @param tableName-表名
+	 * @param content-数据内容
+	 * @param isDistinct-会把相同内容的map进行合并
+	 * @return
+	 */
+	public static boolean upsertListMap(String dbName, String tableName, List<Map<String, Object>> content) {
+		if (content.size() == 0)
+			return true;
+		String sql = combineUpsert(tableName, content);
+		// System.out.println(sql);
+		return execute(dbName, sql);
+	}
+
+	private static final String DOUBLEMARKS = "\"";
+	private static final String COMMA = ",";
+
+	private static String combineUpsert(String tableName, List<Map<String, Object>> content) {
+		StringBuffer sqlBuf = new StringBuffer();
+		Set<String> keySet = content.get(0).keySet();
+		List<String> keyList = new ArrayList<String>();
+		for (Iterator<String> it = keySet.iterator(); it.hasNext();) {
+			keyList.add((String) it.next());
+		}
+		sqlBuf.append("insert into ");
+		sqlBuf.append(tableName);
+		sqlBuf.append(" (");
+		for (int i = 0; i < keyList.size(); i++) {
+			sqlBuf.append(DOUBLEMARKS + keyList.get(i) + DOUBLEMARKS);
+			sqlBuf.append(COMMA);
+		}
+		sqlBuf.deleteCharAt(sqlBuf.length() - 1);
+		sqlBuf.append(") values ");
+		for (int i = 0; i < content.size(); i++) {
+			sqlBuf.append("(");
+			for (int j = 0; j < keyList.size(); j++) {
+				if (content.get(i).get(keyList.get(j)) == null)
+					sqlBuf.append("null,");
+				else if (content.get(i).get(keyList.get(j)).equals("null"))
+					sqlBuf.append("null,");
+				else if (content.get(i).get(keyList.get(j)).equals("now()"))
+					sqlBuf.append("now(),");
+				else {
+					sqlBuf.append("'");
+					sqlBuf.append(content.get(i).get(keyList.get(j)));
+					sqlBuf.append("',");
+				}
+			}
+			sqlBuf.deleteCharAt(sqlBuf.length() - 1);
+			sqlBuf.append("),");
+		}
+		sqlBuf.deleteCharAt(sqlBuf.length() - 1);
+		sqlBuf.append("ON CONFLICT ON CONSTRAINT " + tableName + "_pkey DO update set ");
+		for (int i = 0; i < keyList.size(); i++) {
+			sqlBuf.append(DOUBLEMARKS + keyList.get(i) + DOUBLEMARKS + "=EXCLUDED." + keyList.get(i) + COMMA);
 		}
 		sqlBuf.deleteCharAt(sqlBuf.length() - 1);
 		return sqlBuf.toString();

@@ -171,7 +171,6 @@ public class CryptoUtil {
 	public static byte[] aesEncrypt(byte[] content, String password) {
 		try {
 			KeyGenerator kgen = KeyGenerator.getInstance("AES");
-			kgen.init(128, new SecureRandom(password.getBytes()));
 			SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
 			random.setSeed(password.getBytes());
 			kgen.init(128, random);

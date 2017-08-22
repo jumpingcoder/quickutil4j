@@ -10,6 +10,7 @@ package com.quickutil.platform;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.URLEncoder;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -95,10 +96,18 @@ public class GeoUtil {
 			city = result.getCity().getName();
 			latitude = result.getLocation().getLatitude();
 			longitude = result.getLocation().getLongitude();
-		} catch (AddressNotFoundException e) {
+		} catch (AddressNotFoundException ae) {
+		} catch (UnknownHostException ue) {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		countryCode = (countryCode == null) ? UNKNOWN : countryCode;
+		country = (country == null) ? UNKNOWN : country;
+		stateCode = (stateCode == null) ? UNKNOWN : stateCode;
+		state = (state == null) ? UNKNOWN : state;
+		city = (city == null) ? UNKNOWN : countryCode;
+		latitude = (latitude == null) ? 0.0 : latitude;
+		longitude = (longitude == null) ? 0.0 : longitude;
 		return new GeoDef(latitude, longitude, countryCode, country, stateCode, state, city, "");
 	}
 
