@@ -105,7 +105,7 @@ public class GeoUtil {
 		country = (country == null) ? UNKNOWN : country;
 		stateCode = (stateCode == null) ? UNKNOWN : stateCode;
 		state = (state == null) ? UNKNOWN : state;
-		city = (city == null) ? UNKNOWN : countryCode;
+		city = (city == null) ? UNKNOWN : city;
 		latitude = (latitude == null) ? 0.0 : latitude;
 		longitude = (longitude == null) ? 0.0 : longitude;
 		return new GeoDef(latitude, longitude, countryCode, country, stateCode, state, city, "");
