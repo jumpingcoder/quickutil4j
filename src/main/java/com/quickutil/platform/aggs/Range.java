@@ -12,11 +12,15 @@ public class Range {
 	public Range(Integer from, Integer to, String key) { this.from = Integer.toString(from); this.to = Integer.toString(to); this.key = key; }
 	public Range(String from, String to) { this.from = from; this.to = to; }
 	public Range(Integer from, Integer to) { this.from = Integer.toString(from); this.to = Integer.toString(to); }
+	public Range(Double from, Double to, String key) { this.from = Double.toString(from); this.to = Double.toString(to); this.key = key; }
+	public Range(Double from, Double to) { this.from = Double.toString(from); this.to = Double.toString(to); }
 	public Range() {}
 	public Range setFrom(String from) { this.from = from; return this; }
 	public Range setFrom(Integer from) { this.from = Integer.toString(from); return this;  }
+	public Range setFrom(Double from) { this.from = Double.toString(from); return this; }
 	public Range setTo(String to) { this.to = to; return this; }
 	public Range setTo(Integer to) { this.to = Integer.toString(to); return this; }
+	public Range setTo(Double to) { this.to = Double.toString(to); return this; }
 	public Range setKey(String key) { this.key = key; return this; }
 
 	public JsonObject toJson() throws FormatQueryException {
