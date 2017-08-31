@@ -29,6 +29,7 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.HttpClientUtils;
@@ -887,5 +888,63 @@ public class ElasticUtil {
 			HttpClientUtils.closeQuietly(response);
 		}
 		return false;
+	}
+
+	/**
+	 * reindex api
+	 * @param config 例如 {"source": {"index": "a"}, "dest": {"index": "b"}}
+	 * @return
+	 */
+	public String reindex(JsonObject config) {
+		HttpPost httpPost = new HttpPost(host + "/_reindex?wait_for_completion=false");
+		httpPost.setConfig(requestConfig);
+		httpPost.setEntity(new ByteArrayEntity(config.toString().getBytes()));
+		return httpMethodWithoutEntity(httpPost);
+	}
+
+	/**
+	 * 使用 http post 将请求发给 es
+	 * @param urlSuffix 例如 /_cat/indices
+	 * @return
+	 */
+	public String post(String urlSuffix) {
+		HttpPost httpPost = new HttpPost(host + urlSuffix);
+		httpPost.setConfig(requestConfig);
+		return httpMethodWithoutEntity(httpPost);
+	}
+
+	/**
+	 * 使用 http get 将请求发给 es
+	 * @param urlSuffix 例如 /_cat/indices
+	 * @return
+	 */
+	public String get(String urlSuffix) {
+		HttpGet httpGet = new HttpGet(host + urlSuffix);
+		httpGet.setConfig(requestConfig);
+		return httpMethodWithoutEntity(httpGet);
+	}
+
+	/**
+	 * 使用 http put 将请求发给 es
+	 * @param urlSuffix 例如 /_cat/indices
+	 * @return
+	 */
+	public String put(String urlSuffix) {
+		HttpPut httpPut = new HttpPut(host + urlSuffix);
+		httpPut.setConfig(requestConfig);
+		return httpMethodWithoutEntity(httpPut);
+	}
+
+	private String httpMethodWithoutEntity(HttpRequestBase httpRequestBase) {
+		HttpResponse response = null;
+		try {
+			response = client.execute(httpRequestBase);
+			return new String(FileUtil.stream2byte(response.getEntity().getContent()));
+		} catch (IOException e) {
+			e.printStackTrace();
+			return e.getMessage();
+		} finally {
+			HttpClientUtils.closeQuietly(response);
+		}
 	}
 }
