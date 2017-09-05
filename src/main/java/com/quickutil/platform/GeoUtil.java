@@ -24,6 +24,7 @@ import com.maxmind.geoip2.DatabaseReader;
 import com.maxmind.geoip2.exception.AddressNotFoundException;
 import com.maxmind.geoip2.model.CityResponse;
 import com.quickutil.platform.def.GeoDef;
+import com.quickutil.platform.def.GeoPoint;
 
 public class GeoUtil {
 
@@ -145,6 +146,7 @@ public class GeoUtil {
 	 * @param longitude-经度
 	 * @return
 	 */
+
 	public static GeoDef geoCodeyByBaidu(double latitude, double longitude) {
 		try {
 			double[] delta = WGSToGCJPointer(latitude, longitude);
@@ -294,6 +296,31 @@ public class GeoUtil {
 		ret += (20.0 * Math.sin(x * Math.PI) + 40.0 * Math.sin(x / 3.0 * Math.PI)) * 2.0 / 3.0;
 		ret += (150.0 * Math.sin(x / 12.0 * Math.PI) + 300.0 * Math.sin(x / 30.0 * Math.PI)) * 2.0 / 3.0;
 		return ret;
+	}
+
+	public static boolean inPolygon(GeoPoint[] points, GeoPoint point) {
+		int j = points.length - 1;
+		boolean oddNodes = false;
+		for (int i = 0; i < points.length; i++) {
+			// 边界条件: 若点在多边形的顶点上
+			if (point.equals(points[i])) {
+				return true;
+			}
+			// 经纬度计算斜率(假定在一个平面内)
+			double slop_A = (point.latitude - points[i].latitude) / (point.longitude - points[i].longitude);
+			double slop_B = (point.latitude - points[j].latitude) / (point.longitude - points[j].longitude);
+			if ((points[i].latitude < point.latitude && points[j].latitude >= point.latitude) || (points[j].latitude < point.latitude && points[i].latitude >= point.latitude)) {
+				// 边界条件: 点在多边形边上,即与两个端点的斜率相等
+				if (Math.abs(slop_A - slop_B) < 1e-6) {
+					return true;
+				}
+				if (points[i].longitude + (point.latitude - points[i].latitude) / (points[j].latitude - points[i].latitude) * (points[j].longitude - points[i].longitude) < point.longitude) {
+					oddNodes = !oddNodes;
+				}
+			}
+			j = i;
+		}
+		return oddNodes;
 	}
 
 }
