@@ -191,13 +191,13 @@ public class GeoUtil {
 	 * @param points-纬度经度数组，下标偶数位为纬度，奇数位为经度，必须成对，最多20条经纬度
 	 * @return
 	 */
-	public static List<GeoDef> geoCodeyByBaidu(List<Double> points) {
+	public static List<GeoDef> geoCodeyByBaidu(List<GeoPoint> points) {
 		try {
-			if (points.size() > 40)
+			if (points.size() > 20)
 				return null;
 			StringBuilder builder = new StringBuilder();
-			for (int i = 0; i < points.size(); i = i + 2) {
-				double[] delta = WGSToGCJPointer(points.get(i), points.get(i + 1));
+			for (int i = 0; i < points.size(); i++) {
+				double[] delta = WGSToGCJPointer(points.get(i).latitude, points.get(i).longitude);
 				delta = GCJToBDPointer(delta[0], delta[1]);
 				builder.append(delta[0] + "," + delta[1] + "|");
 			}
@@ -207,8 +207,8 @@ public class GeoUtil {
 			JsonObject object = JsonUtil.toJsonMap(FileUtil.stream2string(HttpUtil.httpGet(queryUrl).getEntity().getContent()));
 			JsonArray array = object.getAsJsonArray("areas");
 			List<GeoDef> geodefList = new ArrayList<GeoDef>();
-			for (int i = 0; i < points.size(); i = i + 2) {
-				object = array.get(i / 2).getAsJsonObject();
+			for (int i = 0; i < points.size(); i++) {
+				object = array.get(i).getAsJsonObject();
 				String country = object.get("country").getAsString();
 				if (country.equals("中国"))
 					country = "China";
@@ -218,7 +218,7 @@ public class GeoUtil {
 				String stateCode = stateCodeByStateName(state);
 				String city = object.get("city").getAsString();
 				String description = object.get("district").getAsString();
-				geodefList.add(new GeoDef(points.get(i), points.get(i + 1), countryCode, country, stateCode, state, city, description));
+				geodefList.add(new GeoDef(points.get(i).latitude, points.get(i).longitude, countryCode, country, stateCode, state, city, description));
 			}
 			return geodefList;
 		} catch (Exception e) {
