@@ -760,7 +760,7 @@ public class JdbcUtil {
 		sqlBuf.append(contentArray[0]);
 		sqlBuf.append(") values ");
 		for (int i = 1; i < contentArray.length; i++) {
-			String temp = "(\"" + contentArray[i].replaceAll(",", "\",\"") + "\"),";
+			String temp = "('" + contentArray[i].replaceAll(",", "','") + "'),";
 			sqlBuf.append(temp);
 		}
 		sqlBuf.deleteCharAt(sqlBuf.length() - 1);
