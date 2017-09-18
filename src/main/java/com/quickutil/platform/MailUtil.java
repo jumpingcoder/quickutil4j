@@ -6,12 +6,14 @@
  */
 package com.quickutil.platform;
 
+import com.quickutil.platform.def.AttachmentDef;
+import java.io.File;
 import java.util.List;
 import java.util.Properties;
-
 import javax.activation.DataHandler;
 import javax.mail.Authenticator;
 import javax.mail.Message.RecipientType;
+import javax.mail.Multipart;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
@@ -20,9 +22,6 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.util.ByteArrayDataSource;
-
-import com.quickutil.platform.CryptoUtil;
-import com.quickutil.platform.def.AttachmentDef;
 
 public class MailUtil {
 	private static final String format = "text/html;charset=UTF-8";
@@ -93,7 +92,7 @@ public class MailUtil {
 				for (int i = 0; i < attachmentList.size(); i++) {
 					MimeBodyPart previewPart = new MimeBodyPart();
 					bodyMultipart.addBodyPart(previewPart);
-					previewPart.setDataHandler(new DataHandler(new ByteArrayDataSource(attachmentList.get(i).file, "application/octet-stream")));
+					previewPart.setDataHandler(new DataHandler(new ByteArrayDataSource(attachmentList.get(i).file, "application/zip")));
 					previewPart.setFileName(attachmentList.get(i).fileName);
 					previewPart.setHeader("Content-ID", random + i);
 					htmlContent.append("<tr><td><img src=\"cid:" + random + i + "\"/></td></tr>");
@@ -102,6 +101,53 @@ public class MailUtil {
 				htmlPart.setContent(htmlContent.toString(), format);
 			}
 			// 生成邮件
+			message.saveChanges();
+			Transport.send(message);
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public static boolean send(String[] toMails, String[] ccMails, String[] bccMails, String title,
+			String text, String[] attachments, String attachmentContentType) {
+		try {
+			InternetAddress[] toAddresses = new InternetAddress[toMails.length];
+			for (int i = 0; i < toMails.length; i++) {
+				toAddresses[i] = new InternetAddress(toMails[i]);
+			}
+			if (ccMails == null)
+				ccMails = new String[0];
+			InternetAddress[] ccAddresses = new InternetAddress[ccMails.length];
+			for (int i = 0; i < ccMails.length; i++) {
+				ccAddresses[i] = new InternetAddress(ccMails[i]);
+			}
+			if (bccMails == null)
+				bccMails = new String[0];
+			InternetAddress[] bccAddresses = new InternetAddress[bccMails.length];
+			for (int i = 0; i < bccMails.length; i++) {
+				bccAddresses[i] = new InternetAddress(bccMails[i]);
+			}
+			Session mailSession = Session.getInstance(mailProperties, authenticator);
+			MimeMessage message = new MimeMessage(mailSession);
+			message.setFrom(new InternetAddress(mailProperties.getProperty("mail.user")));
+			message.setSubject(title);
+			message.setContent(text, format);
+			message.setRecipients(RecipientType.TO, toAddresses);
+			message.setRecipients(RecipientType.CC, ccAddresses);
+			message.setRecipients(RecipientType.BCC, bccAddresses);
+			MimeBodyPart messageBodyPart = new MimeBodyPart();
+			Multipart multipart = new MimeMultipart();
+			for (String filePath: attachments) {
+				File file = new File(filePath);
+				if (!file.exists()) {
+					throw new RuntimeException("not exist file: " + filePath);
+				}
+				messageBodyPart.attachFile(filePath, attachmentContentType, "base64");
+				multipart.addBodyPart(messageBodyPart);
+			}
+			message.setContent(multipart);
 			message.saveChanges();
 			Transport.send(message);
 			return true;

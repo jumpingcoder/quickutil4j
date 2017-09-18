@@ -7,6 +7,13 @@
 
 package com.quickutil.platform;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.maxmind.geoip2.DatabaseReader;
+import com.maxmind.geoip2.exception.AddressNotFoundException;
+import com.maxmind.geoip2.model.CityResponse;
+import com.quickutil.platform.def.GeoDef;
+import com.quickutil.platform.def.GeoPoint;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.URLEncoder;
@@ -15,16 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.http.HttpResponse;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.maxmind.geoip2.DatabaseReader;
-import com.maxmind.geoip2.exception.AddressNotFoundException;
-import com.maxmind.geoip2.model.CityResponse;
-import com.quickutil.platform.def.GeoDef;
-import com.quickutil.platform.def.GeoPoint;
 
 public class GeoUtil {
 
@@ -41,7 +39,7 @@ public class GeoUtil {
 	}
 
 	public static void main(String[] args) {
-		System.out.println(GeoIPByMMDB("117.136.68.137"));
+		System.out.println(GeoIPByMMDB("117.136.79.61"));
 		System.out.println(geoCodeyByBaidu(40.7, -74.0));
 	}
 
@@ -137,8 +135,14 @@ public class GeoUtil {
 			state = result.getMostSpecificSubdivision().getName();
 			stateChinese = stateChineseByStateCode(countryCode, stateCode);
 			city = result.getCity().getName();
-			if (countryCode.equals("CN"))
-				city = result.getCity().getNames().get("zh-CN") + "市";
+			if (countryCode != null && countryCode.equals("CN") && city != null &&
+					result.getCity().getNames().containsKey("zh-CN")) {
+				if (!result.getCity().getNames().get("zh-CN").endsWith("市")) {
+					city = result.getCity().getNames().get("zh-CN") + "市";
+				} else {
+					city = result.getCity().getNames().get("zh-CN");
+				}
+			}
 			latitude = result.getLocation().getLatitude();
 			longitude = result.getLocation().getLongitude();
 		} catch (AddressNotFoundException ae) {
