@@ -92,7 +92,7 @@ public class MailUtil {
 				for (int i = 0; i < attachmentList.size(); i++) {
 					MimeBodyPart previewPart = new MimeBodyPart();
 					bodyMultipart.addBodyPart(previewPart);
-					previewPart.setDataHandler(new DataHandler(new ByteArrayDataSource(attachmentList.get(i).file, "application/zip")));
+					previewPart.setDataHandler(new DataHandler(new ByteArrayDataSource(attachmentList.get(i).file, "application/octet-stream")));
 					previewPart.setFileName(attachmentList.get(i).fileName);
 					previewPart.setHeader("Content-ID", random + i);
 					htmlContent.append("<tr><td><img src=\"cid:" + random + i + "\"/></td></tr>");
@@ -110,8 +110,7 @@ public class MailUtil {
 		return false;
 	}
 
-	public static boolean send(String[] toMails, String[] ccMails, String[] bccMails, String title,
-			String text, String[] attachments, String attachmentContentType) {
+	public static boolean send(String[] toMails, String[] ccMails, String[] bccMails, String title, String text, String[] attachments, String attachmentContentType) {
 		try {
 			InternetAddress[] toAddresses = new InternetAddress[toMails.length];
 			for (int i = 0; i < toMails.length; i++) {
@@ -139,7 +138,7 @@ public class MailUtil {
 			message.setRecipients(RecipientType.BCC, bccAddresses);
 			MimeBodyPart messageBodyPart = new MimeBodyPart();
 			Multipart multipart = new MimeMultipart();
-			for (String filePath: attachments) {
+			for (String filePath : attachments) {
 				File file = new File(filePath);
 				if (!file.exists()) {
 					throw new RuntimeException("not exist file: " + filePath);
