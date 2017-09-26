@@ -136,15 +136,18 @@ public class MailUtil {
 			message.setRecipients(RecipientType.TO, toAddresses);
 			message.setRecipients(RecipientType.CC, ccAddresses);
 			message.setRecipients(RecipientType.BCC, bccAddresses);
-			MimeBodyPart messageBodyPart = new MimeBodyPart();
 			Multipart multipart = new MimeMultipart();
-			for (String filePath : attachments) {
+			MimeBodyPart messageBodyPart = new MimeBodyPart();
+			messageBodyPart.setContent(text, "text/html");
+			multipart.addBodyPart(messageBodyPart);
+			for (String filePath: attachments) {
+				MimeBodyPart attachPart = new MimeBodyPart();
 				File file = new File(filePath);
 				if (!file.exists()) {
 					throw new RuntimeException("not exist file: " + filePath);
 				}
-				messageBodyPart.attachFile(filePath, attachmentContentType, "base64");
-				multipart.addBodyPart(messageBodyPart);
+				attachPart.attachFile(filePath);
+				multipart.addBodyPart(attachPart);
 			}
 			message.setContent(multipart);
 			message.saveChanges();

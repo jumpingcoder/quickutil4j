@@ -241,16 +241,17 @@ public class ElasticUtil {
 	 */
 	private BulkResponse bulk(String url, String entity) {
 		HttpResponse response = null;
+		String result = "";
 		try {
 			long start = System.currentTimeMillis();
 			response = client.execute(postMethod(url, entity));
 			System.out.println("time for execute bulk:" + (System.currentTimeMillis() - start));
+			result = getEntity(response);
 			if (200 != response.getStatusLine().getStatusCode()) {
-				JsonObject bulkRequestError = JsonUtil.toJsonMap(getEntity(response)).getAsJsonObject("error");
+				JsonObject bulkRequestError = JsonUtil.toJsonMap(result).getAsJsonObject("error");
 				return new BulkResponse(BulkResponse.RequestFail, bulkRequestError);
 			} else {
-				start = System.currentTimeMillis();
-				JsonObject responseObject = JsonUtil.toJsonMap(getEntity(response));
+				JsonObject responseObject = JsonUtil.toJsonMap(result);
 				boolean hasErrors = responseObject.get("errors").getAsBoolean();
 				if (!hasErrors) {
 					return new BulkResponse(BulkResponse.Success);
@@ -261,7 +262,9 @@ public class ElasticUtil {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new BulkResponse(BulkResponse.RequestFail, new JsonObject());
+			JsonObject responseObject = new JsonObject();
+			responseObject.addProperty("result", result);
+			return new BulkResponse(BulkResponse.RequestFail, responseObject);
 		} finally {
 			HttpClientUtils.closeQuietly(response);
 		}
