@@ -110,7 +110,7 @@ public class MailUtil {
 		return false;
 	}
 
-	public static boolean send(String[] toMails, String[] ccMails, String[] bccMails, String title, String text, String[] attachments, String attachmentContentType) {
+	public static boolean send(String[] toMails, String[] ccMails, String[] bccMails, String title, String text, String[] attachments) {
 		try {
 			InternetAddress[] toAddresses = new InternetAddress[toMails.length];
 			for (int i = 0; i < toMails.length; i++) {
@@ -132,13 +132,12 @@ public class MailUtil {
 			MimeMessage message = new MimeMessage(mailSession);
 			message.setFrom(new InternetAddress(mailProperties.getProperty("mail.user")));
 			message.setSubject(title);
-			message.setContent(text, format);
 			message.setRecipients(RecipientType.TO, toAddresses);
 			message.setRecipients(RecipientType.CC, ccAddresses);
 			message.setRecipients(RecipientType.BCC, bccAddresses);
 			Multipart multipart = new MimeMultipart();
 			MimeBodyPart messageBodyPart = new MimeBodyPart();
-			messageBodyPart.setContent(text, "text/html");
+			messageBodyPart.setContent(text, "text/html;charset=UTF-8");
 			multipart.addBodyPart(messageBodyPart);
 			for (String filePath: attachments) {
 				MimeBodyPart attachPart = new MimeBodyPart();
