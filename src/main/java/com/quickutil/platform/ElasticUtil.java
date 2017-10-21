@@ -11,6 +11,7 @@ import java.io.InterruptedIOException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -46,6 +47,8 @@ import org.apache.http.util.EntityUtils;
 public class ElasticUtil {
 	private static final String hostIndexFormat = "%s/%s/";
 	private static final String hostIndexTypeFormat = "%s/%s/%s/";
+	private static final String indexFormat = "/%s/";
+	private static final String indexTypeFormat = "/%s/%s/";
 
 	private final String host;
 	private final Version version;
@@ -97,6 +100,13 @@ public class ElasticUtil {
 	static {
 		cm.setMaxTotal(50);
 		cm.setDefaultMaxPerRoute(50);
+	}
+
+	public ElasticUtil(String host) {
+		this.host = host;
+		this.version = Version.es5;
+		cm.setMaxPerRoute(new HttpRoute(new HttpHost(host)), 50);
+		this.client = HttpClients.custom().setConnectionManager(cm).setRetryHandler(httpRequestRetryHandler).build();
 	}
 
 	public ElasticUtil(String host, Version version) {
@@ -899,10 +909,91 @@ public class ElasticUtil {
 	 * @return
 	 */
 	public String reindex(JsonObject config) {
-		HttpPost httpPost = new HttpPost(host + "/_reindex?wait_for_completion=false");
-		httpPost.setConfig(requestConfig);
-		httpPost.setEntity(new ByteArrayEntity(config.toString().getBytes()));
-		return httpMethodWithoutEntity(httpPost);
+		return post("/_reindex?wait_for_completion=false", config);
+	}
+
+	/**
+	 * update by query api
+	 * @param index 支持多个 index, 用逗号分隔
+	 * @param type  支持多个 type, 用逗号分隔
+	 * @return
+	 */
+	public String updataByQuery(String index, String type, JsonObject query) {
+		return updataByQuery(index, type, true, 1000, 1, query);
+	}
+
+	/**
+	 * update by query api
+	 * @param index 支持多个 index, 用逗号分隔
+	 * @param type  支持多个 type, 用逗号分隔
+	 * @param proceedConflicts 遇到版本冲突是否更新
+	 * @param scrollSize 不设置默认是 1000
+	 * @param slices 并行 scroll 数量
+	 * @return
+	 */
+	public String updataByQuery(String index, String type, boolean proceedConflicts, int scrollSize,
+			int slices, JsonObject query) {
+		return xxByQuery("update", index, type, proceedConflicts, scrollSize, slices, query);
+	}
+
+	/**
+	 * delete by query api
+	 * @param index 支持多个 index, 用逗号分隔
+	 * @param type  支持多个 type, 用逗号分隔
+	 * @return
+	 */
+	public String deleteByQuery(String index, String type, JsonObject query) {
+		return deleteByQuery(index, type, true, 1000, 1, query);
+	}
+
+	/**
+	 * delete by query api
+	 * @param index 支持多个 index, 用逗号分隔
+	 * @param type  支持多个 type, 用逗号分隔
+	 * @param proceedConflicts 遇到版本冲突是否更新
+	 * @param scrollSize 不设置默认是 1000
+	 * @param slices 并行 scroll 数量
+	 * @return
+	 */
+	public String deleteByQuery(String index, String type, boolean proceedConflicts, int scrollSize,
+			int slices, JsonObject query) {
+		return xxByQuery("delete", index, type, proceedConflicts, scrollSize, slices, query);
+	}
+
+	private String xxByQuery(String action, String index, String type, boolean proceedConflicts,
+			int scrollSize, int slices, JsonObject query) {
+		if (action == null || action.isEmpty()) {
+			throw new RuntimeException("action is required");
+		}
+		if (action.equals("update")) {
+			action = "_update_by_query";
+		} else if (action.equals("delete")) {
+			action = "_delete_by_query";
+		} else {
+			throw new RuntimeException("action is neither update or delete");
+		}
+		if (index == null || index.trim().isEmpty()) {
+			throw new RuntimeException("update by Query must contains index");
+		}
+		String urlSuffix = (null == type||type.trim().isEmpty()) ? String.format(indexFormat, index)
+				: String.format(indexTypeFormat, index, type);
+		List<String> parameters = new LinkedList<>();
+		if (proceedConflicts) {
+			parameters.add("conflicts=proceed");
+		}
+		if (scrollSize != 1000) {
+			parameters.add("scroll_size=" + scrollSize);
+		}
+		if (slices != 1) {
+			parameters.add("slices=" + slices);
+		}
+		if (parameters.isEmpty()) {
+			urlSuffix += action;
+		} else {
+			urlSuffix += action + "?" +
+					StringUtil.joinString(parameters.toArray(new String[parameters.size()]), "&", null, null);
+		}
+		return post(urlSuffix, query);
 	}
 
 	/**
@@ -913,7 +1004,14 @@ public class ElasticUtil {
 	public String post(String urlSuffix) {
 		HttpPost httpPost = new HttpPost(host + urlSuffix);
 		httpPost.setConfig(requestConfig);
-		return httpMethodWithoutEntity(httpPost);
+		return httpMethod(httpPost);
+	}
+
+	public String post(String urlSuffix, JsonObject entity) {
+		HttpPost httpPost = new HttpPost(host + urlSuffix);
+		httpPost.setConfig(requestConfig);
+		httpPost.setEntity(new ByteArrayEntity(entity.toString().getBytes()));
+		return httpMethod(httpPost);
 	}
 
 	/**
@@ -924,7 +1022,7 @@ public class ElasticUtil {
 	public String get(String urlSuffix) {
 		HttpGet httpGet = new HttpGet(host + urlSuffix);
 		httpGet.setConfig(requestConfig);
-		return httpMethodWithoutEntity(httpGet);
+		return httpMethod(httpGet);
 	}
 
 	/**
@@ -935,10 +1033,17 @@ public class ElasticUtil {
 	public String put(String urlSuffix) {
 		HttpPut httpPut = new HttpPut(host + urlSuffix);
 		httpPut.setConfig(requestConfig);
-		return httpMethodWithoutEntity(httpPut);
+		return httpMethod(httpPut);
 	}
 
-	private String httpMethodWithoutEntity(HttpRequestBase httpRequestBase) {
+	public String put(String urlSuffix, JsonObject entity) {
+		HttpPut httpPut = new HttpPut(host + urlSuffix);
+		httpPut.setConfig(requestConfig);
+		httpPut.setEntity(new ByteArrayEntity(entity.toString().getBytes()));
+		return httpMethod(httpPut);
+	}
+
+	private String httpMethod(HttpRequestBase httpRequestBase) {
 		HttpResponse response = null;
 		try {
 			response = client.execute(httpRequestBase);
