@@ -20,6 +20,8 @@ public class SearchRequest {
 
 	private QueryDSL query = null;
 	private List<AggsDSL> aggsList = new LinkedList<>();
+	private JsonObject script = null;
+	private JsonObject slice = null;
 
 	public SearchRequest(QueryDSL query) {
 		this.query = query;
@@ -64,6 +66,21 @@ public class SearchRequest {
 		return this;
 	}
 
+	/**
+	 * use in update by query
+	 * @param script
+	 * @return
+	 */
+	public SearchRequest setScript(JsonObject script) {
+		this.script = script;
+		return this;
+	}
+
+	public SearchRequest setSlice(JsonObject slice) {
+		this.slice = slice;
+		return this;
+	}
+
 	public String toJson() throws FormatQueryException {
 		JsonObject queryObject = new JsonObject();
 		if (null != query) {
@@ -99,6 +116,12 @@ public class SearchRequest {
 				source.add(field);
 			}
 			queryObject.add("_source", source);
+		}
+		if (null != script) {
+			queryObject.add("script", script);
+		}
+		if (null != slice) {
+			queryObject.add("slice", slice);
 		}
 		return JsonUtil.toJson(queryObject);
 	}

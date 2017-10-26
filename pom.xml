@@ -4,7 +4,7 @@
 	<groupId>com.quickutil</groupId>
 	<artifactId>platform</artifactId>
 	<packaging>jar</packaging>
-	<version>1.1.22</version>
+	<version>1.1.23</version>
 	<name>quickutil-platform</name>
 	<url>http://www.quickutil.com</url>
 	<distributionManagement>
@@ -14,6 +14,11 @@
 		</repository>
 	</distributionManagement>
 	<dependencies>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.25</version>
+		</dependency>
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
