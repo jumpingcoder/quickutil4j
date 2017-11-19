@@ -61,7 +61,10 @@ public class JdbcUtil {
 				int initconnum = Integer.parseInt(jdbc.getProperty(key + ".initconnum"));
 				int minconnum = Integer.parseInt(jdbc.getProperty(key + ".minconnum"));
 				int maxconnum = Integer.parseInt(jdbc.getProperty(key + ".maxconnum"));
-				dataSourceMap.put(key, getDataSource(jdbcUrl, user, password, initconnum, minconnum, maxconnum, c3p0));
+				ComboPooledDataSource datasource = getDataSource(jdbcUrl, user, password, initconnum, minconnum, maxconnum, c3p0);
+				dataSourceMap.put(key, datasource);
+				// System.out.println(JsonUtil.toJson(datasource.getConnection().getMetaData().getDatabaseProductName()));
+				// System.out.println(JsonUtil.toJson(datasource.getConnection().getMetaData().getDatabaseMajorVersion()));
 			} catch (Exception e) {
 				LogUtil.error(e, "jdbc配置参数错误");
 			}
@@ -351,7 +354,6 @@ public class JdbcUtil {
 			while (rs.next()) {
 				list.add(rs.getObject(columnName));
 			}
-			connection.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {

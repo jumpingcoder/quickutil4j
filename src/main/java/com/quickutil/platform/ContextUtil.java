@@ -23,6 +23,7 @@ public class ContextUtil {
 	private static final String UserAgent = "user-agent";
 	private static final String Referer = "Referer";
 	private static final String X_Forwarded_For = "X-Forwarded-For";
+	private static final String X_Real_IP = "X-Real-IP";
 
 	private static final String localhost = "%s://%s:%s";
 
@@ -80,7 +81,9 @@ public class ContextUtil {
 	 * @return
 	 */
 	public static String getIp() {
-		String ip = request.get().getHeader(X_Forwarded_For);// 防止反向代理
+		String ip = request.get().getHeader(X_Real_IP);
+		if (ip == null)
+			ip = request.get().getHeader(X_Forwarded_For);
 		if (ip == null)
 			ip = request.get().getRemoteAddr();
 		if (ip == null)
