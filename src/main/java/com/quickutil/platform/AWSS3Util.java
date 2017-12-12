@@ -117,7 +117,7 @@ public class AWSS3Util {
 		if (contentType != null)
 			metadata.setContentType(contentType);
 		AccessControlList acl = new AccessControlList();
-		acl.grantPermission(GroupGrantee.AllUsers, Permission.Read);
+		acl.grantPermission(GroupGrantee.AuthenticatedUsers, Permission.Read);
 		buildClient(s3Name).putObject(new PutObjectRequest(bucketMap.get(s3Name).get("bucket"), filePath, is, metadata).withAccessControlList(acl));
 		return bucketMap.get(s3Name).get("endpoint") + "/" + bucketMap.get(s3Name).get("bucket") + "/" + filePath;
 	}
