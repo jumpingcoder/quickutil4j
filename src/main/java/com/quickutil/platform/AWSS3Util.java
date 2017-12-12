@@ -110,14 +110,14 @@ public class AWSS3Util {
 	 * @param filePath-文件路径
 	 * @param contentType-文件类型
 	 */
-	public static String uploadFile(String s3Name, byte[] bt, String filePath, String contentType) {
+	public static String uploadFile(String s3Name, byte[] bt, String filePath, String contentType, GroupGrantee groupGrantee, Permission permission) {
 		InputStream is = new ByteArrayInputStream(bt);
 		ObjectMetadata metadata = new ObjectMetadata();
 		metadata.setContentLength(bt.length);
 		if (contentType != null)
 			metadata.setContentType(contentType);
 		AccessControlList acl = new AccessControlList();
-		acl.grantPermission(GroupGrantee.AuthenticatedUsers, Permission.Read);
+		acl.grantPermission(groupGrantee, permission);
 		buildClient(s3Name).putObject(new PutObjectRequest(bucketMap.get(s3Name).get("bucket"), filePath, is, metadata).withAccessControlList(acl));
 		return bucketMap.get(s3Name).get("endpoint") + "/" + bucketMap.get(s3Name).get("bucket") + "/" + filePath;
 	}
