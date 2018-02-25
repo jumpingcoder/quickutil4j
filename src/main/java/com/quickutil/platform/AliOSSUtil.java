@@ -2,7 +2,9 @@ package com.quickutil.platform;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -115,6 +117,19 @@ public class AliOSSUtil {
 	public static byte[] downloadFile(String ossName, String filePath) {
 		OSSObject object = buildClient(ossName).getObject(bucketMap.get(ossName).get("bucketname"), filePath);
 		return FileUtil.stream2byte(object.getObjectContent());
+	}
+
+	/**
+	 * 生成临时链接
+	 * 
+	 * @param ossName-ossName
+	 * @param filePath-文件路径
+	 * @param expireSeconds-链接有效时间，秒
+	 * @return
+	 * 
+	 */
+	public static URL generatePresignedUrl(String ossName, String filePath, int expireSeconds) {
+		return buildClient(ossName).generatePresignedUrl(bucketMap.get(ossName).get("bucketname"), filePath, new Date(System.currentTimeMillis() + expireSeconds * 1000));
 	}
 
 	/**
