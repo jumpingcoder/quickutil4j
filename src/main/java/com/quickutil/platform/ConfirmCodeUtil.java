@@ -15,13 +15,14 @@ import java.util.Random;
 import com.quickutil.platform.ImageUtil;
 
 public class ConfirmCodeUtil {
-	private static char[] codeSequence = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '1', '2',
-			'3', '4', '5', '6', '7', '8', '9' };
+	private static char[] codeSequence = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '1', '2', '3', '4', '5', '6',
+			'7', '8', '9' };
+	private static char[] numSequence = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
 	private static Random random = new Random();
 	private static final String fontType = "Arial";
 
 	/**
-	 * 随机生成验证码
+	 * 随机生成混合验证码
 	 * 
 	 * @param codeLength-验证码长度
 	 * @return
@@ -30,6 +31,20 @@ public class ConfirmCodeUtil {
 		StringBuffer confirmCode = new StringBuffer();
 		for (int i = 0; i < codeLength; i++) {
 			confirmCode.append(codeSequence[random.nextInt(codeSequence.length)]);
+		}
+		return confirmCode.toString();
+	}
+
+	/**
+	 * 随机生成纯数字验证码
+	 * 
+	 * @param codeLength-验证码长度
+	 * @return
+	 */
+	public static String getRandomNumCode(int codeLength) {
+		StringBuffer confirmCode = new StringBuffer();
+		for (int i = 0; i < codeLength; i++) {
+			confirmCode.append(numSequence[random.nextInt(numSequence.length)]);
 		}
 		return confirmCode.toString();
 	}

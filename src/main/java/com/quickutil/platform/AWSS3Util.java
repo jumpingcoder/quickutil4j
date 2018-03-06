@@ -4,7 +4,9 @@ import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -132,6 +134,19 @@ public class AWSS3Util {
 	public static byte[] downloadFile(String s3Name, String filePath) {
 		S3Object object = buildClient(s3Name).getObject(bucketMap.get(s3Name).get("bucket"), filePath);
 		return FileUtil.stream2byte(object.getObjectContent());
+	}
+	
+	/**
+	 * 生成临时链接
+	 * 
+	 * @param s3Name-S3Name
+	 * @param filePath-文件路径
+	 * @param expireSeconds-链接有效时间，秒
+	 * @return
+	 * 
+	 */
+	public static URL generatePresignedUrl(String s3Name, String filePath, int expireSeconds) {
+		return buildClient(s3Name).generatePresignedUrl(bucketMap.get(s3Name).get("bucket"), filePath, new Date(System.currentTimeMillis() + expireSeconds * 1000));
 	}
 
 	/**
