@@ -23,6 +23,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
+import com.quickutil.platform.def.ResultSetDef;
 
 public class JdbcUtil {
 
@@ -425,40 +426,38 @@ public class JdbcUtil {
 	 * @param sql-语句
 	 * @return
 	 */
-	public static boolean getResultSet(String dbName, String sql, Connection connection,
-								List<String> columnName, ResultSet rs) {
+	public static ResultSetDef getResultSet(String dbName, String sql) {
+        Connection connection = null;
+        List<String> columnName = new ArrayList<String>();
         PreparedStatement ps = null;
+        ResultSet rs = null;
 		try {
 			connection = dataSourceMap.get(dbName).getConnection();
 			ps = connection.prepareStatement(sql);
 			rs = ps.executeQuery();
+
 			ResultSetMetaData rsmd = rs.getMetaData();
 			// 获取字段
 			int columnCount = rsmd.getColumnCount();
 			for (int i = 1; i <= columnCount; i++) {
 				columnName.add(rsmd.getColumnLabel(i));
 			}
-			return true;
+			return new ResultSetDef(connection, ps, rs, columnName);
 		} catch (Exception e) {
             e.printStackTrace();
             try {
                 if (rs != null)
                     rs.close();
+                if (ps != null)
+                    ps.close();
                 if (connection != null)
                     connection.close();
             } catch (Exception e1) {
                 e1.printStackTrace();
             }
 
-		} finally {
-            try {
-                if (ps != null)
-                    ps.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-		return false;
+		}
+		return null;
 	}
 
 	/**
