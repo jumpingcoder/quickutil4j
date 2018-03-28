@@ -419,7 +419,7 @@ public class JdbcUtil {
 	}
 
 	/**
-	 * 获取
+	 * 获取ResultSet
 	 *
 	 * @param dbName-数据库名称
 	 * @param sql-语句
