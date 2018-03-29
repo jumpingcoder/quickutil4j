@@ -418,6 +418,66 @@ public class JdbcUtil {
 		}
 		return list;
 	}
+	
+	/**
+	 * 执行多条语句（前几条事务，最后一条查询）
+	 * 
+	 * @param dbName-数据库名称
+	 * @param sqlList-语句数组
+	 * @return
+	 */
+	public static List<Map<String, Object>> getListMapByBatch(String dbName, List<String> sqlList) {
+		if (sqlList.size() < 2)
+			return null;
+		Connection connection = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+		try {
+			connection = dataSourceMap.get(dbName).getConnection();
+			connection.setAutoCommit(false);
+			Statement statement = connection.createStatement();
+			for (String sql : sqlList.subList(0, sqlList.size() - 1)) {
+				statement.addBatch(sql);
+			}
+			statement.executeBatch();
+			rs = statement.executeQuery(sqlList.get(sqlList.size() - 1));
+			ResultSetMetaData rsmd = rs.getMetaData();
+			connection.commit();
+			// 获取字段
+			int columnCount = rsmd.getColumnCount();
+			List<String> columnName = new ArrayList<String>();
+			for (int i = 1; i <= columnCount; i++) {
+				columnName.add(rsmd.getColumnLabel(i));
+			}
+			// 获取数据
+			while (rs.next()) {
+				Map<String, Object> map = new HashMap<String, Object>();
+				for (String name : columnName)
+					map.put(name, rs.getObject(name));
+				list.add(map);
+			}
+			return list;
+		} catch (Exception e) {
+			if (connection != null)
+				try {
+					connection.rollback();
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+			e.printStackTrace();
+		} finally {
+			try {
+				if (ps != null)
+					ps.close();
+				if (connection != null)
+					connection.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return null;
+	}
 
 	/**
 	 * 获取ResultSet
@@ -427,10 +487,10 @@ public class JdbcUtil {
 	 * @return
 	 */
 	public static ResultSetDef getResultSet(String dbName, String sql) {
-        Connection connection = null;
-        List<String> columnName = new ArrayList<String>();
-        PreparedStatement ps = null;
-        ResultSet rs = null;
+		Connection connection = null;
+		List<String> columnName = new ArrayList<String>();
+		PreparedStatement ps = null;
+		ResultSet rs = null;
 		try {
 			connection = dataSourceMap.get(dbName).getConnection();
 			ps = connection.prepareStatement(sql);
@@ -444,17 +504,17 @@ public class JdbcUtil {
 			}
 			return new ResultSetDef(connection, ps, rs, columnName);
 		} catch (Exception e) {
-            e.printStackTrace();
-            try {
-                if (rs != null)
-                    rs.close();
-                if (ps != null)
-                    ps.close();
-                if (connection != null)
-                    connection.close();
-            } catch (Exception e1) {
-                e1.printStackTrace();
-            }
+			e.printStackTrace();
+			try {
+				if (rs != null)
+					rs.close();
+				if (ps != null)
+					ps.close();
+				if (connection != null)
+					connection.close();
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
 
 		}
 		return null;
