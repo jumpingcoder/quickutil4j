@@ -25,6 +25,7 @@ import java.util.Set;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.quickutil.platform.def.ResultSetDef;
 
+@Deprecated
 public class JdbcUtil {
 
 	private static Map<String, ComboPooledDataSource> dataSourceMap = new HashMap<String, ComboPooledDataSource>();
