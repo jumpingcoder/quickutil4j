@@ -63,7 +63,7 @@ public class JdbcUtil {
 				int initconnum = Integer.parseInt(jdbc.getProperty(key + ".initconnum"));
 				int minconnum = Integer.parseInt(jdbc.getProperty(key + ".minconnum"));
 				int maxconnum = Integer.parseInt(jdbc.getProperty(key + ".maxconnum"));
-				ComboPooledDataSource datasource = buildDataSource(jdbcUrl, user, password, initconnum, minconnum, maxconnum, pool);
+				ComboPooledDataSource datasource = buildDataSource(key, jdbcUrl, user, password, initconnum, minconnum, maxconnum, pool);
 				dataSourceMap.put(key, datasource);
 				// JsonUtil.toJson(datasource.getConnection().getMetaData().getDatabaseProductName());
 				// JsonUtil.toJson(datasource.getConnection().getMetaData().getDatabaseMajorVersion());
@@ -85,7 +85,7 @@ public class JdbcUtil {
 	 * @param maxconnum-最大连接数
 	 */
 	public static void addDataSource(String dbName, String url, String username, String password, int initconnum, int minconnum, int maxconnum) {
-		dataSourceMap.put(dbName, buildDataSource(url, username, password, initconnum, minconnum, maxconnum, null));
+		dataSourceMap.put(dbName, buildDataSource(dbName, url, username, password, initconnum, minconnum, maxconnum, null));
 	}
 
 	/**
@@ -101,7 +101,7 @@ public class JdbcUtil {
 	 * @param pool-c3p0配置
 	 */
 	public static void addDataSource(String dbName, String url, String username, String password, int initconnum, int minconnum, int maxconnum, Properties pool) {
-		dataSourceMap.put(dbName, buildDataSource(url, username, password, initconnum, minconnum, maxconnum, pool));
+		dataSourceMap.put(dbName, buildDataSource(dbName, url, username, password, initconnum, minconnum, maxconnum, pool));
 	}
 
 	/**
@@ -137,12 +137,13 @@ public class JdbcUtil {
 		}
 	}
 
-	private static ComboPooledDataSource buildDataSource(String jdbcUrl, String username, String password, int initconnum, int minconnum, int maxconnum, Properties pool) {
+	private static ComboPooledDataSource buildDataSource(String dbName, String jdbcUrl, String username, String password, int initconnum, int minconnum, int maxconnum, Properties pool) {
 		if (jdbcUrl == null || username == null || password == null) {
 			return null;
 		}
 		ComboPooledDataSource datasource = new ComboPooledDataSource();
 		try {
+			datasource.setDataSourceName(dbName);
 			datasource.setDriverClass("com.mysql.jdbc.Driver");
 			datasource.setJdbcUrl(jdbcUrl);
 			datasource.setUser(username);
@@ -152,6 +153,8 @@ public class JdbcUtil {
 			datasource.setMaxPoolSize(maxconnum);
 			if (pool == null)
 				return datasource;
+			if (pool.getProperty("DriverClass") != null)
+				datasource.setDriverClass(pool.getProperty("DriverClass"));
 			if (pool.getProperty("AcquireIncrement") != null)
 				datasource.setAcquireIncrement(Integer.parseInt(pool.getProperty("AcquireIncrement")));
 			if (pool.getProperty("AcquireRetryAttempts") != null)
@@ -178,8 +181,6 @@ public class JdbcUtil {
 				datasource.setDebugUnreturnedConnectionStackTraces(Boolean.parseBoolean(pool.getProperty("DebugUnreturnedConnectionStackTraces")));
 			if (pool.getProperty("Description") != null)
 				datasource.setDescription(pool.getProperty("Description"));
-			if (pool.getProperty("DriverClass") != null)
-				datasource.setDriverClass(pool.getProperty("DriverClass"));
 			if (pool.getProperty("FactoryClassLocation") != null)
 				datasource.setFactoryClassLocation(pool.getProperty("FactoryClassLocation"));
 			if (pool.getProperty("ForceIgnoreUnresolvedTransactions") != null)

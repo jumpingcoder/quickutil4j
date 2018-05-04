@@ -62,7 +62,7 @@ public class Jdbc2Util {
 				int initconnum = Integer.parseInt(jdbc.getProperty(key + ".initconnum"));
 				int minconnum = Integer.parseInt(jdbc.getProperty(key + ".minconnum"));
 				int maxconnum = Integer.parseInt(jdbc.getProperty(key + ".maxconnum"));
-				DruidDataSource datasource = buildDataSource(jdbcUrl, user, password, initconnum, minconnum, maxconnum, pool);
+				DruidDataSource datasource = buildDataSource(key, jdbcUrl, user, password, initconnum, minconnum, maxconnum, pool);
 				dataSourceMap.put(key, datasource);
 				// JsonUtil.toJson(datasource.getConnection().getMetaData().getDatabaseProductName());
 				// JsonUtil.toJson(datasource.getConnection().getMetaData().getDatabaseMajorVersion());
@@ -84,7 +84,7 @@ public class Jdbc2Util {
 	 * @param maxconnum-最大连接数
 	 */
 	public static void addDataSource(String dbName, String url, String username, String password, int initconnum, int minconnum, int maxconnum) {
-		dataSourceMap.put(dbName, buildDataSource(url, username, password, initconnum, minconnum, maxconnum, null));
+		dataSourceMap.put(dbName, buildDataSource(dbName, url, username, password, initconnum, minconnum, maxconnum, null));
 	}
 
 	/**
@@ -100,7 +100,7 @@ public class Jdbc2Util {
 	 * @param pool-druid配置
 	 */
 	public static void addDataSource(String dbName, String url, String username, String password, int initconnum, int minconnum, int maxconnum, Properties pool) {
-		dataSourceMap.put(dbName, buildDataSource(url, username, password, initconnum, minconnum, maxconnum, pool));
+		dataSourceMap.put(dbName, buildDataSource(dbName, url, username, password, initconnum, minconnum, maxconnum, pool));
 	}
 
 	/**
@@ -136,12 +136,13 @@ public class Jdbc2Util {
 		}
 	}
 
-	private static DruidDataSource buildDataSource(String jdbcUrl, String username, String password, int initconnum, int minconnum, int maxconnum, Properties pool) {
+	private static DruidDataSource buildDataSource(String dbName, String jdbcUrl, String username, String password, int initconnum, int minconnum, int maxconnum, Properties pool) {
 		if (jdbcUrl == null || username == null || password == null) {
 			return null;
 		}
 		DruidDataSource datasource = new DruidDataSource();
 		try {
+			datasource.setName(dbName);
 			datasource.setUrl(jdbcUrl);
 			datasource.setUsername(username);
 			datasource.setPassword(password);
