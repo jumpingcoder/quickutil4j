@@ -62,7 +62,7 @@ public class AWSS3Util {
 				map.put("bucket", properties.getProperty(key + ".bucket"));
 				bucketMap.put(key, map);
 			} catch (Exception e) {
-				LogUtil.error(e, "S3配置参数错误");
+				e.printStackTrace();
 			}
 		}
 		return true;
@@ -90,8 +90,7 @@ public class AWSS3Util {
 	 */
 	public static List<String> list(String s3Name, String prefix) {
 		List<String> filePaths = new ArrayList<String>();
-		final ListObjectsV2Request req = new ListObjectsV2Request().withBucketName(bucketMap.get(s3Name)
-				.get("bucket")).withMaxKeys(100);
+		final ListObjectsV2Request req = new ListObjectsV2Request().withBucketName(bucketMap.get(s3Name).get("bucket")).withMaxKeys(100);
 		req.setPrefix(prefix);
 		ListObjectsV2Result result;
 		do {
@@ -135,7 +134,7 @@ public class AWSS3Util {
 		S3Object object = buildClient(s3Name).getObject(bucketMap.get(s3Name).get("bucket"), filePath);
 		return FileUtil.stream2byte(object.getObjectContent());
 	}
-	
+
 	/**
 	 * 生成临时链接
 	 * 

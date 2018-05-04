@@ -36,7 +36,7 @@ public class GeoUtil {
 	private static Map<String, String> stateCodeByStateNameChineseMap = new HashMap<String, String>();
 	private static Map<String, String> stateCodeByStateNameMap = new HashMap<String, String>();
 
-	public static void init(String baiduKey, String amapKey) {
+	public static boolean init(String baiduKey, String amapKey) {
 		try {
 			// 读取IP库
 			baiduKeyIn = baiduKey;
@@ -70,10 +70,11 @@ public class GeoUtil {
 				stateCodeByStateNameMap.put((String) map.get("country_code") + "_" + (String) map.get("state_name"), (String) map.get("state_code"));
 				stateCodeByStateNameChineseMap.put((String) map.get("country_code") + "_" + (String) map.get("state_chinese"), (String) map.get("state_code"));
 			}
-			System.out.println("GeoUtil loaded successfully");
+			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		return false;
 	}
 
 	private static String countryCodeByCountryName(String countryName) {

@@ -47,7 +47,7 @@ public class AliCellUtil {
 				map.put("template", properties.getProperty(key + ".template"));
 				dayuMap.put(key, map);
 			} catch (Exception e) {
-				LogUtil.error(e, "阿里大鱼配置参数错误");
+				e.printStackTrace();
 			}
 		}
 		return true;
@@ -65,6 +65,7 @@ public class AliCellUtil {
 	 * @return
 	 */
 	public static boolean sendMessage(String dayuName, String cell, String message) {
+		String result = null;
 		try {
 			String appkey = dayuMap.get(dayuName).get("appkey");
 			String signname = dayuMap.get(dayuName).get("signname");
@@ -76,13 +77,12 @@ public class AliCellUtil {
 			String timestamp = sdf.format(new Date());
 			String signContent = String.format(signFormat, appkey, cell, signname, sms_param, template, timestamp);
 			String sign = CryptoUtil.HmacMD5Encrypt(signContent.getBytes(), appsecret).toUpperCase();
-			String url = String.format(urlFormat, appkey, cell, URLEncoder.encode(signname, UTF8), URLEncoder.encode(sms_param, UTF8), template, URLEncoder.encode(timestamp, UTF8),
-					sign);
+			String url = String.format(urlFormat, appkey, cell, URLEncoder.encode(signname, UTF8), URLEncoder.encode(sms_param, UTF8), template, URLEncoder.encode(timestamp, UTF8), sign);
 			HttpResponse response = HttpUtil.httpPost(url);
-			String result = new String(FileUtil.stream2byte(response.getEntity().getContent()));
-			System.out.println(result);
+			result = new String(FileUtil.stream2byte(response.getEntity().getContent()));
 			return JsonUtil.toJsonMap(result).getAsJsonObject("alibaba_aliqin_fc_sms_num_send_response").getAsJsonObject("result").get("success").getAsBoolean();
 		} catch (Exception e) {
+			System.out.println(result);
 			e.printStackTrace();
 		}
 		return false;
@@ -96,6 +96,7 @@ public class AliCellUtil {
 	 * @return
 	 */
 	public static boolean sendMessage(String dayuName, String cell, Map<String, Object> smsParamMap) {
+		String result = null;
 		try {
 			String appkey = dayuMap.get(dayuName).get("appkey");
 			String signname = dayuMap.get(dayuName).get("signname");
@@ -105,13 +106,12 @@ public class AliCellUtil {
 			String timestamp = sdf.format(new Date());
 			String signContent = String.format(signFormat, appkey, cell, signname, sms_param, template, timestamp);
 			String sign = CryptoUtil.HmacMD5Encrypt(signContent.getBytes(), appsecret).toUpperCase();
-			String url = String.format(urlFormat, appkey, cell, URLEncoder.encode(signname, UTF8), URLEncoder.encode(sms_param, UTF8), template, URLEncoder.encode(timestamp, UTF8),
-					sign);
+			String url = String.format(urlFormat, appkey, cell, URLEncoder.encode(signname, UTF8), URLEncoder.encode(sms_param, UTF8), template, URLEncoder.encode(timestamp, UTF8), sign);
 			HttpResponse response = HttpUtil.httpPost(url);
-			String result = new String(FileUtil.stream2byte(response.getEntity().getContent()));
-			System.out.println(result);
+			result = new String(FileUtil.stream2byte(response.getEntity().getContent()));
 			return JsonUtil.toJsonMap(result).getAsJsonObject("alibaba_aliqin_fc_sms_num_send_response").getAsJsonObject("result").get("success").getAsBoolean();
 		} catch (Exception e) {
+			System.out.println(result);
 			e.printStackTrace();
 		}
 		return false;

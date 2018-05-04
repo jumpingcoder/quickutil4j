@@ -46,7 +46,7 @@ public class AliOSSUtil {
 				map.put("bucketname", properties.getProperty(key + ".bucketname"));
 				bucketMap.put(key, map);
 			} catch (Exception e) {
-				LogUtil.error(e, "OSS配置参数错误");
+				e.printStackTrace();
 			}
 		}
 		return true;

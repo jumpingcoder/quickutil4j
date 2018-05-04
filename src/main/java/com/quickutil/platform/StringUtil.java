@@ -199,10 +199,8 @@ public class StringUtil {
 				sj.add(e);
 			}
 			return sj.toString();
-		} else {
-			System.out.println("empty array");
-			return "";
 		}
+		return null;
 	}
 
 }

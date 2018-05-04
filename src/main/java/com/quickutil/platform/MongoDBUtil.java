@@ -34,7 +34,7 @@ public class MongoDBUtil {
 	private static Map<String, String> mongoDBMap = new HashMap<String, String>();
 
 	/**
-	 * 增加MongoClient，默认pool配置
+	 * 增加MongoDB，默认pool配置
 	 * 
 	 * @param mongo-mongo配置
 	 * @return
@@ -44,7 +44,7 @@ public class MongoDBUtil {
 	}
 
 	/**
-	 * 增加MongoClient，指定pool配置
+	 * 增加MongoDB，指定pool配置
 	 * 
 	 * @param mongo-mongo配置
 	 * @param pool-pool配置
@@ -69,7 +69,7 @@ public class MongoDBUtil {
 			int port = Integer.parseInt(mongo.getProperty(key + ".port"));
 			String database = mongo.getProperty(key + ".database");
 			try {
-				MongoClient client = getMongoDB(username, password, host, port, database, pool);
+				MongoClient client = buildMongoDB(username, password, host, port, database, pool);
 				mongoClientMap.put(key, client);
 				mongoDBMap.put(key, database);
 			} catch (Exception e) {
@@ -80,9 +80,9 @@ public class MongoDBUtil {
 	}
 
 	/**
-	 * 增加MongoClient
+	 * 增加MongoDB，默认pool配置
 	 * 
-	 * @param mongoName-自定义数据库名
+	 * @param dbName-自定义数据库名
 	 * @param username-用户名
 	 * @param password-密码
 	 * @param host-数据库host
@@ -90,16 +90,16 @@ public class MongoDBUtil {
 	 * @param database-数据库名
 	 * @return
 	 */
-	public static boolean addMongoDB(String mongoName, String username, String password, String host, int port, String database) {
-		mongoClientMap.put(mongoName, getMongoDB(username, password, host, port, database, null));
-		mongoDBMap.put(mongoName, database);
+	public static boolean addMongoDB(String dbName, String username, String password, String host, int port, String database) {
+		mongoClientMap.put(dbName, buildMongoDB(username, password, host, port, database, null));
+		mongoDBMap.put(dbName, database);
 		return true;
 	}
 
 	/**
-	 * 增加MongoClient
+	 * 增加MongoDB，指定pool配置
 	 * 
-	 * @param mongoName-自定义数据库名
+	 * @param dbName-自定义数据库名
 	 * @param username-用户名
 	 * @param password-密码
 	 * @param host-数据库host
@@ -108,13 +108,47 @@ public class MongoDBUtil {
 	 * @param pool-pool配置
 	 * @return
 	 */
-	public static boolean addMongoDB(String mongoName, String username, String password, String host, int port, String database, Properties pool) {
-		mongoClientMap.put(mongoName, getMongoDB(username, password, host, port, database, pool));
-		mongoDBMap.put(mongoName, database);
+	public static boolean addMongoDB(String dbName, String username, String password, String host, int port, String database, Properties pool) {
+		mongoClientMap.put(dbName, buildMongoDB(username, password, host, port, database, pool));
+		mongoDBMap.put(dbName, database);
 		return true;
 	}
 
-	private static MongoClient getMongoDB(String username, String password, String host, int port, String database, Properties pool) {
+	/**
+	 * 获取生成的MongoDB
+	 * 
+	 * @param dbName-数据库名称
+	 * @return
+	 */
+	public static MongoDatabase getMongoDB(String dbName) {
+		return mongoClientMap.get(dbName).getDatabase(mongoDBMap.get(dbName));
+	}
+
+	/**
+	 * 释放生成的MongoDB
+	 * 
+	 * @param dbName
+	 */
+	public void closeMongoDB(String dbName) {
+		MongoClient client = mongoClientMap.get(dbName);
+		if (client == null)
+			return;
+		client.close();
+		mongoClientMap.remove(dbName);
+		mongoDBMap.remove(dbName);
+	}
+
+	/**
+	 * 释放所有生成的MongoDB
+	 * 
+	 */
+	public void closeAllMongoDB() {
+		for (String dbName : mongoClientMap.keySet()) {
+			closeMongoDB(dbName);
+		}
+	}
+
+	private static MongoClient buildMongoDB(String username, String password, String host, int port, String database, Properties pool) {
 		try {
 			Builder builder = new MongoClientOptions.Builder();
 			if (pool != null) {
@@ -167,13 +201,13 @@ public class MongoDBUtil {
 	/**
 	 * 获取数据库列表
 	 * 
-	 * @param mongoName-数据库名
+	 * @param dbName-数据库名
 	 * @return
 	 */
-	public static List<String> getDBNames(String mongoName) {
+	public static List<String> getDBNames(String dbName) {
 		try {
 			List<String> list = new ArrayList<String>();
-			MongoCursor<String> cursor = mongoClientMap.get(mongoName).listDatabaseNames().iterator();
+			MongoCursor<String> cursor = mongoClientMap.get(dbName).listDatabaseNames().iterator();
 			while (cursor.hasNext())
 				list.add(cursor.next());
 		} catch (Exception e) {
@@ -185,11 +219,11 @@ public class MongoDBUtil {
 	/**
 	 * 获取数据库列表
 	 * 
-	 * @param mongoName-数据库名
+	 * @param dbName-数据库名
 	 * @return
 	 */
-	public static List<String> getCollectionNames(String mongoName) {
-		MongoDatabase database = mongoClientMap.get(mongoName).getDatabase(mongoDBMap.get(mongoName));
+	public static List<String> getCollectionNames(String dbName) {
+		MongoDatabase database = mongoClientMap.get(dbName).getDatabase(mongoDBMap.get(dbName));
 		MongoCursor<String> cursor = database.listCollectionNames().iterator();
 		List<String> list = new ArrayList<String>();
 		while (cursor.hasNext())
@@ -200,13 +234,13 @@ public class MongoDBUtil {
 	/**
 	 * 创建表
 	 * 
-	 * @param mongoName-数据库名
+	 * @param dbName-数据库名
 	 * @param collectionName-表名
 	 * @return
 	 */
-	public static boolean createCollection(String mongoName, String collectionName) {
+	public static boolean createCollection(String dbName, String collectionName) {
 		try {
-			MongoDatabase database = mongoClientMap.get(mongoName).getDatabase(mongoDBMap.get(mongoName));
+			MongoDatabase database = mongoClientMap.get(dbName).getDatabase(mongoDBMap.get(dbName));
 			database.createCollection(collectionName);
 			return true;
 		} catch (Exception e) {
@@ -218,28 +252,28 @@ public class MongoDBUtil {
 	/**
 	 * 创建索引
 	 * 
-	 * @param mongoName-数据库名
+	 * @param dbName-数据库名
 	 * @param collectionName-表名
 	 * @param index-索引格式
 	 * @return
 	 */
-	public static String createIndex(String mongoName, String collectionName, Bson index) {
-		MongoDatabase database = mongoClientMap.get(mongoName).getDatabase(mongoDBMap.get(mongoName));
+	public static String createIndex(String dbName, String collectionName, Bson index) {
+		MongoDatabase database = mongoClientMap.get(dbName).getDatabase(mongoDBMap.get(dbName));
 		return database.getCollection(collectionName).createIndex(index);
 	}
 
 	/**
 	 * 查询数据
 	 * 
-	 * @param mongoName-数据库名
+	 * @param dbName-数据库名
 	 * @param collectionName-表名
 	 * @param filter-过滤条件
 	 * @param sort-排序条件
 	 * @param limit-查询数量
 	 * @return
 	 */
-	public static List<Map<String, Object>> findListMap(String mongoName, String collectionName, Bson filter, Bson sort, int limit) {
-		MongoDatabase database = mongoClientMap.get(mongoName).getDatabase(mongoDBMap.get(mongoName));
+	public static List<Map<String, Object>> findListMap(String dbName, String collectionName, Bson filter, Bson sort, int limit) {
+		MongoDatabase database = mongoClientMap.get(dbName).getDatabase(mongoDBMap.get(dbName));
 		MongoCursor<Document> cursor = database.getCollection(collectionName).find(filter).sort(sort).limit(limit).iterator();
 		List<Map<String, Object>> content = new ArrayList<Map<String, Object>>();
 		while (cursor.hasNext()) {
@@ -251,31 +285,31 @@ public class MongoDBUtil {
 	/**
 	 * 计算数量
 	 * 
-	 * @param mongoName-数据库名
+	 * @param dbName-数据库名
 	 * @param collectionName-表名
 	 * @param filter-过滤条件
 	 * @return
 	 */
-	public static long countListMap(String mongoName, String collectionName, Bson filter) {
-		MongoDatabase database = mongoClientMap.get(mongoName).getDatabase(mongoDBMap.get(mongoName));
+	public static long countListMap(String dbName, String collectionName, Bson filter) {
+		MongoDatabase database = mongoClientMap.get(dbName).getDatabase(mongoDBMap.get(dbName));
 		return database.getCollection(collectionName).count(filter);
 	}
 
 	/**
 	 * 写入数据
 	 * 
-	 * @param mongoName-数据库名
+	 * @param dbName-数据库名
 	 * @param collectionName-表名
 	 * @param content-写入的内容
 	 * @return
 	 */
-	public static boolean insertListMap(String mongoName, String collectionName, List<Map<String, Object>> content) {
+	public static boolean insertListMap(String dbName, String collectionName, List<Map<String, Object>> content) {
 		try {
 			List<Document> list = new ArrayList<Document>();
 			for (Map<String, Object> map : content) {
 				list.add(new Document(map));
 			}
-			MongoDatabase database = mongoClientMap.get(mongoName).getDatabase(mongoDBMap.get(mongoName));
+			MongoDatabase database = mongoClientMap.get(dbName).getDatabase(mongoDBMap.get(dbName));
 			database.getCollection(collectionName).insertMany(list);
 			return true;
 		} catch (Exception e) {
@@ -287,29 +321,29 @@ public class MongoDBUtil {
 	/**
 	 * 更新数据
 	 * 
-	 * @param mongoName-数据库名
+	 * @param dbName-数据库名
 	 * @param collectionName-表名
 	 * @param filter-过滤条件
 	 * @param update-更新的内容
 	 * @return
 	 */
-	public static UpdateResult updateListMap(String mongoName, String collectionName, Bson filter, Bson update) {
-		MongoDatabase database = mongoClientMap.get(mongoName).getDatabase(mongoDBMap.get(mongoName));
+	public static UpdateResult updateListMap(String dbName, String collectionName, Bson filter, Bson update) {
+		MongoDatabase database = mongoClientMap.get(dbName).getDatabase(mongoDBMap.get(dbName));
 		return database.getCollection(collectionName).updateMany(filter, update);
 	}
 
 	/**
 	 * 去重查找
 	 * 
-	 * @param mongoName-数据库名
+	 * @param dbName-数据库名
 	 * @param collectionName-表名
 	 * @param fieldName-字段名
 	 * @param classType-字段类型
 	 * @param filter-过滤条件
 	 * @return
 	 */
-	public static <T, TResult> List<Object> distinct(String mongoName, String collectionName, String fieldName, Class<TResult> classType, Bson filter) {
-		MongoDatabase database = mongoClientMap.get(mongoName).getDatabase(mongoDBMap.get(mongoName));
+	public static <T, TResult> List<Object> distinct(String dbName, String collectionName, String fieldName, Class<TResult> classType, Bson filter) {
+		MongoDatabase database = mongoClientMap.get(dbName).getDatabase(mongoDBMap.get(dbName));
 		MongoCursor<TResult> cursor = database.getCollection(collectionName).distinct(fieldName, filter, classType).iterator();
 		List<Object> content = new ArrayList<Object>();
 		while (cursor.hasNext()) {
@@ -321,13 +355,13 @@ public class MongoDBUtil {
 	/**
 	 * 聚合数据
 	 * 
-	 * @param mongoName-数据库名
+	 * @param dbName-数据库名
 	 * @param collectionName-表名
 	 * @param pipeline-聚合条件
 	 * @return
 	 */
-	public static List<Map<String, Object>> aggregateListMap(String mongoName, String collectionName, List<Bson> pipeline) {
-		MongoDatabase database = mongoClientMap.get(mongoName).getDatabase(mongoDBMap.get(mongoName));
+	public static List<Map<String, Object>> aggregateListMap(String dbName, String collectionName, List<Bson> pipeline) {
+		MongoDatabase database = mongoClientMap.get(dbName).getDatabase(mongoDBMap.get(dbName));
 		MongoCursor<Document> cursor = database.getCollection(collectionName).aggregate(pipeline).iterator();
 		List<Map<String, Object>> content = new ArrayList<Map<String, Object>>();
 		while (cursor.hasNext()) {
@@ -357,11 +391,11 @@ public class MongoDBUtil {
 	/**
 	 * 查询Mongo的SQL解析器
 	 * 
-	 * @param mongoName-数据库名
+	 * @param dbName-数据库名
 	 * @param sql-查询语句
 	 * @return
 	 */
-	public static List<Map<String, Object>> selectSql(String mongoName, String sql) {
+	public static List<Map<String, Object>> selectSql(String dbName, String sql) {
 		List<Bson> filterList = new ArrayList<Bson>();
 		List<Bson> sortList = new ArrayList<Bson>();
 		sql = sql.replaceAll("\"", "");
@@ -452,17 +486,17 @@ public class MongoDBUtil {
 				limit = end - start;
 			}
 		}
-		return findListMap(mongoName, tableName, Filters.and(filterList), Sorts.orderBy(sortList), limit);
+		return findListMap(dbName, tableName, Filters.and(filterList), Sorts.orderBy(sortList), limit);
 	}
 
 	/**
 	 * 更新sql解析器
 	 * 
-	 * @param mongoName-数据库名
+	 * @param dbName-数据库名
 	 * @param sql-更新语句
 	 * @return
 	 */
-	public static UpdateResult updateSql(String mongoName, String sql) {
+	public static UpdateResult updateSql(String dbName, String sql) {
 		List<Bson> filterList = new ArrayList<Bson>();
 		List<Bson> updateList = new ArrayList<Bson>();
 		sql = sql.replaceAll("\"", "");
@@ -530,6 +564,6 @@ public class MongoDBUtil {
 				}
 			}
 		}
-		return updateListMap(mongoName, tableName, Filters.and(filterList), Updates.combine(updateList));
+		return updateListMap(dbName, tableName, Filters.and(filterList), Updates.combine(updateList));
 	}
 }

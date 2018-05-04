@@ -1,7 +1,6 @@
 package com.quickutil.platform.aggs;
 
 import com.google.gson.JsonObject;
-import com.quickutil.platform.def.SearchRequest;
 import com.quickutil.platform.exception.FormatQueryException;
 
 /**
@@ -89,7 +88,8 @@ public class TermsAggs extends AggsDSL {
 			throw new FormatQueryException("terms aggregation must init by field name or script file");
 		}
 		if (null != size) {
-			if (0 == size) //https://www.elastic.co/guide/en/elasticsearch/reference/current/breaking_50_aggregations_changes.html, size = 0, is no longer supported in 5.x
+			if (0 == size) // https://www.elastic.co/guide/en/elasticsearch/reference/current/breaking_50_aggregations_changes.html,
+							// size = 0, is no longer supported in 5.x
 				size = 10000;
 			termsObject.addProperty("size", size);
 		}
@@ -102,10 +102,4 @@ public class TermsAggs extends AggsDSL {
 		return warpAggs(termsObject);
 	}
 
-	public static void main(String[] args) throws FormatQueryException {
-		TermsAggs termsAggs = new TermsAggs("aa", "assistant_concat")
-				.setSize(0).setOrder(new Order("_count"));
-		SearchRequest searchRequest = new SearchRequest(termsAggs).setSize(0);
-		System.out.println(searchRequest.toJson());
-	}
 }

@@ -54,7 +54,6 @@ public class PassportUtil {
 				PassportAppkey = properties.getProperty(key);
 		}
 		if (PassportHost == null || PassportAppid == null || PassportAppkey == null) {
-			System.out.println("passport.properties 参数不正确");
 			return false;
 		}
 		return true;
@@ -125,17 +124,16 @@ public class PassportUtil {
 	 * @param appremark--交易信息备注
 	 * @return
 	 */
-	public static Map<String, Object> payFromStatementid(String username, String statementid, String appinfo1, String appinfo2, String appinfo3, String appinfo4, String appinfo5,
-			String appremark) {
+	public static Map<String, Object> payFromStatementid(String username, String statementid, String appinfo1, String appinfo2, String appinfo3, String appinfo4, String appinfo5, String appremark) {
 		try {
 			if (username == null || statementid == null)
 				return null;
 			long time = System.currentTimeMillis();
 			String secretkey = CryptoUtil.HmacSHA1Encrypt(
-					String.format(payFromStatementidSec, PassportAppid, username, statementid, time, appinfo1, appinfo2, appinfo3, appinfo4, appinfo5, appremark).getBytes(),
-					PassportAppkey);
-			HttpResponse response = HttpUtil.httpPost(String.format(PassportHost + payFromStatementidReq, PassportAppid, username, statementid, time, appinfo1, appinfo2, appinfo3,
-					appinfo4, appinfo5, appremark, secretkey), null, null, null, null);
+					String.format(payFromStatementidSec, PassportAppid, username, statementid, time, appinfo1, appinfo2, appinfo3, appinfo4, appinfo5, appremark).getBytes(), PassportAppkey);
+			HttpResponse response = HttpUtil.httpPost(
+					String.format(PassportHost + payFromStatementidReq, PassportAppid, username, statementid, time, appinfo1, appinfo2, appinfo3, appinfo4, appinfo5, appremark, secretkey), null, null,
+					null, null);
 			String result = new String(FileUtil.stream2byte(response.getEntity().getContent()));
 			return JsonUtil.toMap(result);
 		} catch (Exception e) {

@@ -56,7 +56,7 @@ public class JedisUtil {
 				int timeout = Integer.parseInt(jedis.getProperty(key + ".timeout"));
 				String password = jedis.getProperty(key + ".password");
 				int database = Integer.parseInt(jedis.getProperty(key + ".database"));
-				JedisPoolMap.put(key, getJedisPool(host, port, timeout, password, database, pool));
+				JedisPoolMap.put(key, buildJedisPool(host, port, timeout, password, database, pool));
 			}
 			return true;
 		} catch (Exception e) {
@@ -76,7 +76,7 @@ public class JedisUtil {
 	 * @param database-数据库编号
 	 */
 	public static void addJedisPool(String dbName, String host, int port, int timeout, String password, int database) {
-		JedisPoolMap.put(dbName, getJedisPool(host, port, timeout, password, database, null));
+		JedisPoolMap.put(dbName, buildJedisPool(host, port, timeout, password, database, null));
 	}
 
 	/**
@@ -91,7 +91,7 @@ public class JedisUtil {
 	 * @param pool-pool配置
 	 */
 	public static void addJedisPool(String dbName, String host, int port, int timeout, String password, int database, Properties pool) {
-		JedisPoolMap.put(dbName, getJedisPool(host, port, timeout, password, database, pool));
+		JedisPoolMap.put(dbName, buildJedisPool(host, port, timeout, password, database, pool));
 	}
 
 	/**
@@ -104,11 +104,33 @@ public class JedisUtil {
 		return JedisPoolMap.get(dbName);
 	}
 
-	private static JedisPool getJedisPool(String host, int port, int timeout, String password, int database, Properties pool) {
+	/**
+	 * 释放生成的JedisPool
+	 * 
+	 * @param dbName
+	 */
+	public void destroyJedisPool(String dbName) {
+		JedisPool pool = JedisPoolMap.get(dbName);
+		if (pool == null)
+			return;
+		pool.destroy();
+		JedisPoolMap.remove(dbName);
+	}
+
+	/**
+	 * 释放所有的的JedisPool
+	 * 
+	 */
+	public void destroyAllJedisPool() {
+		for (String dbName : JedisPoolMap.keySet()) {
+			destroyJedisPool(dbName);
+		}
+	}
+
+	private static JedisPool buildJedisPool(String host, int port, int timeout, String password, int database, Properties pool) {
 		JedisPoolConfig config = new JedisPoolConfig();
 		if (pool == null)
 			return new JedisPool(config, host, port, timeout, password, database);
-		//
 		if (pool.getProperty("BlockWhenExhausted") != null)
 			config.setBlockWhenExhausted(Boolean.parseBoolean(pool.getProperty("BlockWhenExhausted")));
 		if (pool.getProperty("EvictionPolicyClassName") != null)
@@ -147,7 +169,6 @@ public class JedisUtil {
 			config.setTestWhileIdle(Boolean.parseBoolean(pool.getProperty("TestWhileIdle")));
 		if (pool.getProperty("AcquireIncrement") != null)
 			config.setTimeBetweenEvictionRunsMillis(Long.parseLong(pool.getProperty("TimeBetweenEvictionRunsMillis")));
-		//
 		return new JedisPool(config, host, port, timeout, password, database);
 	}
 
@@ -163,7 +184,7 @@ public class JedisUtil {
 		Jedis jedis = pool.getResource();
 		List<String> keyList = new ArrayList<String>();
 		if (pattern == null)
-			pattern = "*";
+			return keyList;
 		try {
 			Iterator<String> iterator = jedis.keys(pattern).iterator();
 			while (iterator.hasNext()) {

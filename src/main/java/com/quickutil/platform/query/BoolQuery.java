@@ -76,27 +76,33 @@ public class BoolQuery extends QueryDSL {
 	public JsonObject toJson() throws FormatQueryException {
 		JsonObject boolObject = new JsonObject();
 		if (null != minimumShouldMatch && minimumShouldMatch > shouldSubQuery.size()) {
-			System.out.format("bool query minimum_should_match[%d] bigger than should query size[%d], "
-					+ "result will be empty\n", minimumShouldMatch, shouldSubQuery.size());
 		}
 		if (!mustSubQuery.isEmpty()) {
 			JsonArray must = new JsonArray();
-			for (QueryDSL subQuery: mustSubQuery) { must.add(subQuery.toJson()); }
+			for (QueryDSL subQuery : mustSubQuery) {
+				must.add(subQuery.toJson());
+			}
 			boolObject.add("must", must);
 		}
 		if (!filterSubQuery.isEmpty()) {
 			JsonArray filter = new JsonArray();
-			for (QueryDSL subQuery: filterSubQuery) { filter.add(subQuery.toJson()); }
+			for (QueryDSL subQuery : filterSubQuery) {
+				filter.add(subQuery.toJson());
+			}
 			boolObject.add("filter", filter);
 		}
 		if (!shouldSubQuery.isEmpty()) {
 			JsonArray should = new JsonArray();
-			for (QueryDSL subQuery: shouldSubQuery) { should.add(subQuery.toJson()); }
+			for (QueryDSL subQuery : shouldSubQuery) {
+				should.add(subQuery.toJson());
+			}
 			boolObject.add("should", should);
 		}
 		if (!mustNotSubQuery.isEmpty()) {
 			JsonArray mustNot = new JsonArray();
-			for (QueryDSL subQuery: mustNotSubQuery) { mustNot.add(subQuery.toJson()); }
+			for (QueryDSL subQuery : mustNotSubQuery) {
+				mustNot.add(subQuery.toJson());
+			}
 			boolObject.add("must_not", mustNot);
 		}
 		if (null != minimumShouldMatch) {

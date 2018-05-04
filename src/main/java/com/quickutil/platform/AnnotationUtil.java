@@ -37,7 +37,6 @@ public class AnnotationUtil {
 				toSwagger(file.getName().split("\\.")[0], content, pathMap);
 			} catch (Exception e) {
 				e.printStackTrace();
-				System.out.println(filePath);
 			}
 		}
 		Map<String, Object> resultMap = new HashMap<String, Object>();
@@ -142,7 +141,6 @@ public class AnnotationUtil {
 				FileUtil.string2File(htmlPath, htmlContent, false);
 			} catch (Exception e) {
 				e.printStackTrace();
-				System.out.println(filePath);
 			}
 		}
 	}

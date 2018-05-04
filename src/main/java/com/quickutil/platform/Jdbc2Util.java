@@ -22,15 +22,15 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import com.mchange.v2.c3p0.ComboPooledDataSource;
+import com.alibaba.druid.pool.DruidDataSource;
 import com.quickutil.platform.def.ResultSetDef;
 
-public class JdbcUtil {
+public class Jdbc2Util {
 
-	private static Map<String, ComboPooledDataSource> dataSourceMap = new HashMap<String, ComboPooledDataSource>();
+	private static Map<String, DruidDataSource> dataSourceMap = new HashMap<String, DruidDataSource>();
 
 	/**
-	 * 增加datasource，使用默认c3p0配置
+	 * 增加datasource，使用默认druid配置
 	 * 
 	 * @param jdbc-jdbc配置
 	 */
@@ -39,10 +39,10 @@ public class JdbcUtil {
 	}
 
 	/**
-	 * 增加datasource，指定c3p0配置
+	 * 增加datasource，指定druid配置
 	 * 
 	 * @param jdbc-jdbc配置
-	 * @param pool-c3p0配置
+	 * @param pool-druid配置
 	 */
 	public static void addDataSource(Properties jdbc, Properties pool) {
 		Enumeration<?> keys = jdbc.propertyNames();
@@ -62,7 +62,7 @@ public class JdbcUtil {
 				int initconnum = Integer.parseInt(jdbc.getProperty(key + ".initconnum"));
 				int minconnum = Integer.parseInt(jdbc.getProperty(key + ".minconnum"));
 				int maxconnum = Integer.parseInt(jdbc.getProperty(key + ".maxconnum"));
-				ComboPooledDataSource datasource = buildDataSource(jdbcUrl, user, password, initconnum, minconnum, maxconnum, pool);
+				DruidDataSource datasource = buildDataSource(jdbcUrl, user, password, initconnum, minconnum, maxconnum, pool);
 				dataSourceMap.put(key, datasource);
 				// JsonUtil.toJson(datasource.getConnection().getMetaData().getDatabaseProductName());
 				// JsonUtil.toJson(datasource.getConnection().getMetaData().getDatabaseMajorVersion());
@@ -73,7 +73,7 @@ public class JdbcUtil {
 	}
 
 	/**
-	 * 增加datasource，使用默认c3p0配置
+	 * 增加datasource，使用默认druid配置
 	 * 
 	 * @param dbName-数据库名称
 	 * @param url-jdbc的url
@@ -97,7 +97,7 @@ public class JdbcUtil {
 	 * @param initconnum-初始化连接数
 	 * @param minconnum-最小连接数
 	 * @param maxconnum-最大连接数
-	 * @param pool-c3p0配置
+	 * @param pool-druid配置
 	 */
 	public static void addDataSource(String dbName, String url, String username, String password, int initconnum, int minconnum, int maxconnum, Properties pool) {
 		dataSourceMap.put(dbName, buildDataSource(url, username, password, initconnum, minconnum, maxconnum, pool));
@@ -109,7 +109,7 @@ public class JdbcUtil {
 	 * @param dbName-数据库名称
 	 * @return
 	 */
-	public static ComboPooledDataSource getDataSource(String dbName) {
+	public static DruidDataSource getDataSource(String dbName) {
 		return dataSourceMap.get(dbName);
 	}
 
@@ -119,7 +119,7 @@ public class JdbcUtil {
 	 * @param dbName
 	 */
 	public void closeDataSource(String dbName) {
-		ComboPooledDataSource pool = dataSourceMap.get(dbName);
+		DruidDataSource pool = dataSourceMap.get(dbName);
 		if (pool == null)
 			return;
 		pool.close();
@@ -136,97 +136,117 @@ public class JdbcUtil {
 		}
 	}
 
-	private static ComboPooledDataSource buildDataSource(String jdbcUrl, String username, String password, int initconnum, int minconnum, int maxconnum, Properties pool) {
+	private static DruidDataSource buildDataSource(String jdbcUrl, String username, String password, int initconnum, int minconnum, int maxconnum, Properties pool) {
 		if (jdbcUrl == null || username == null || password == null) {
 			return null;
 		}
-		ComboPooledDataSource datasource = new ComboPooledDataSource();
+		DruidDataSource datasource = new DruidDataSource();
 		try {
-			datasource.setDriverClass("com.mysql.jdbc.Driver");
-			datasource.setJdbcUrl(jdbcUrl);
-			datasource.setUser(username);
+			datasource.setUrl(jdbcUrl);
+			datasource.setUsername(username);
 			datasource.setPassword(password);
-			datasource.setInitialPoolSize(initconnum);
-			datasource.setMinPoolSize(minconnum);
-			datasource.setMaxPoolSize(maxconnum);
+			datasource.setInitialSize(initconnum);
+			datasource.setMaxActive(maxconnum);
 			if (pool == null)
 				return datasource;
-			if (pool.getProperty("AcquireIncrement") != null)
-				datasource.setAcquireIncrement(Integer.parseInt(pool.getProperty("AcquireIncrement")));
-			if (pool.getProperty("AcquireRetryAttempts") != null)
-				datasource.setAcquireRetryAttempts(Integer.parseInt(pool.getProperty("AcquireRetryAttempts")));
-			if (pool.getProperty("AcquireRetryDelay") != null)
-				datasource.setAcquireRetryDelay(Integer.parseInt(pool.getProperty("AcquireRetryDelay")));
-			if (pool.getProperty("AutoCommitOnClose") != null)
-				datasource.setAutoCommitOnClose(Boolean.parseBoolean(pool.getProperty("AutoCommitOnClose")));
-			if (pool.getProperty("AutomaticTestTable") != null)
-				datasource.setAutomaticTestTable(pool.getProperty("AutomaticTestTable"));
+			if (pool.getProperty("DriverClass") != null)
+				datasource.setDriverClassName((pool.getProperty("DriverClass")));
+			if (pool.getProperty("AccessToUnderlyingConnectionAllowed") != null)
+				datasource.setAccessToUnderlyingConnectionAllowed(Boolean.parseBoolean(pool.getProperty("AccessToUnderlyingConnectionAllowed")));
+			if (pool.getProperty("AsyncCloseConnectionEnable") != null)
+				datasource.setAsyncCloseConnectionEnable(Boolean.parseBoolean(pool.getProperty("AsyncCloseConnectionEnable")));
 			if (pool.getProperty("BreakAfterAcquireFailure") != null)
 				datasource.setBreakAfterAcquireFailure(Boolean.parseBoolean(pool.getProperty("BreakAfterAcquireFailure")));
-			if (pool.getProperty("CheckoutTimeout") != null)
-				datasource.setCheckoutTimeout(Integer.parseInt(pool.getProperty("CheckoutTimeout")));
-			if (pool.getProperty("ConnectionCustomizerClassName") != null)
-				datasource.setConnectionCustomizerClassName(pool.getProperty("ConnectionCustomizerClassName"));
-			if (pool.getProperty("ConnectionTesterClassName") != null)
-				datasource.setConnectionTesterClassName(pool.getProperty("ConnectionTesterClassName"));
-			if (pool.getProperty("ContextClassLoaderSource") != null)
-				datasource.setContextClassLoaderSource(pool.getProperty("ContextClassLoaderSource"));
-			if (pool.getProperty("DataSourceName") != null)
-				datasource.setDataSourceName(pool.getProperty("DataSourceName"));
-			if (pool.getProperty("DebugUnreturnedConnectionStackTraces") != null)
-				datasource.setDebugUnreturnedConnectionStackTraces(Boolean.parseBoolean(pool.getProperty("DebugUnreturnedConnectionStackTraces")));
-			if (pool.getProperty("Description") != null)
-				datasource.setDescription(pool.getProperty("Description"));
-			if (pool.getProperty("DriverClass") != null)
-				datasource.setDriverClass(pool.getProperty("DriverClass"));
-			if (pool.getProperty("FactoryClassLocation") != null)
-				datasource.setFactoryClassLocation(pool.getProperty("FactoryClassLocation"));
-			if (pool.getProperty("ForceIgnoreUnresolvedTransactions") != null)
-				datasource.setForceIgnoreUnresolvedTransactions(Boolean.parseBoolean(pool.getProperty("ForceIgnoreUnresolvedTransactions")));
-			if (pool.getProperty("ForceSynchronousCheckins") != null)
-				datasource.setForceSynchronousCheckins(Boolean.parseBoolean(pool.getProperty("ForceSynchronousCheckins")));
-			if (pool.getProperty("ForceUseNamedDriverClass") != null)
-				datasource.setForceUseNamedDriverClass(Boolean.parseBoolean(pool.getProperty("ForceUseNamedDriverClass")));
-			if (pool.getProperty("IdentityToken") != null)
-				datasource.setIdentityToken(pool.getProperty("IdentityToken"));
-			if (pool.getProperty("IdleConnectionTestPeriod") != null)
-				datasource.setIdleConnectionTestPeriod(Integer.parseInt(pool.getProperty("IdleConnectionTestPeriod")));
+			if (pool.getProperty("ClearFiltersEnable") != null)
+				datasource.setClearFiltersEnable(Boolean.parseBoolean(pool.getProperty("ClearFiltersEnable")));
+			if (pool.getProperty("ConnectionErrorRetryAttempts") != null)
+				datasource.setConnectionErrorRetryAttempts(Integer.parseInt(pool.getProperty("ConnectionErrorRetryAttempts")));
+			if (pool.getProperty("DbType") != null)
+				datasource.setDbType(pool.getProperty("DbType"));
+			if (pool.getProperty("DefaultAutoCommit") != null)
+				datasource.setDefaultAutoCommit(Boolean.parseBoolean(pool.getProperty("DefaultAutoCommit")));
+			if (pool.getProperty("DefaultCatalog") != null)
+				datasource.setDefaultCatalog(pool.getProperty("DefaultCatalog"));
+			if (pool.getProperty("DefaultReadOnly") != null)
+				datasource.setDefaultReadOnly(Boolean.parseBoolean(pool.getProperty("DefaultReadOnly")));
+			if (pool.getProperty("DefaultTransactionIsolation") != null)
+				datasource.setDefaultTransactionIsolation(Integer.parseInt(pool.getProperty("DefaultTransactionIsolation")));
+			if (pool.getProperty("Enable") != null)
+				datasource.setEnable(Boolean.parseBoolean(pool.getProperty("Enable")));
+			if (pool.getProperty("FailFast") != null)
+				datasource.setFailFast(Boolean.parseBoolean(pool.getProperty("FailFast")));
+			if (pool.getProperty("InitGlobalVariants") != null)
+				datasource.setInitGlobalVariants(Boolean.parseBoolean(pool.getProperty("InitGlobalVariants")));
+			if (pool.getProperty("InitVariants") != null)
+				datasource.setInitVariants(Boolean.parseBoolean(pool.getProperty("InitVariants")));
+			if (pool.getProperty("KeepAlive") != null)
+				datasource.setKeepAlive(Boolean.parseBoolean(pool.getProperty("KeepAlive")));
+			if (pool.getProperty("KillWhenSocketReadTimeout") != null)
+				datasource.setKillWhenSocketReadTimeout(Boolean.parseBoolean(pool.getProperty("KillWhenSocketReadTimeout")));
+			if (pool.getProperty("LogAbandoned") != null)
+				datasource.setLogAbandoned(Boolean.parseBoolean(pool.getProperty("LogAbandoned")));
+			if (pool.getProperty("LogDifferentThread") != null)
+				datasource.setLogDifferentThread(Boolean.parseBoolean(pool.getProperty("LogDifferentThread")));
 			if (pool.getProperty("LoginTimeout") != null)
 				datasource.setLoginTimeout(Integer.parseInt(pool.getProperty("LoginTimeout")));
-			if (pool.getProperty("MaxAdministrativeTaskTime") != null)
-				datasource.setMaxAdministrativeTaskTime(Integer.parseInt(pool.getProperty("MaxAdministrativeTaskTime")));
-			if (pool.getProperty("MaxConnectionAge") != null)
-				datasource.setMaxConnectionAge(Integer.parseInt(pool.getProperty("MaxConnectionAge")));
-			if (pool.getProperty("MaxIdleTime") != null)
-				datasource.setMaxIdleTime(Integer.parseInt(pool.getProperty("MaxIdleTime")));
-			if (pool.getProperty("MaxStatements") != null)
-				datasource.setMaxStatements(Integer.parseInt(pool.getProperty("MaxStatements")));
-			if (pool.getProperty("MaxStatementsPerConnection") != null)
-				datasource.setMaxStatementsPerConnection(Integer.parseInt(pool.getProperty("MaxStatementsPerConnection")));
-			if (pool.getProperty("NumHelperThreads") != null)
-				datasource.setNumHelperThreads(Integer.parseInt(pool.getProperty("NumHelperThreads")));
-			if (pool.getProperty("OverrideDefaultPassword") != null)
-				datasource.setOverrideDefaultPassword(pool.getProperty("OverrideDefaultPassword"));
-			if (pool.getProperty("OverrideDefaultUser") != null)
-				datasource.setOverrideDefaultUser(pool.getProperty("OverrideDefaultUser"));
-			if (pool.getProperty("PreferredTestQuery") != null)
-				datasource.setPreferredTestQuery(pool.getProperty("PreferredTestQuery"));
-			if (pool.getProperty("PrivilegeSpawnedThreads") != null)
-				datasource.setPrivilegeSpawnedThreads(Boolean.parseBoolean(pool.getProperty("PrivilegeSpawnedThreads")));
-			if (pool.getProperty("PropertyCycle") != null)
-				datasource.setPropertyCycle(Integer.parseInt(pool.getProperty("PropertyCycle")));
-			if (pool.getProperty("StatementCacheNumDeferredCloseThreads") != null)
-				datasource.setStatementCacheNumDeferredCloseThreads(Integer.parseInt(pool.getProperty("StatementCacheNumDeferredCloseThreads")));
-			if (pool.getProperty("TestConnectionOnCheckin") != null)
-				datasource.setTestConnectionOnCheckin(Boolean.parseBoolean(pool.getProperty("TestConnectionOnCheckin")));
-			if (pool.getProperty("TestConnectionOnCheckout") != null)
-				datasource.setTestConnectionOnCheckout(Boolean.parseBoolean(pool.getProperty("TestConnectionOnCheckout")));
-			if (pool.getProperty("UnreturnedConnectionTimeout") != null)
-				datasource.setUnreturnedConnectionTimeout(Integer.parseInt(pool.getProperty("UnreturnedConnectionTimeout")));
-			if (pool.getProperty("UserOverridesAsString") != null)
-				datasource.setUserOverridesAsString(pool.getProperty("UserOverridesAsString"));
-			if (pool.getProperty("UsesTraditionalReflectiveProxies") != null)
-				datasource.setUsesTraditionalReflectiveProxies(Boolean.parseBoolean(pool.getProperty("UsesTraditionalReflectiveProxies")));
+			if (pool.getProperty("MaxCreateTaskCount") != null)
+				datasource.setMaxCreateTaskCount(Integer.parseInt(pool.getProperty("MaxCreateTaskCount")));
+			if (pool.getProperty("MaxEvictableIdleTimeMillis") != null)
+				datasource.setMaxEvictableIdleTimeMillis(Long.parseLong(pool.getProperty("MaxEvictableIdleTimeMillis")));
+			if (pool.getProperty("MaxOpenPreparedStatements") != null)
+				datasource.setMaxOpenPreparedStatements(Integer.parseInt(pool.getProperty("MaxOpenPreparedStatements")));
+			if (pool.getProperty("PoolPreparedStatementPerConnectionSize") != null)
+				datasource.setMaxPoolPreparedStatementPerConnectionSize(Integer.parseInt(pool.getProperty("PoolPreparedStatementPerConnectionSize")));
+			if (pool.getProperty("MaxWait") != null)
+				datasource.setMaxWait(Long.parseLong(pool.getProperty("MaxWait")));
+			if (pool.getProperty("MaxWaitThreadCount") != null)
+				datasource.setMaxWaitThreadCount(Integer.parseInt(pool.getProperty("MaxWaitThreadCount")));
+			if (pool.getProperty("MinEvictableIdleTimeMillis") != null)
+				datasource.setMinEvictableIdleTimeMillis(Long.parseLong(pool.getProperty("MinEvictableIdleTimeMillis")));
+			if (pool.getProperty("MinIdle") != null)
+				datasource.setMinIdle(Integer.parseInt(pool.getProperty("MinIdle")));
+			if (pool.getProperty("NotFullTimeoutRetryCount") != null)
+				datasource.setNotFullTimeoutRetryCount(Integer.parseInt(pool.getProperty("NotFullTimeoutRetryCount")));
+			if (pool.getProperty("OnFatalErrorMaxActive") != null)
+				datasource.setOnFatalErrorMaxActive(Integer.parseInt(pool.getProperty("OnFatalErrorMaxActive")));
+			if (pool.getProperty("Oracle") != null)
+				datasource.setOracle(Boolean.parseBoolean(pool.getProperty("Oracle")));
+			if (pool.getProperty("PoolPreparedStatements") != null)
+				datasource.setPoolPreparedStatements(Boolean.parseBoolean(pool.getProperty("PoolPreparedStatements")));
+			if (pool.getProperty("QueryTimeout") != null)
+				datasource.setQueryTimeout(Integer.parseInt(pool.getProperty("QueryTimeout")));
+			if (pool.getProperty("RemoveAbandoned") != null)
+				datasource.setRemoveAbandoned(Boolean.parseBoolean(pool.getProperty("RemoveAbandoned")));
+			if (pool.getProperty("RemoveAbandonedTimeout") != null)
+				datasource.setRemoveAbandonedTimeout(Integer.parseInt(pool.getProperty("RemoveAbandonedTimeout")));
+			if (pool.getProperty("RemoveAbandonedTimeoutMillis") != null)
+				datasource.setRemoveAbandonedTimeoutMillis(Long.parseLong(pool.getProperty("RemoveAbandonedTimeoutMillis")));
+			if (pool.getProperty("ResetStatEnable") != null)
+				datasource.setResetStatEnable(Boolean.parseBoolean(pool.getProperty("ResetStatEnable")));
+			if (pool.getProperty("SharePreparedStatements") != null)
+				datasource.setSharePreparedStatements(Boolean.parseBoolean(pool.getProperty("SharePreparedStatements")));
+			if (pool.getProperty("TestOnBorrow") != null)
+				datasource.setTestOnBorrow(Boolean.parseBoolean(pool.getProperty("TestOnBorrow")));
+			if (pool.getProperty("TestOnReturn") != null)
+				datasource.setTestOnReturn(Boolean.parseBoolean(pool.getProperty("TestOnReturn")));
+			if (pool.getProperty("TimeBetweenConnectErrorMillis") != null)
+				datasource.setTimeBetweenConnectErrorMillis(Long.parseLong(pool.getProperty("TimeBetweenConnectErrorMillis")));
+			if (pool.getProperty("TimeBetweenEvictionRunsMillis") != null)
+				datasource.setTimeBetweenEvictionRunsMillis(Long.parseLong(pool.getProperty("TimeBetweenEvictionRunsMillis")));
+			if (pool.getProperty("TimeBetweenLogStatsMillis") != null)
+				datasource.setTimeBetweenLogStatsMillis(Long.parseLong(pool.getProperty("TimeBetweenLogStatsMillis")));
+			if (pool.getProperty("TransactionQueryTimeout") != null)
+				datasource.setTransactionQueryTimeout(Integer.parseInt(pool.getProperty("TransactionQueryTimeout")));
+			if (pool.getProperty("TransactionThresholdMillis") != null)
+				datasource.setTransactionThresholdMillis(Long.parseLong(pool.getProperty("TransactionThresholdMillis")));
+			if (pool.getProperty("UseGlobalDataSourceStat") != null)
+				datasource.setUseGlobalDataSourceStat(Boolean.parseBoolean(pool.getProperty("UseGlobalDataSourceStat")));
+			if (pool.getProperty("UseLocalSessionState") != null)
+				datasource.setUseLocalSessionState(Boolean.parseBoolean(pool.getProperty("UseLocalSessionState")));
+			if (pool.getProperty("UseOracleImplicitCache") != null)
+				datasource.setUseOracleImplicitCache(Boolean.parseBoolean(pool.getProperty("UseOracleImplicitCache")));
+			if (pool.getProperty("UseUnfairLock") != null)
+				datasource.setUseUnfairLock(Boolean.parseBoolean(pool.getProperty("UseUnfairLock")));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -242,37 +262,57 @@ public class JdbcUtil {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public static String format(String sql, String escape, Object... params) {
+	public static String format(String sql, Object... params) {
 		for (int i = 0; i < params.length; i++) {
 			if (params[i] instanceof List) {
 				StringBuilder sb = new StringBuilder();
 				List<String> array = (List<String>) params[i];
-				for (String sn : array)
-					sb.append("'" + sn.replaceAll("'", escape + "'") + "',");
+				for (String str : array)
+					sb.append("'" + str.replaceAll("'", "''") + "',");
 				params[i] = sb.substring(0, sb.length() - 1);
 			} else {
-				params[i] = params[i].toString().replaceAll("'", escape + "'");
+				params[i] = params[i].toString().replaceAll("'", "''");
 			}
 		}
 		return String.format(sql, params);
 	}
 
 	/**
-	 * 将数组拼接为in查询所需字符串，并避免sql注入
+	 * 获取单列数据
 	 * 
-	 * @param array-内容数组
-	 * @param escape-SQL转义符，例如MySQL使用\\\\、PG使用'
+	 * @param dbName-数据库名称
+	 * @param sql-语句
 	 * @return
 	 */
-	public static String arrayToIn(String[] array, String escape) {
-		if (array.length == 0)
-			return null;
-		StringBuilder sb = new StringBuilder();
-		for (String sn : array) {
-			sn = sn.replaceAll("'", escape + "'");
-			sb.append("'" + sn + "',");
+	public static List<Object> getListObject(String dbName, String sql) {
+		List<Object> list = new ArrayList<Object>();
+		Connection connection = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		try {
+			connection = dataSourceMap.get(dbName).getConnection();
+			ps = connection.prepareStatement(sql);
+			rs = ps.executeQuery();
+			ResultSetMetaData rsmd = rs.getMetaData();
+			String columnName = rsmd.getColumnLabel(1);
+			while (rs.next()) {
+				list.add(rs.getObject(columnName));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (rs != null)
+					rs.close();
+				if (ps != null)
+					ps.close();
+				if (connection != null)
+					connection.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
-		return sb.substring(0, sb.length() - 1);
+		return list;
 	}
 
 	/**
@@ -568,7 +608,7 @@ public class JdbcUtil {
 	}
 
 	/**
-	 * 批量插入数据-适用于MySQL
+	 * 批量插入数据
 	 * 
 	 * @param dbName-数据库名称
 	 * @param tableName-表名
@@ -576,10 +616,29 @@ public class JdbcUtil {
 	 * @param isReplace-insert或replace
 	 * @return
 	 */
-	public static boolean insertListMap(String dbName, String tableName, List<Map<String, Object>> content, boolean isReplace) {
+	public static boolean insertListMap(String dbName, String tableName, List<Map<String, Object>> content) {
 		if (content.size() == 0)
 			return true;
-		String sql = combineInsert(tableName, content, isReplace);
+		String sql = combineInsert(tableName, content, false);
+		boolean result = execute(dbName, sql);
+		if (!result)
+			System.out.println(sql);
+		return result;
+	}
+
+	/**
+	 * 批量替换数据-只适用于MySQL
+	 * 
+	 * @param dbName-数据库名称
+	 * @param tableName-表名
+	 * @param content-数据内容
+	 * @param isReplace-insert或replace
+	 * @return
+	 */
+	public static boolean replaceListMap(String dbName, String tableName, List<Map<String, Object>> content) {
+		if (content.size() == 0)
+			return true;
+		String sql = combineInsert(tableName, content, true);
 		boolean result = execute(dbName, sql);
 		if (!result)
 			System.out.println(sql);
@@ -595,8 +654,22 @@ public class JdbcUtil {
 	 * @param isReplace-insert或replace
 	 * @return
 	 */
-	public static Integer insertListMapWithId(String dbName, String tableName, List<Map<String, Object>> content, boolean isReplace) {
-		String sql = combineInsert(tableName, content, isReplace);
+	public static Integer insertListMapWithId(String dbName, String tableName, List<Map<String, Object>> content) {
+		String sql = combineInsert(tableName, content, false);
+		return executeWithId(dbName, sql);
+	}
+
+	/**
+	 * 批量替换数据并返回最后一条自增id-只适用于MySQL
+	 * 
+	 * @param dbName-数据库名称
+	 * @param tableName-表名
+	 * @param content-数据内容
+	 * @param isReplace-insert或replace
+	 * @return
+	 */
+	public static Integer replaceListMapWithId(String dbName, String tableName, List<Map<String, Object>> content) {
+		String sql = combineInsert(tableName, content, true);
 		return executeWithId(dbName, sql);
 	}
 
@@ -633,7 +706,7 @@ public class JdbcUtil {
 					sqlBuf.append("now(),");
 				else {
 					sqlBuf.append("'");
-					sqlBuf.append(content.get(i).get(keyList.get(j)));
+					sqlBuf.append(content.get(i).get(keyList.get(j)).toString().replaceAll("'", "''"));
 					sqlBuf.append("',");
 				}
 			}
@@ -653,21 +726,20 @@ public class JdbcUtil {
 	 * @param isDistinct-会把相同内容的map进行合并
 	 * @return
 	 */
-	public static boolean upsertListMap(String dbName, String tableName, List<Map<String, Object>> content) {
+	public static boolean upsertListMap(String dbName, String tableName, List<Map<String, Object>> content, String constraint) {
 		if (content.size() == 0)
 			return true;
-		String sql = combineUpsert(tableName, content);
+		String sql = combineUpsert(tableName, content, constraint);
 		boolean result = execute(dbName, sql);
-		if (!result) {
+		if (!result)
 			System.out.println(sql);
-		}
-		return false;
+		return result;
 	}
 
 	private static final String DOUBLEMARKS = "\"";
 	private static final String COMMA = ",";
 
-	private static String combineUpsert(String tableName, List<Map<String, Object>> content) {
+	private static String combineUpsert(String tableName, List<Map<String, Object>> content, String constraint) {
 		StringBuffer sqlBuf = new StringBuffer();
 		Set<String> keySet = content.get(0).keySet();
 		List<String> keyList = new ArrayList<String>();
@@ -694,7 +766,7 @@ public class JdbcUtil {
 					sqlBuf.append("now(),");
 				else {
 					sqlBuf.append("'");
-					sqlBuf.append(content.get(i).get(keyList.get(j)));
+					sqlBuf.append(content.get(i).get(keyList.get(j)).toString().replaceAll("'", "''"));
 					sqlBuf.append("',");
 				}
 			}
@@ -702,7 +774,7 @@ public class JdbcUtil {
 			sqlBuf.append("),");
 		}
 		sqlBuf.deleteCharAt(sqlBuf.length() - 1);
-		sqlBuf.append("ON CONFLICT ON CONSTRAINT " + tableName + "_pkey DO update set ");
+		sqlBuf.append("ON CONFLICT ON CONSTRAINT " + constraint + " DO update set ");
 		for (int i = 0; i < keyList.size(); i++) {
 			sqlBuf.append(DOUBLEMARKS + keyList.get(i) + DOUBLEMARKS + "=EXCLUDED." + keyList.get(i) + COMMA);
 		}
