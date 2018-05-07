@@ -23,6 +23,7 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.util.ByteArrayDataSource;
 
+@Deprecated
 public class MailUtil {
 	private static final String format = "text/html;charset=UTF-8";
 	private static Properties mailProperties = null;
