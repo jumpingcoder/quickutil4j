@@ -88,10 +88,10 @@ public class LLSUtil {
 			return null;
 		if (LLS.size() < 2)
 			return null;
-		List<Map<String, Object>> list = new LinkedList<Map<String, Object>>();
+		List<Map<String, Object>> list = new LinkedList<>();
 		List<Object> headList = LLS.get(0);
 		for (int i = 1; i < LLS.size(); i++) {
-			Map<String, Object> map = new HashMap<String, Object>();
+			Map<String, Object> map = new HashMap<>();
 			for (int j = 0; j < headList.size(); j++) {
 				map.put(headList.get(j).toString(), LLS.get(i).get(j));
 			}

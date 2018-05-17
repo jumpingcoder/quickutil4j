@@ -275,7 +275,7 @@ public class MongoDBUtil {
 	public static List<Map<String, Object>> findListMap(String dbName, String collectionName, Bson filter, Bson sort, int limit) {
 		MongoDatabase database = mongoClientMap.get(dbName).getDatabase(mongoDBMap.get(dbName));
 		MongoCursor<Document> cursor = database.getCollection(collectionName).find(filter).sort(sort).limit(limit).iterator();
-		List<Map<String, Object>> content = new ArrayList<Map<String, Object>>();
+		List<Map<String, Object>> content = new ArrayList<>();
 		while (cursor.hasNext()) {
 			content.add(cursor.next());
 		}
@@ -363,7 +363,7 @@ public class MongoDBUtil {
 	public static List<Map<String, Object>> aggregateListMap(String dbName, String collectionName, List<Bson> pipeline) {
 		MongoDatabase database = mongoClientMap.get(dbName).getDatabase(mongoDBMap.get(dbName));
 		MongoCursor<Document> cursor = database.getCollection(collectionName).aggregate(pipeline).iterator();
-		List<Map<String, Object>> content = new ArrayList<Map<String, Object>>();
+		List<Map<String, Object>> content = new ArrayList<>();
 		while (cursor.hasNext()) {
 			content.add(cursor.next());
 		}

@@ -365,7 +365,7 @@ public class Jdbc2Util {
 		Connection connection = null;
 		PreparedStatement ps = null;
 		ResultSet rs = null;
-		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+		List<Map<String, Object>> list = new ArrayList<>();
 		try {
 			connection = dataSourceMap.get(dbName).getConnection();
 			ps = connection.prepareStatement(sql);
@@ -379,7 +379,7 @@ public class Jdbc2Util {
 			}
 			// 获取数据
 			while (rs.next()) {
-				Map<String, Object> map = new HashMap<String, Object>();
+				Map<String, Object> map = new HashMap<>();
 				for (String name : columnName)
 					map.put(name, rs.getObject(name));
 				list.add(map);
@@ -414,7 +414,7 @@ public class Jdbc2Util {
 		Connection connection = null;
 		PreparedStatement ps = null;
 		ResultSet rs = null;
-		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+		List<Map<String, Object>> list = new ArrayList<>();
 		try {
 			connection = dataSourceMap.get(dbName).getConnection();
 			connection.setAutoCommit(false);
@@ -434,7 +434,7 @@ public class Jdbc2Util {
 			}
 			// 获取数据
 			while (rs.next()) {
-				Map<String, Object> map = new HashMap<String, Object>();
+				Map<String, Object> map = new HashMap<>();
 				for (String name : columnName)
 					map.put(name, rs.getObject(name));
 				list.add(map);

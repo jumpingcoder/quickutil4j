@@ -205,7 +205,7 @@ public class ElasticUtil {
 			return false;
 		}
 		url = String.format("%s/%s/%s/%s/_update", host, index, type, id).replace(" ", "");
-		Map<String, Object> map = new HashMap<String, Object>();
+		Map<String, Object> map = new HashMap<>();
 		if (null == source) {
 			source = new JsonObject();
 		}
