@@ -1,19 +1,15 @@
 /**
  * 注释生成文档工具
- * 
+ *
  * @class AnnotationUtil
  * @author 0.5
  */
 package com.quickutil.platform;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.markdownj.MarkdownProcessor;
+
+import java.io.File;
+import java.util.*;
 
 public class AnnotationUtil {
 
@@ -21,7 +17,7 @@ public class AnnotationUtil {
 
 	/**
 	 * 将文件夹内的注释生成swagger.json
-	 * 
+	 *
 	 * @param inputDic-输入的文件夹
 	 * @param outputFile-输出的文件路径
 	 * @param host-请求的host
@@ -51,7 +47,7 @@ public class AnnotationUtil {
 		FileUtil.string2File(outputFile, JsonUtil.toJson(resultMap), false);
 	}
 
-	private static final String[] paramArray = { "@path", "@header", "@body", "@param", "@query", "@formData" };
+	private static final String[] paramArray = {"@path", "@header", "@body", "@param", "@query", "@formData"};
 
 	private static String getParamType(String param) {
 		for (String p : paramArray) {
@@ -124,7 +120,7 @@ public class AnnotationUtil {
 
 	/**
 	 * 注释转为MarkDown和Html
-	 * 
+	 *
 	 * @param inputDic-输入的文件夹
 	 * @param outputDic-输出的文件夹
 	 */
@@ -147,7 +143,7 @@ public class AnnotationUtil {
 
 	/**
 	 * 注释转为MarkDown
-	 * 
+	 *
 	 * @param content-代码文件
 	 * @return
 	 */
@@ -193,7 +189,7 @@ public class AnnotationUtil {
 
 	/**
 	 * MarkDown转为Html
-	 * 
+	 *
 	 * @param content-MarkDown文件
 	 * @return
 	 */
