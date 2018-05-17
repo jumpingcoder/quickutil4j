@@ -25,7 +25,7 @@ public class AnnotationUtil {
 	 **/
 	public static void annotationToSwagger(String inputDic, String outputFile, String host, boolean isHttps) {
 		List<String> fileList = FileUtil.getAllFilePath(inputDic, null);
-		Map<String, Map<String, Object>> pathMap = new HashMap<String, Map<String, Object>>();
+		Map<String, Map<String, Object>> pathMap = new HashMap<>();
 		for (String filePath : fileList) {
 			try {
 				String content = FileUtil.file2String(filePath);
@@ -35,7 +35,7 @@ public class AnnotationUtil {
 				e.printStackTrace();
 			}
 		}
-		Map<String, Object> resultMap = new HashMap<String, Object>();
+		Map<String, Object> resultMap = new HashMap<>();
 		resultMap.put("basePath", "");
 		resultMap.put("swagger", "2.0");
 		resultMap.put("host", host);
@@ -66,8 +66,8 @@ public class AnnotationUtil {
 			String controller = null;
 			String method = null;
 			String consume = null;
-			Map<String, Object> methodMap = new HashMap<String, Object>();
-			List<Map<String, Object>> paramsList = new ArrayList<Map<String, Object>>();
+			Map<String, Object> methodMap = new HashMap<>();
+			List<Map<String, Object>> paramsList = new ArrayList<>();
 			for (int i = x; i < contentList.length; i++) {
 				if (contentList[i].contains("@controller")) {
 					controller = contentList[i].substring(contentList[i].indexOf("@controller") + "@controller".length() + 1);
@@ -89,7 +89,7 @@ public class AnnotationUtil {
 					}
 					String line = contentList[i].substring(contentList[i].indexOf(paramType) + paramType.length() + 1);
 					String[] lines = line.split("-");
-					Map<String, Object> paramMap = new HashMap<String, Object>();
+					Map<String, Object> paramMap = new HashMap<>();
 					paramMap.put("in", in);
 					paramMap.put("name", lines[0]);
 					paramMap.put("type", lines[1]);
@@ -109,7 +109,7 @@ public class AnnotationUtil {
 					methodMap.put("description", "");
 					methodMap.put("tags", Arrays.asList(tag));
 					if (pathMap.get(controller) == null)
-						pathMap.put(controller, new HashMap<String, Object>());
+						pathMap.put(controller, new HashMap<>());
 					pathMap.get(controller).put(method.toLowerCase(), methodMap);
 					break;
 				}
@@ -145,7 +145,7 @@ public class AnnotationUtil {
 	 * 注释转为MarkDown
 	 *
 	 * @param content-代码文件
-	 * @return
+	 * @return string
 	 */
 	public static String annotationToMarkDown(String content) throws Exception {
 		StringBuilder sb = new StringBuilder();

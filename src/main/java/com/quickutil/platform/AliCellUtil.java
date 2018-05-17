@@ -71,7 +71,7 @@ public class AliCellUtil {
 			String signname = dayuMap.get(dayuName).get("signname");
 			String template = dayuMap.get(dayuName).get("template");
 			String appsecret = dayuMap.get(dayuName).get("appsecret");
-			Map<String, Object> sms_param_map = new HashMap<String, Object>();
+			Map<String, Object> sms_param_map = new HashMap<>();
 			sms_param_map.put("content", message);
 			String sms_param = JsonUtil.toJson(sms_param_map);
 			String timestamp = sdf.format(new Date());

@@ -611,14 +611,14 @@ public class JedisUtil {
 			tableList.add(0, key);
 			String[] params = tableList.toArray(new String[tableList.size()]);
 			List<String> list = (List<String>) jedis.eval(getHashTableLua, 0, params);
-			Map<String, Map<String, Object>> map = new HashMap<String, Map<String, Object>>();
+			Map<String, Map<String, Object>> map = new HashMap<>();
 			for (int i = 0; i < list.size() - 1; i = i + 2) {
 				String[] tableAndColumn = list.get(i).split(SPLIT);
 				String tableName = tableAndColumn[0];
 				String columnName = tableAndColumn[1];
 				String value = list.get(i + 1);
 				if (map.get(tableName) == null)
-					map.put(tableName, new HashMap<String, Object>());
+					map.put(tableName, new HashMap<>());
 				map.get(tableName).put(columnName, value);
 			}
 			return map;

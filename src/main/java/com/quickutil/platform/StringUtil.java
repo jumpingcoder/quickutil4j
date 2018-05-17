@@ -93,7 +93,7 @@ public class StringUtil {
 	 * @return
 	 */
 	public static Map<String, Object> objectToMap(Object object) {
-		Map<String, Object> map = new HashMap<String, Object>();
+		Map<String, Object> map = new HashMap<>();
 		try {
 			for (Field field : object.getClass().getFields()) {
 				map.put(field.getName(), field.get(object));
