@@ -22,7 +22,13 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.Logger;
+
 public class FileUtil {
+	
+	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(FileUtil.class);
 
 	/**
 	 * 获取程序运行时路径
@@ -46,7 +52,7 @@ public class FileUtil {
 			if (!file.exists())
 				return file.mkdirs();
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return false;
 	}
@@ -74,7 +80,7 @@ public class FileUtil {
 			stream.close();
 			return byteBuffer.array();
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return null;
 	}
@@ -97,7 +103,7 @@ public class FileUtil {
 			out.close();
 			return true;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return false;
 	}
@@ -112,7 +118,7 @@ public class FileUtil {
 		try {
 			return new FileInputStream(new File(filePath));
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return null;
 	}
@@ -134,13 +140,13 @@ public class FileUtil {
 				output.write(buffer, 0, n);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		} finally {
 			try {
 				output.close();
 				stream.close();
 			} catch (IOException e) {
-				e.printStackTrace();
+				LOGGER.error("",e);
 			}
 		}
 		return output.toByteArray();
@@ -166,7 +172,7 @@ public class FileUtil {
 		try {
 			return new String(file2Byte(filePath));
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return null;
 	}
@@ -191,7 +197,7 @@ public class FileUtil {
 			out.close();
 			return true;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return false;
 	}
@@ -212,7 +218,7 @@ public class FileUtil {
 			}
 			bw.close();
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return list;
 	}
@@ -235,7 +241,7 @@ public class FileUtil {
 			writer.close();
 			return true;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return false;
 	}
@@ -260,7 +266,7 @@ public class FileUtil {
 					filepaths.add(file[i].getAbsolutePath());
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return filepaths;
 	}
@@ -300,7 +306,7 @@ public class FileUtil {
 			byte[] bt = file2Byte(fromFile);
 			return byte2File(toFile, bt);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return false;
 	}
@@ -321,7 +327,7 @@ public class FileUtil {
 			oldFile.renameTo(newFile);
 			return true;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return false;
 	}
@@ -339,7 +345,7 @@ public class FileUtil {
 				file.delete();
 			return true;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return false;
 	}

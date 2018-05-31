@@ -14,6 +14,9 @@ import com.maxmind.geoip2.exception.AddressNotFoundException;
 import com.maxmind.geoip2.model.CityResponse;
 import com.quickutil.platform.def.GeoDef;
 import com.quickutil.platform.def.GeoPoint;
+
+import ch.qos.logback.classic.Logger;
+
 import java.io.File;
 import java.net.InetAddress;
 import java.net.URLEncoder;
@@ -23,8 +26,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.http.HttpResponse;
+import org.slf4j.LoggerFactory;
 
 public class GeoUtil {
+	
+	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(GeoUtil.class);
 
 	private static DatabaseReader databaseReader = null;
 	private static String baiduKeyIn = null;
@@ -72,7 +78,7 @@ public class GeoUtil {
 			}
 			return true;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return false;
 	}
@@ -142,7 +148,7 @@ public class GeoUtil {
 		} catch (AddressNotFoundException ae) {
 		} catch (UnknownHostException ue) {
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		countryCode = (countryCode == null) ? UNKNOWN : countryCode;
 		country = (country == null) ? UNKNOWN : country;
@@ -196,7 +202,7 @@ public class GeoUtil {
 			city = (city == null) ? UNKNOWN : city;
 			return new GeoDef(latitude, longitude, countryCode, country, countryChinese, stateCode, state, stateChinese, city, description);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return null;
 	}
@@ -252,7 +258,7 @@ public class GeoUtil {
 			}
 			return geodefList;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return null;
 	}
@@ -297,7 +303,7 @@ public class GeoUtil {
 			city = (city == null) ? UNKNOWN : city;
 			return new GeoDef(latitude, longitude, countryCode, country, countryChinese, stateCode, state, stateChinese, city, description);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return null;
 	}

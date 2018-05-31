@@ -15,11 +15,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.Logger;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
 public class JedisUtil {
+
+	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(JedisUtil.class);
 
 	private static Map<String, JedisPool> JedisPoolMap = new HashMap<String, JedisPool>();
 	private static final String SPLIT = "::::";
@@ -60,7 +65,7 @@ public class JedisUtil {
 			}
 			return true;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("", e);
 		}
 		return false;
 	}
@@ -191,7 +196,7 @@ public class JedisUtil {
 				keyList.add(iterator.next().toString());
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("", e);
 		} finally {
 			if (jedis != null)
 				jedis.close();
@@ -211,7 +216,7 @@ public class JedisUtil {
 		try {
 			return jedis.del(key);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("", e);
 		} finally {
 			if (jedis != null)
 				jedis.close();
@@ -243,7 +248,7 @@ public class JedisUtil {
 		try {
 			return jedis.expire(key, seconds);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("", e);
 		} finally {
 			if (jedis != null)
 				jedis.close();
@@ -264,7 +269,7 @@ public class JedisUtil {
 		try {
 			return jedis.set(key, value);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("", e);
 		} finally {
 			if (jedis != null)
 				jedis.close();
@@ -285,7 +290,7 @@ public class JedisUtil {
 		try {
 			return jedis.get(key);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("", e);
 		} finally {
 			if (jedis != null)
 				jedis.close();
@@ -306,7 +311,7 @@ public class JedisUtil {
 		try {
 			return jedis.lpush(key, list.toArray(new String[list.size()]));
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("", e);
 		} finally {
 			if (jedis != null)
 				jedis.close();
@@ -326,7 +331,7 @@ public class JedisUtil {
 		try {
 			return jedis.rpop(key);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("", e);
 		} finally {
 			if (jedis != null)
 				jedis.close();
@@ -352,7 +357,7 @@ public class JedisUtil {
 			List<String> list = (List<String>) jedis.eval(popQueueLua, 1, key, count.toString());
 			return list;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("", e);
 		} finally {
 			if (jedis != null)
 				jedis.close();
@@ -373,7 +378,7 @@ public class JedisUtil {
 		try {
 			return jedis.rpush(key, list.toArray(new String[list.size()]));
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("", e);
 		} finally {
 			if (jedis != null)
 				jedis.close();
@@ -396,7 +401,7 @@ public class JedisUtil {
 		try {
 			return jedis.lrange(key, start, end);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("", e);
 		} finally {
 			if (jedis != null)
 				jedis.close();
@@ -418,7 +423,7 @@ public class JedisUtil {
 		try {
 			return jedis.hmset(key, hash);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("", e);
 		} finally {
 			if (jedis != null)
 				jedis.close();
@@ -455,7 +460,7 @@ public class JedisUtil {
 			jedis.eval(setHashLua, 0, params);
 			return true;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("", e);
 		} finally {
 			if (jedis != null)
 				jedis.close();
@@ -477,7 +482,7 @@ public class JedisUtil {
 		try {
 			return jedis.hmget(key, fieldList.toArray(new String[fieldList.size()]));
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("", e);
 		} finally {
 			if (jedis != null)
 				jedis.close();
@@ -508,7 +513,7 @@ public class JedisUtil {
 			String[] params = paramList.toArray(new String[paramList.size()]);
 			return (List<String>) jedis.eval(getHashLua, 0, params);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("", e);
 		} finally {
 			if (jedis != null)
 				jedis.close();
@@ -529,7 +534,7 @@ public class JedisUtil {
 		try {
 			return jedis.hgetAll(key);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("", e);
 		} finally {
 			if (jedis != null)
 				jedis.close();
@@ -550,7 +555,7 @@ public class JedisUtil {
 		try {
 			return jedis.hvals(key);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("", e);
 		} finally {
 			if (jedis != null)
 				jedis.close();
@@ -585,7 +590,7 @@ public class JedisUtil {
 			jedis.eval(setHashTableLua, 0, params);
 			return true;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("", e);
 		} finally {
 			if (jedis != null)
 				jedis.close();
@@ -623,7 +628,7 @@ public class JedisUtil {
 			}
 			return map;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("", e);
 		} finally {
 			if (jedis != null)
 				jedis.close();
@@ -655,7 +660,7 @@ public class JedisUtil {
 			jedis.eval(setHincrbyLua, 0, params);
 			return true;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("", e);
 		} finally {
 			if (jedis != null)
 				jedis.close();

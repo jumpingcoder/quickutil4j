@@ -17,8 +17,13 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.apache.http.HttpResponse;
+import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.Logger;
 
 public class AliCellUtil {
+
+	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(AliCellUtil.class);
 
 	private static Map<String, Map<String, String>> dayuMap = new HashMap<String, Map<String, String>>();
 	private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -47,7 +52,7 @@ public class AliCellUtil {
 				map.put("template", properties.getProperty(key + ".template"));
 				dayuMap.put(key, map);
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOGGER.error("", e);
 			}
 		}
 		return true;
@@ -82,8 +87,7 @@ public class AliCellUtil {
 			result = new String(FileUtil.stream2byte(response.getEntity().getContent()));
 			return JsonUtil.toJsonMap(result).getAsJsonObject("alibaba_aliqin_fc_sms_num_send_response").getAsJsonObject("result").get("success").getAsBoolean();
 		} catch (Exception e) {
-			System.out.println(result);
-			e.printStackTrace();
+			LOGGER.error("", e);
 		}
 		return false;
 	}
@@ -111,8 +115,7 @@ public class AliCellUtil {
 			result = new String(FileUtil.stream2byte(response.getEntity().getContent()));
 			return JsonUtil.toJsonMap(result).getAsJsonObject("alibaba_aliqin_fc_sms_num_send_response").getAsJsonObject("result").get("success").getAsBoolean();
 		} catch (Exception e) {
-			System.out.println(result);
-			e.printStackTrace();
+			LOGGER.error("", e);
 		}
 		return false;
 	}

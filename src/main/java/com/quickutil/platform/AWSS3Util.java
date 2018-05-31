@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import org.slf4j.LoggerFactory;
+
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
@@ -28,7 +30,11 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 
+import ch.qos.logback.classic.Logger;
+
 public class AWSS3Util {
+	
+	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(AWSS3Util.class);
 
 	private static Map<String, Map<String, String>> bucketMap = new HashMap<String, Map<String, String>>();
 
@@ -62,7 +68,7 @@ public class AWSS3Util {
 				map.put("bucket", properties.getProperty(key + ".bucket"));
 				bucketMap.put(key, map);
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOGGER.error("",e);
 			}
 		}
 		return true;

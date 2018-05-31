@@ -7,11 +7,16 @@
 package com.quickutil.platform;
 
 import org.markdownj.MarkdownProcessor;
+import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.Logger;
 
 import java.io.File;
 import java.util.*;
 
 public class AnnotationUtil {
+	
+	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(AnnotationUtil.class);
 
 	private static final String header = "<html><head><style id=\"system\" type=\"text/css\">h1,h2,h3,h4,h5,h6,p,blockquote {    margin: 0;    padding: 0;}body {    font-family: \"Helvetica Neue\", Helvetica, \"Hiragino Sans GB\", Arial, sans-serif;    font-size: 13px;    line-height: 18px;    color: #737373;    margin: 10px 13px 10px 13px;}a {    color: #0069d6;}a:hover {    color: #0050a3;    text-decoration: none;}a img {    border: none;}p {    margin-bottom: 9px;}h1,h2,h3,h4,h5,h6 {    color: #404040;    line-height: 36px;}h1 {    margin-bottom: 18px;    font-size: 30px;}h2 {    font-size: 24px;}h3 {    font-size: 18px;}h4 {    font-size: 16px;}h5 {    font-size: 14px;}h6 {    font-size: 13px;}hr {    margin: 0 0 19px;    border: 0;    border-bottom: 1px solid #ccc;}blockquote {    padding: 13px 13px 21px 15px;    margin-bottom: 18px;    font-family:georgia,serif;    font-style: italic;}blockquote:before {    content:\"C\";    font-size:40px;    margin-left:-10px;    font-family:georgia,serif;    color:#eee;}blockquote p {    font-size: 14px;    font-weight: 300;    line-height: 18px;    margin-bottom: 0;    font-style: italic;}code, pre {    font-family: Monaco, Andale Mono, Courier New, monospace;}code {    background-color: #fee9cc;    color: rgba(0, 0, 0, 0.75);    padding: 1px 3px;    font-size: 12px;    -webkit-border-radius: 3px;    -moz-border-radius: 3px;    border-radius: 3px;}pre {    display: block;    padding: 14px;    margin: 0 0 18px;    line-height: 16px;    font-size: 11px;    border: 1px solid #d9d9d9;    white-space: pre-wrap;    word-wrap: break-word;}pre code {    background-color: #fff;    color:#737373;    font-size: 11px;    padding: 0;}@media screen and (min-width: 768px) {    body {        width: 748px;        margin:10px auto;    }}</style><style id=\"custom\" type=\"text/css\"></style><style id=\"hibot\" type=\"text/css\">.hibot  { padding:0 0 0 38px; margin:auto; font-size:14px;font-family: monospace; background:#111; color: #e6e1dc;  }.hibot li{ margin: 0; padding-left: 10px; border-left: 2px solid #ccc; background:#111; list-style-position: outside; list-style-type: decimal; text-indent: 0; word-wrap: break-word; word-break: break-all; }.hibot .num { color: #a5c261; }.hibot .attr { color : #4093CC} .hibot .comment { color: #bc9458; font-style: italic; }.hibot .special { color: #da4939; }.hibot .statement { color: #cc7833; }.hibot .preProc { color: #e6e1dc; }.hibot .include, .hibot .head { color: #cc7833; }.hibot .string { color: #a5c261; }.hibot .type, .hibot .keyword, .hibot .val { color: #da4939; }</style></head>";
 
@@ -32,7 +37,7 @@ public class AnnotationUtil {
 				File file = new File(filePath);
 				toSwagger(file.getName().split("\\.")[0], content, pathMap);
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOGGER.error("", e);
 			}
 		}
 		Map<String, Object> resultMap = new HashMap<>();
@@ -47,7 +52,7 @@ public class AnnotationUtil {
 		FileUtil.string2File(outputFile, JsonUtil.toJson(resultMap), false);
 	}
 
-	private static final String[] paramArray = {"@path", "@header", "@body", "@param", "@query", "@formData"};
+	private static final String[] paramArray = { "@path", "@header", "@body", "@param", "@query", "@formData" };
 
 	private static String getParamType(String param) {
 		for (String p : paramArray) {
@@ -136,7 +141,7 @@ public class AnnotationUtil {
 				String htmlContent = markdownToHtml(mdContent);
 				FileUtil.string2File(htmlPath, htmlContent, false);
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOGGER.error("", e);
 			}
 		}
 	}

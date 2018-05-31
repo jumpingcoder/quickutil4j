@@ -15,7 +15,13 @@ import java.nio.ByteBuffer;
 
 import javax.imageio.ImageIO;
 
+import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.Logger;
+
 public class ImageUtil {
+	
+	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(ImageUtil.class);
 
 	public static String Format_JPG = "jpg";
 	public static String Format_PNG = "png";
@@ -35,7 +41,7 @@ public class ImageUtil {
 			byte[] bytes = baos.toByteArray();
 			buffer = ByteBuffer.wrap(bytes);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return buffer;
 	}
@@ -51,7 +57,7 @@ public class ImageUtil {
 			ByteArrayInputStream in = new ByteArrayInputStream(bt);
 			return ImageIO.read(in);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return null;
 	}
@@ -66,7 +72,7 @@ public class ImageUtil {
 		try {
 			return ImageIO.read(new File(filePath));
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return null;
 	}
@@ -86,7 +92,7 @@ public class ImageUtil {
 			ImageIO.write(bi, format, newfile);
 			return true;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return false;
 	}

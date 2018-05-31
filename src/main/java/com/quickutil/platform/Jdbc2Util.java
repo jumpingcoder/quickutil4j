@@ -22,10 +22,16 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import org.slf4j.LoggerFactory;
+
 import com.alibaba.druid.pool.DruidDataSource;
 import com.quickutil.platform.def.ResultSetDef;
 
+import ch.qos.logback.classic.Logger;
+
 public class Jdbc2Util {
+
+	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(Jdbc2Util.class);
 
 	private static Map<String, DruidDataSource> dataSourceMap = new HashMap<String, DruidDataSource>();
 
@@ -64,10 +70,8 @@ public class Jdbc2Util {
 				int maxconnum = Integer.parseInt(jdbc.getProperty(key + ".maxconnum"));
 				DruidDataSource datasource = buildDataSource(key, jdbcUrl, user, password, initconnum, minconnum, maxconnum, pool);
 				dataSourceMap.put(key, datasource);
-				// JsonUtil.toJson(datasource.getConnection().getMetaData().getDatabaseProductName());
-				// JsonUtil.toJson(datasource.getConnection().getMetaData().getDatabaseMajorVersion());
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOGGER.error("",e);
 			}
 		}
 	}
@@ -249,7 +253,7 @@ public class Jdbc2Util {
 			if (pool.getProperty("UseUnfairLock") != null)
 				datasource.setUseUnfairLock(Boolean.parseBoolean(pool.getProperty("UseUnfairLock")));
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return datasource;
 	}
@@ -300,7 +304,7 @@ public class Jdbc2Util {
 				list.add(rs.getObject(columnName));
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		} finally {
 			try {
 				if (rs != null)
@@ -310,7 +314,7 @@ public class Jdbc2Util {
 				if (connection != null)
 					connection.close();
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOGGER.error("",e);
 			}
 		}
 		return list;
@@ -338,7 +342,7 @@ public class Jdbc2Util {
 				list.add(rs.getObject(columnName));
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		} finally {
 			try {
 				if (rs != null)
@@ -348,7 +352,7 @@ public class Jdbc2Util {
 				if (connection != null)
 					connection.close();
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOGGER.error("",e);
 			}
 		}
 		return list;
@@ -385,7 +389,7 @@ public class Jdbc2Util {
 				list.add(map);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		} finally {
 			try {
 				if (rs != null)
@@ -395,7 +399,7 @@ public class Jdbc2Util {
 				if (connection != null)
 					connection.close();
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOGGER.error("",e);
 			}
 		}
 		return list;
@@ -447,7 +451,7 @@ public class Jdbc2Util {
 				} catch (SQLException e1) {
 					e1.printStackTrace();
 				}
-			e.printStackTrace();
+			LOGGER.error("",e);
 		} finally {
 			try {
 				if (ps != null)
@@ -455,7 +459,7 @@ public class Jdbc2Util {
 				if (connection != null)
 					connection.close();
 			} catch (SQLException e) {
-				e.printStackTrace();
+				LOGGER.error("",e);
 			}
 		}
 		return null;
@@ -486,7 +490,7 @@ public class Jdbc2Util {
 			}
 			return new ResultSetDef(connection, ps, rs, columnName);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 			try {
 				if (rs != null)
 					rs.close();
@@ -518,7 +522,7 @@ public class Jdbc2Util {
 			ps.execute();
 			return true;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 			return false;
 		} finally {
 			try {
@@ -527,7 +531,7 @@ public class Jdbc2Util {
 				if (connection != null)
 					connection.close();
 			} catch (SQLException e) {
-				e.printStackTrace();
+				LOGGER.error("",e);
 			}
 		}
 	}
@@ -553,7 +557,7 @@ public class Jdbc2Util {
 			}
 			return i;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 			return null;
 		} finally {
 			try {
@@ -562,7 +566,7 @@ public class Jdbc2Util {
 				if (connection != null)
 					connection.close();
 			} catch (SQLException e) {
-				e.printStackTrace();
+				LOGGER.error("",e);
 			}
 		}
 	}
@@ -594,7 +598,7 @@ public class Jdbc2Util {
 				} catch (SQLException e1) {
 					e1.printStackTrace();
 				}
-			e.printStackTrace();
+			LOGGER.error("",e);
 			return false;
 		} finally {
 			try {
@@ -603,7 +607,7 @@ public class Jdbc2Util {
 				if (connection != null)
 					connection.close();
 			} catch (SQLException e) {
-				e.printStackTrace();
+				LOGGER.error("",e);
 			}
 		}
 	}
@@ -623,7 +627,7 @@ public class Jdbc2Util {
 		String sql = combineInsert(tableName, content, false);
 		boolean result = execute(dbName, sql);
 		if (!result)
-			System.out.println(sql);
+			LOGGER.warn(sql);
 		return result;
 	}
 
@@ -642,7 +646,7 @@ public class Jdbc2Util {
 		String sql = combineInsert(tableName, content, true);
 		boolean result = execute(dbName, sql);
 		if (!result)
-			System.out.println(sql);
+			LOGGER.warn(sql);
 		return result;
 	}
 
@@ -733,7 +737,7 @@ public class Jdbc2Util {
 		String sql = combineUpsert(tableName, content, constraint);
 		boolean result = execute(dbName, sql);
 		if (!result)
-			System.out.println(sql);
+			LOGGER.warn(sql);
 		return result;
 	}
 
@@ -821,7 +825,7 @@ public class Jdbc2Util {
 			}
 			return sb.substring(0, sb.length() - 2);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 			return "";
 		} finally {
 			try {
@@ -832,7 +836,7 @@ public class Jdbc2Util {
 				if (connection != null)
 					connection.close();
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOGGER.error("",e);
 			}
 		}
 	}

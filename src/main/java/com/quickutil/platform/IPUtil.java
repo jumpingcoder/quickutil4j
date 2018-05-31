@@ -13,7 +13,13 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
+import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.Logger;
+
 public class IPUtil {
+	
+	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(IPUtil.class);
 
 	/**
 	 * 获取本机ipv4地址列表
@@ -33,7 +39,7 @@ public class IPUtil {
 				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return ipList;
 	}
@@ -56,7 +62,7 @@ public class IPUtil {
 				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return ipList;
 	}

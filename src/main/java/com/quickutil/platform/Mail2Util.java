@@ -8,6 +8,8 @@ package com.quickutil.platform;
 
 import com.quickutil.platform.def.AttachmentDef;
 
+import ch.qos.logback.classic.Logger;
+
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -26,7 +28,12 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.util.ByteArrayDataSource;
 
+import org.slf4j.LoggerFactory;
+
 public class Mail2Util {
+
+	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(Mail2Util.class);
+
 	private static Map<String, Session> sessionMap = new HashMap<String, Session>();
 
 	/**
@@ -51,7 +58,7 @@ public class Mail2Util {
 			try {
 				sessionMap.put(sessionName, buildMailSession(map.get(sessionName)));
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOGGER.error("", e);
 			}
 		}
 	}
@@ -138,7 +145,7 @@ public class Mail2Util {
 			Transport.send(message);
 			return true;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("", e);
 		}
 		return false;
 	}

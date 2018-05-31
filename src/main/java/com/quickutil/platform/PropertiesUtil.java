@@ -10,7 +10,13 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.Properties;
 
+import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.Logger;
+
 public class PropertiesUtil {
+	
+	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(PropertiesUtil.class);
 
 	/**
 	 * 获取资源文件路径-jar包不适用
@@ -28,7 +34,7 @@ public class PropertiesUtil {
 			if (url != null)
 				return url.getPath() + filePath;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return null;
 	}
@@ -72,7 +78,7 @@ public class PropertiesUtil {
 			properties.load(stream);
 			return properties;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return null;
 	}

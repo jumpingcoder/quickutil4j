@@ -8,7 +8,13 @@ package com.quickutil.platform;
 
 import java.lang.management.ManagementFactory;
 
+import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.Logger;
+
 public class ShellUtil {
+	
+	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(ShellUtil.class);
 
 	/**
 	 * 获取当前进程号
@@ -45,7 +51,7 @@ public class ShellUtil {
 			process.waitFor();
 			return result;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 			return null;
 		}
 	}

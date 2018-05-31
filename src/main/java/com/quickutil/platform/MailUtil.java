@@ -7,6 +7,9 @@
 package com.quickutil.platform;
 
 import com.quickutil.platform.def.AttachmentDef;
+
+import ch.qos.logback.classic.Logger;
+
 import java.io.File;
 import java.util.List;
 import java.util.Properties;
@@ -23,8 +26,13 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.util.ByteArrayDataSource;
 
+import org.slf4j.LoggerFactory;
+
 @Deprecated
 public class MailUtil {
+	
+	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(MailUtil.class);
+	
 	private static final String format = "text/html;charset=UTF-8";
 	private static Properties mailProperties = null;
 	private static Authenticator authenticator = null;
@@ -106,7 +114,7 @@ public class MailUtil {
 			Transport.send(message);
 			return true;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return false;
 	}
@@ -154,7 +162,7 @@ public class MailUtil {
 			Transport.send(message);
 			return true;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return false;
 	}

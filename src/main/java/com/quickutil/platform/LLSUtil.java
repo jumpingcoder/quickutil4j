@@ -12,9 +12,15 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.LoggerFactory;
+
 import com.quickutil.platform.StringUtil.ObjectType;
 
+import ch.qos.logback.classic.Logger;
+
 public class LLSUtil {
+	
+	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(LLSUtil.class);
 
 	/**
 	 * List<Object>转LLS
@@ -42,7 +48,7 @@ public class LLSUtil {
 				try {
 					lineList.add(field.get(obj));
 				} catch (Exception e) {
-					e.printStackTrace();
+					LOGGER.error("",e);
 				}
 			}
 			LLS.add(lineList);

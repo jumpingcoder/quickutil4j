@@ -47,7 +47,8 @@ import org.slf4j.LoggerFactory;
  * @author shijie.ruan
  */
 public class ElasticUtil {
-	private static final Logger LOG = LoggerFactory.getLogger(ElasticUtil.class);
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ElasticUtil.class);
 	private static final String hostIndexFormat = "%s/%s/";
 	private static final String hostIndexTypeFormat = "%s/%s/%s/";
 	private static final String indexFormat = "/%s/";
@@ -57,10 +58,7 @@ public class ElasticUtil {
 
 	public final HttpClient client;
 
-	private static RequestConfig requestConfig = RequestConfig.custom()
-			.setConnectionRequestTimeout(2*60000)
-			.setConnectTimeout(2*60000)
-			.setSocketTimeout(2*60000).build();
+	private static RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(2 * 60000).setConnectTimeout(2 * 60000).setSocketTimeout(2 * 60000).build();
 
 	private static PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
 
@@ -107,8 +105,7 @@ public class ElasticUtil {
 	public ElasticUtil(String host) {
 		this.host = host;
 		cm.setMaxPerRoute(new HttpRoute(new HttpHost(host)), 50);
-		this.client = HttpClients.custom().setConnectionManager(cm)
-				.setRetryHandler(httpRequestRetryHandler).build();
+		this.client = HttpClients.custom().setConnectionManager(cm).setRetryHandler(httpRequestRetryHandler).build();
 	}
 
 	private HttpUriRequest getMethod(String url) {
@@ -147,7 +144,7 @@ public class ElasticUtil {
 				return getEntity(response);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("", e);
 		} finally {
 			HttpClientUtils.closeQuietly(response);
 		}
@@ -176,11 +173,11 @@ public class ElasticUtil {
 			if (200 == response.getStatusLine().getStatusCode() || 201 == response.getStatusLine().getStatusCode()) {
 				return true;
 			} else {
-				LOG.error("fail on url: " + url + "\nwith source: " + sourceString + "\nresponse: " + getEntity(response));
+				LOGGER.error("fail on url: " + url + "\nwith source: " + sourceString + "\nresponse: " + getEntity(response));
 				return false;
 			}
 		} catch (Exception e) {
-			LOG.error("fail on url: " + url, e);
+			LOGGER.error("fail on url: " + url, e);
 		} finally {
 			HttpClientUtils.closeQuietly(response);
 		}
@@ -201,7 +198,7 @@ public class ElasticUtil {
 		String sourceString = null, url = null;
 		HttpResponse response = null;
 		if (null == index || null == type || id == null) {
-			LOG.error("[index], [type], [id] must be not null");
+			LOGGER.error("[index], [type], [id] must be not null");
 			return false;
 		}
 		url = String.format("%s/%s/%s/%s/_update", host, index, type, id).replace(" ", "");
@@ -217,14 +214,14 @@ public class ElasticUtil {
 			if (200 == response.getStatusLine().getStatusCode() || 201 == response.getStatusLine().getStatusCode()) {
 				return true;
 			} else if (404 == response.getStatusLine().getStatusCode()) {
-				LOG.error("[%s][%s][%s]: document missing\n", index, type, id);
+				LOGGER.error("[%s][%s][%s]: document missing\n", index, type, id);
 				return false;
 			} else {
-				LOG.error("fail on url: " + url + "\nwith source: " + sourceString + "\nresponse: " + getEntity(response));
+				LOGGER.error("fail on url: " + url + "\nwith source: " + sourceString + "\nresponse: " + getEntity(response));
 				return false;
 			}
 		} catch (Exception e) {
-			LOG.error("fail on url: " + url + "\n" + sourceString + "\n", e);
+			LOGGER.error("fail on url: " + url + "\n" + sourceString + "\n", e);
 		} finally {
 			HttpClientUtils.closeQuietly(response);
 		}
@@ -244,7 +241,7 @@ public class ElasticUtil {
 		try {
 			long start = System.currentTimeMillis();
 			response = client.execute(postMethod(url, entity));
-			LOG.debug("time for execute bulk:" + (System.currentTimeMillis() - start));
+			LOGGER.debug("time for execute bulk:" + (System.currentTimeMillis() - start));
 			result = getEntity(response);
 			if (200 != response.getStatusLine().getStatusCode()) {
 				JsonObject bulkRequestError = JsonUtil.toJsonMap(result).getAsJsonObject("error");
@@ -260,7 +257,7 @@ public class ElasticUtil {
 				}
 			}
 		} catch (Exception e) {
-			LOG.error("bulk request fail on url:" + url, e);
+			LOGGER.error("bulk request fail on url:" + url, e);
 			JsonObject responseObject = new JsonObject();
 			responseObject.addProperty("result", result);
 			return new BulkResponse(BulkResponse.RequestFail, responseObject);
@@ -293,11 +290,11 @@ public class ElasticUtil {
 				entity = sb.toString();
 				lasttime = System.currentTimeMillis();
 				sb = new StringBuffer();
-				LOG.debug("content count:" + count);
-				count  = 0;
+				LOGGER.debug("content count:" + count);
+				count = 0;
 				BulkResponse response = bulk(String.format("%s/_bulk", host), entity);
 				if (!response.isSuccess()) {
-					LOG.error("fail--" + response.errorMessage() + "\n" + entity);
+					LOGGER.error("fail--" + response.errorMessage() + "\n" + entity);
 					return false;
 				} else {
 					return true;
@@ -306,8 +303,7 @@ public class ElasticUtil {
 				return true;
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
-			LOG.error("fail--exception\n" + entity);
+			LOGGER.error("", e);
 		}
 		return false;
 	}
@@ -478,17 +474,17 @@ public class ElasticUtil {
 		HttpResponse response = null;
 		try {
 			String url = null == type ? String.format(hostIndexFormat, host, index) + "_search" : String.format(hostIndexTypeFormat, host, index, type) + "_search";
-			LOG.debug(searchRequest.toJson());
+			LOGGER.debug(searchRequest.toJson());
 			response = client.execute(postMethod(url, searchRequest.toJson()));
 			if (200 != response.getStatusLine().getStatusCode()) {
-				LOG.error("search fail on url: " + url + ", response:\n" + getEntity(response));
+				LOGGER.error("search fail on url: " + url + ", response:\n" + getEntity(response));
 				return null;
 			}
 			return getEntity(response);
 		} catch (Exception e) {
-			LOG.error("format search request fail, pls check", e);
+			LOGGER.error("format search request fail, pls check", e);
 			return null;
-		}  finally {
+		} finally {
 			HttpClientUtils.closeQuietly(response);
 		}
 	}
@@ -513,12 +509,12 @@ public class ElasticUtil {
 			}
 			response = client.execute(postMethod(url, entity.toString()));
 			if (200 != response.getStatusLine().getStatusCode()) {
-				LOG.error("search fail on url: " + url + "with source:\n" + entity.toString());
+				LOGGER.error("search fail on url: " + url + "with source:\n" + entity.toString());
 				return null;
 			}
 			return getEntity(response);
 		} catch (Exception e) {
-			LOG.error("search fail on url: " + url, e);
+			LOGGER.error("search fail on url: " + url, e);
 		} finally {
 			HttpClientUtils.closeQuietly(response);
 		}
@@ -535,7 +531,7 @@ public class ElasticUtil {
 		try {
 			response = client.execute(getMethod(host + "/_cat/indices/" + indexNameReg));
 			if (200 != response.getStatusLine().getStatusCode()) {
-				LOG.error("get index name error, with response: " + getEntity(response));
+				LOGGER.error("get index name error, with response: " + getEntity(response));
 				return null;
 			}
 			String[] indicesStats = getEntity(response).split("\\n");
@@ -547,7 +543,7 @@ public class ElasticUtil {
 			}
 			return indicesNames;
 		} catch (Exception e) {
-			LOG.error("get index name fail with reg: " + indexNameReg, e);
+			LOGGER.error("get index name fail with reg: " + indexNameReg, e);
 		} finally {
 			HttpClientUtils.closeQuietly(response);
 		}
@@ -580,13 +576,12 @@ public class ElasticUtil {
 			String query = (null == searchRequest ? "" : searchRequest.toJson());
 			response = client.execute(postMethod(url, query));
 			if (200 != response.getStatusLine().getStatusCode()) {
-				LOG.error("fail on scroll search :" + url + "\n response: " + getEntity(response));
+				LOGGER.error("fail on scroll search :" + url + "\n response: " + getEntity(response));
 				return null;
 			}
 			return getEntity(response);
 		} catch (Exception e) {
-			LOG.error("fail on scroll search url: " + url);
-			e.printStackTrace();
+			LOGGER.error("fail on scroll search url: " + url);
 		} finally {
 			HttpClientUtils.closeQuietly(response);
 		}
@@ -605,12 +600,12 @@ public class ElasticUtil {
 		try {
 			response = client.execute(getMethod(url));
 			if (200 != response.getStatusLine().getStatusCode()) {
-				LOG.error("fail on scroll search :" + url + "\n response: " + getEntity(response));
+				LOGGER.error("fail on scroll search :" + url + "\n response: " + getEntity(response));
 				return null;
 			}
 			return getEntity(response);
 		} catch (Exception e) {
-			LOG.error("fail on scroll search url: " + url, e);
+			LOGGER.error("fail on scroll search url: " + url, e);
 		} finally {
 			HttpClientUtils.closeQuietly(response);
 		}
@@ -657,12 +652,12 @@ public class ElasticUtil {
 		try {
 			response = HttpUtil.httpPut(createIndexUrl, mappings.getBytes());
 			if (200 != response.getStatusLine().getStatusCode()) {
-				LOG.error("create index fail, response: " + getEntity(response));
+				LOGGER.error("create index fail, response: " + getEntity(response));
 				return false;
 			}
 			return true;
 		} catch (Exception e) {
-			LOG.error("create index fail", e);
+			LOGGER.error("create index fail", e);
 			return false;
 		} finally {
 			HttpClientUtils.closeQuietly(response);
@@ -732,7 +727,7 @@ public class ElasticUtil {
 			}
 			String resp = getFirstScrollSearch(index, type, searchRequest);
 			if (null == resp) {
-				LOG.info("search get empty result, terminate.");
+				LOGGER.info("search get empty result, terminate.");
 				return;
 			}
 			JsonObject result = JsonUtil.toJsonMap(resp);
@@ -758,10 +753,10 @@ public class ElasticUtil {
 					return;
 				}
 				array = JsonUtil.toJsonMap(resp).getAsJsonObject("hits").getAsJsonArray("hits");
-				LOG.debug("index: " + index + ShellUtil.printProgress((double) count / total));
+				LOGGER.debug("index: " + index + ShellUtil.printProgress((double) count / total));
 			}
 		} catch (Exception e) {
-			LOG.error("dump es data fail", e);
+			LOGGER.error("dump es data fail", e);
 		}
 	}
 
@@ -792,8 +787,7 @@ public class ElasticUtil {
 		return StringUtil.joinString(array, " OR ", "(", ")");
 	}
 
-	private static String[] propertiesKey =
-			{"bucket", "region", "endpoint", "access_key", "secret_key"};
+	private static String[] propertiesKey = { "bucket", "region", "endpoint", "access_key", "secret_key" };
 
 	/**
 	 * 新建一个 s3 repository
@@ -803,7 +797,7 @@ public class ElasticUtil {
 	 */
 	public boolean createS3Repository(String repo, Properties properties) {
 		JsonObject settings = new JsonObject();
-		for (String key: propertiesKey) {
+		for (String key : propertiesKey) {
 			if (properties.containsKey(key))
 				settings.addProperty(key, properties.getProperty(key));
 		}
@@ -818,10 +812,10 @@ public class ElasticUtil {
 			HttpResponse response = client.execute(httpPut);
 			if (200 == response.getStatusLine().getStatusCode())
 				return true;
-			LOG.error(getEntity(response));
+			LOGGER.error(getEntity(response));
 			return false;
 		} catch (IOException e) {
-			LOG.error("create s3 repo fail", e);
+			LOGGER.error("create s3 repo fail", e);
 		}
 		return false;
 	}
@@ -835,7 +829,7 @@ public class ElasticUtil {
 				return true;
 			return false;
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOGGER.error("", e);
 		} finally {
 			HttpClientUtils.closeQuietly(response);
 		}
@@ -857,7 +851,7 @@ public class ElasticUtil {
 			client.execute(httpPut);
 			return true;
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOGGER.error("", e);
 		}
 		return false;
 	}
@@ -878,7 +872,7 @@ public class ElasticUtil {
 			response = client.execute(httpPost);
 			return true;
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOGGER.error("", e);
 		} finally {
 			HttpClientUtils.closeQuietly(response);
 		}
@@ -908,7 +902,7 @@ public class ElasticUtil {
 		try {
 			return updataByQuery(index, type, true, 1000, 1, true, JsonUtil.toJsonMap(searchRequest.toJson()));
 		} catch (Exception e) {
-			LOG.error("format search query error", e);
+			LOGGER.error("format search query error", e);
 			return null;
 		}
 	}
@@ -922,17 +916,15 @@ public class ElasticUtil {
 	 * @param slices 并行 scroll 数量
 	 * @return
 	 */
-	public String updataByQuery(String index, String type, boolean proceedConflicts, int scrollSize,
-			int slices, boolean wait, JsonObject query) {
+	public String updataByQuery(String index, String type, boolean proceedConflicts, int scrollSize, int slices, boolean wait, JsonObject query) {
 		return xxByQuery("update", index, type, proceedConflicts, scrollSize, slices, wait, query);
 	}
 
-	public String updataByQuery(String index, String type, boolean proceedConflicts, int scrollSize,
-			int slices, boolean wait, SearchRequest searchRequest) {
+	public String updataByQuery(String index, String type, boolean proceedConflicts, int scrollSize, int slices, boolean wait, SearchRequest searchRequest) {
 		try {
 			return xxByQuery("update", index, type, proceedConflicts, scrollSize, slices, wait, JsonUtil.toJsonMap(searchRequest.toJson()));
 		} catch (Exception e) {
-			LOG.error("format search query error", e);
+			LOGGER.error("format search query error", e);
 			return null;
 		}
 	}
@@ -951,7 +943,7 @@ public class ElasticUtil {
 		try {
 			return deleteByQuery(index, type, true, 1000, 1, true, JsonUtil.toJsonMap(searchRequest.toJson()));
 		} catch (Exception e) {
-			LOG.error("format search query error", e);
+			LOGGER.error("format search query error", e);
 			return null;
 		}
 	}
@@ -965,23 +957,20 @@ public class ElasticUtil {
 	 * @param slices 并行 scroll 数量
 	 * @return
 	 */
-	public String deleteByQuery(String index, String type, boolean proceedConflicts, int scrollSize,
-			int slices, boolean wait, JsonObject query) {
+	public String deleteByQuery(String index, String type, boolean proceedConflicts, int scrollSize, int slices, boolean wait, JsonObject query) {
 		return xxByQuery("delete", index, type, proceedConflicts, scrollSize, slices, wait, query);
 	}
 
-	public String deleteByQuery(String index, String type, boolean proceedConflicts, int scrollSize,
-			int slices, boolean wait, SearchRequest searchRequest) {
+	public String deleteByQuery(String index, String type, boolean proceedConflicts, int scrollSize, int slices, boolean wait, SearchRequest searchRequest) {
 		try {
 			return xxByQuery("delete", index, type, true, 1000, 1, wait, JsonUtil.toJsonMap(searchRequest.toJson()));
 		} catch (Exception e) {
-			LOG.error("format search query error", e);
+			LOGGER.error("format search query error", e);
 			return null;
 		}
 	}
 
-	private String xxByQuery(String action, String index, String type, boolean proceedConflicts,
-			int scrollSize, int slices, boolean wait, JsonObject query) {
+	private String xxByQuery(String action, String index, String type, boolean proceedConflicts, int scrollSize, int slices, boolean wait, JsonObject query) {
 		if (action == null || action.isEmpty()) {
 			throw new RuntimeException("action is required");
 		}
@@ -995,8 +984,7 @@ public class ElasticUtil {
 		if (index == null || index.trim().isEmpty()) {
 			throw new RuntimeException("update by Query must contains index");
 		}
-		String urlSuffix = (null == type||type.trim().isEmpty()) ? String.format(indexFormat, index)
-				: String.format(indexTypeFormat, index, type);
+		String urlSuffix = (null == type || type.trim().isEmpty()) ? String.format(indexFormat, index) : String.format(indexTypeFormat, index, type);
 		List<String> parameters = new LinkedList<>();
 		if (proceedConflicts) {
 			parameters.add("conflicts=proceed");
@@ -1013,8 +1001,7 @@ public class ElasticUtil {
 		if (parameters.isEmpty()) {
 			urlSuffix += action;
 		} else {
-			urlSuffix += action + "?" +
-					StringUtil.joinString(parameters.toArray(new String[parameters.size()]), "&", null, null);
+			urlSuffix += action + "?" + StringUtil.joinString(parameters.toArray(new String[parameters.size()]), "&", null, null);
 		}
 		return post(urlSuffix, query);
 	}
@@ -1072,7 +1059,7 @@ public class ElasticUtil {
 			response = client.execute(httpRequestBase);
 			return new String(FileUtil.stream2byte(response.getEntity().getContent()));
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOGGER.error("", e);
 			return e.getMessage();
 		} finally {
 			HttpClientUtils.closeQuietly(response);

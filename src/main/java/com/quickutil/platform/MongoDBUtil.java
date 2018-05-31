@@ -15,6 +15,7 @@ import java.util.Properties;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
@@ -27,7 +28,11 @@ import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.UpdateResult;
 
+import ch.qos.logback.classic.Logger;
+
 public class MongoDBUtil {
+	
+	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(MongoDBUtil.class);
 
 	private static final String mongoProtocol = "mongodb://%s:%s@%s:%s/%s";
 	public static Map<String, MongoClient> mongoClientMap = new HashMap<String, MongoClient>();
@@ -73,7 +78,7 @@ public class MongoDBUtil {
 				mongoClientMap.put(key, client);
 				mongoDBMap.put(key, database);
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOGGER.error("",e);
 			}
 		}
 		return true;
@@ -193,7 +198,7 @@ public class MongoDBUtil {
 			MongoClient client = new MongoClient(new MongoClientURI(String.format(mongoProtocol, username, password, host, port, database), builder));
 			return client;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return null;
 	}
@@ -211,7 +216,7 @@ public class MongoDBUtil {
 			while (cursor.hasNext())
 				list.add(cursor.next());
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return null;
 	}
@@ -244,7 +249,7 @@ public class MongoDBUtil {
 			database.createCollection(collectionName);
 			return true;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return false;
 	}
@@ -313,7 +318,7 @@ public class MongoDBUtil {
 			database.getCollection(collectionName).insertMany(list);
 			return true;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return false;
 	}

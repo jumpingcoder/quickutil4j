@@ -22,11 +22,17 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import org.slf4j.LoggerFactory;
+
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.quickutil.platform.def.ResultSetDef;
 
+import ch.qos.logback.classic.Logger;
+
 @Deprecated
 public class JdbcUtil {
+
+	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(JdbcUtil.class);
 
 	private static Map<String, ComboPooledDataSource> dataSourceMap = new HashMap<String, ComboPooledDataSource>();
 
@@ -68,7 +74,7 @@ public class JdbcUtil {
 				// JsonUtil.toJson(datasource.getConnection().getMetaData().getDatabaseProductName());
 				// JsonUtil.toJson(datasource.getConnection().getMetaData().getDatabaseMajorVersion());
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOGGER.error("",e);
 			}
 		}
 	}
@@ -230,7 +236,7 @@ public class JdbcUtil {
 			if (pool.getProperty("UsesTraditionalReflectiveProxies") != null)
 				datasource.setUsesTraditionalReflectiveProxies(Boolean.parseBoolean(pool.getProperty("UsesTraditionalReflectiveProxies")));
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return datasource;
 	}
@@ -299,7 +305,7 @@ public class JdbcUtil {
 				list.add(rs.getObject(columnName));
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		} finally {
 			try {
 				if (rs != null)
@@ -309,7 +315,7 @@ public class JdbcUtil {
 				if (connection != null)
 					connection.close();
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOGGER.error("",e);
 			}
 		}
 		return list;
@@ -346,7 +352,7 @@ public class JdbcUtil {
 				list.add(map);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		} finally {
 			try {
 				if (rs != null)
@@ -356,7 +362,7 @@ public class JdbcUtil {
 				if (connection != null)
 					connection.close();
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOGGER.error("",e);
 			}
 		}
 		return list;
@@ -408,7 +414,7 @@ public class JdbcUtil {
 				} catch (SQLException e1) {
 					e1.printStackTrace();
 				}
-			e.printStackTrace();
+			LOGGER.error("",e);
 		} finally {
 			try {
 				if (ps != null)
@@ -416,7 +422,7 @@ public class JdbcUtil {
 				if (connection != null)
 					connection.close();
 			} catch (SQLException e) {
-				e.printStackTrace();
+				LOGGER.error("",e);
 			}
 		}
 		return null;
@@ -447,7 +453,7 @@ public class JdbcUtil {
 			}
 			return new ResultSetDef(connection, ps, rs, columnName);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 			try {
 				if (rs != null)
 					rs.close();
@@ -479,7 +485,7 @@ public class JdbcUtil {
 			ps.execute();
 			return true;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 			return false;
 		} finally {
 			try {
@@ -488,7 +494,7 @@ public class JdbcUtil {
 				if (connection != null)
 					connection.close();
 			} catch (SQLException e) {
-				e.printStackTrace();
+				LOGGER.error("",e);
 			}
 		}
 	}
@@ -514,7 +520,7 @@ public class JdbcUtil {
 			}
 			return i;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 			return null;
 		} finally {
 			try {
@@ -523,7 +529,7 @@ public class JdbcUtil {
 				if (connection != null)
 					connection.close();
 			} catch (SQLException e) {
-				e.printStackTrace();
+				LOGGER.error("",e);
 			}
 		}
 	}
@@ -555,7 +561,7 @@ public class JdbcUtil {
 				} catch (SQLException e1) {
 					e1.printStackTrace();
 				}
-			e.printStackTrace();
+			LOGGER.error("",e);
 			return false;
 		} finally {
 			try {
@@ -564,7 +570,7 @@ public class JdbcUtil {
 				if (connection != null)
 					connection.close();
 			} catch (SQLException e) {
-				e.printStackTrace();
+				LOGGER.error("",e);
 			}
 		}
 	}
@@ -584,7 +590,7 @@ public class JdbcUtil {
 		String sql = combineInsert(tableName, content, isReplace);
 		boolean result = execute(dbName, sql);
 		if (!result)
-			System.out.println(sql);
+			LOGGER.warn(sql);
 		return result;
 	}
 
@@ -661,7 +667,7 @@ public class JdbcUtil {
 		String sql = combineUpsert(tableName, content);
 		boolean result = execute(dbName, sql);
 		if (!result) {
-			System.out.println(sql);
+			LOGGER.warn(sql);
 		}
 		return false;
 	}
@@ -750,7 +756,7 @@ public class JdbcUtil {
 			}
 			return sb.substring(0, sb.length() - 2);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 			return "";
 		} finally {
 			try {
@@ -761,7 +767,7 @@ public class JdbcUtil {
 				if (connection != null)
 					connection.close();
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOGGER.error("",e);
 			}
 		}
 	}

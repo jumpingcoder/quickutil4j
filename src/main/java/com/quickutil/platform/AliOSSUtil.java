@@ -13,13 +13,18 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import org.slf4j.LoggerFactory;
+
 import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.model.OSSObject;
 import com.aliyun.oss.model.OSSObjectSummary;
 import com.aliyun.oss.model.ObjectListing;
 import com.aliyun.oss.model.ObjectMetadata;
 
+import ch.qos.logback.classic.Logger;
+
 public class AliOSSUtil {
+	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(AliOSSUtil.class);
 
 	private static Map<String, Map<String, String>> bucketMap = new HashMap<String, Map<String, String>>();
 
@@ -46,7 +51,7 @@ public class AliOSSUtil {
 				map.put("bucketname", properties.getProperty(key + ".bucketname"));
 				bucketMap.put(key, map);
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOGGER.error("", e);
 			}
 		}
 		return true;
@@ -102,7 +107,7 @@ public class AliOSSUtil {
 			String urlpath = endpoint + "/" + filePath;
 			return urlpath;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("", e);
 			return null;
 		}
 	}

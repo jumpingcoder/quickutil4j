@@ -14,7 +14,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.StringJoiner;
 
+import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.Logger;
+
 public class StringUtil {
+
+	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(StringUtil.class);
 
 	public enum ObjectType {
 		integer, longer, doubler, string, list, map, other;
@@ -99,7 +105,7 @@ public class StringUtil {
 				map.put(field.getName(), field.get(object));
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("", e);
 		}
 		return map;
 	}

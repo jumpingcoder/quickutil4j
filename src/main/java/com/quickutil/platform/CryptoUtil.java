@@ -19,7 +19,13 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.Logger;
+
 public class CryptoUtil {
+	
+	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(CryptoUtil.class);
 
 	private static final String ENCODING = "UTF-8";
 	private static final String HmacSHA1 = "HmacSHA1";
@@ -56,7 +62,7 @@ public class CryptoUtil {
 		try {
 			return byte2hex(MessageDigest.getInstance(MD5).digest(bt));
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 			return null;
 		}
 	}
@@ -71,7 +77,7 @@ public class CryptoUtil {
 		try {
 			return byte2hex(MessageDigest.getInstance(SHA1).digest(bt));
 		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 			return null;
 		}
 	}
@@ -92,7 +98,7 @@ public class CryptoUtil {
 			byte[] secretbt = mac.doFinal(encryptContent);
 			return byte2hex(secretbt);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 			return null;
 		}
 	}
@@ -113,7 +119,7 @@ public class CryptoUtil {
 			byte[] secretbt = mac.doFinal(encryptContent);
 			return byte2hex(secretbt);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 			return null;
 		}
 	}
@@ -181,7 +187,7 @@ public class CryptoUtil {
 			cipher.init(Cipher.ENCRYPT_MODE, key);// 初始化
 			return cipher.doFinal(content); // 加密
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return null;
 	}
@@ -206,7 +212,7 @@ public class CryptoUtil {
 			cipher.init(Cipher.DECRYPT_MODE, key);// 初始化
 			return cipher.doFinal(content); // 解密
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return null;
 	}
@@ -247,7 +253,7 @@ public class CryptoUtil {
 			cipher.init(Cipher.ENCRYPT_MODE, key);// 初始化
 			return cipher.doFinal(content); // 加密
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return null;
 	}
@@ -266,7 +272,7 @@ public class CryptoUtil {
 			cipher.init(Cipher.DECRYPT_MODE, key);// 初始化
 			return cipher.doFinal(content); // 解密
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return null;
 	}
@@ -285,7 +291,7 @@ public class CryptoUtil {
 			cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(iv));
 			return cipher.doFinal(content); // 加密
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return null;
 	}
@@ -304,7 +310,7 @@ public class CryptoUtil {
 			cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(iv));// 初始化
 			return cipher.doFinal(content); // 解密
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return null;
 	}
@@ -319,7 +325,7 @@ public class CryptoUtil {
 		try {
 			return Base64.getDecoder().decode(baseString);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return null;
 	}
@@ -334,7 +340,7 @@ public class CryptoUtil {
 		try {
 			return Base64.getEncoder().encodeToString(bt);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return null;
 	}

@@ -36,8 +36,13 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.Logger;
 
 public class HttpUtil {
+	
+	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(HttpUtil.class);
 
 	/**
 	 * map-params转为query string
@@ -119,7 +124,7 @@ public class HttpUtil {
 			response = httpClient.execute(method);
 			return response;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return null;
 	}
@@ -203,7 +208,7 @@ public class HttpUtil {
 			response = httpClient.execute(method);
 			return response;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return null;
 	}
@@ -297,7 +302,7 @@ public class HttpUtil {
 			response = httpClient.execute(method);
 			return response;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return null;
 	}
@@ -363,7 +368,7 @@ public class HttpUtil {
 			response = httpClient.execute(method);
 			return response;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 		}
 		return null;
 	}
@@ -423,7 +428,7 @@ public class HttpUtil {
 					.register("https", socketFactory).build();
 			return new PoolingHttpClientConnectionManager(socketFactoryRegistry);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("",e);
 			return null;
 		}
 	}
