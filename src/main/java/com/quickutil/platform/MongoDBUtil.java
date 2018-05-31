@@ -185,7 +185,6 @@ public class MongoDBUtil {
 					builder.requiredReplicaSetName(pool.getProperty("RequiredReplicaSetName"));
 				if (pool.getProperty("ServerSelectionTimeout") != null)
 					builder.serverSelectionTimeout(Integer.parseInt(pool.getProperty("ServerSelectionTimeout")));
-				builder.socketKeepAlive(true);
 				if (pool.getProperty("SocketTimeout") != null)
 					builder.socketTimeout(Integer.parseInt(pool.getProperty("SocketTimeout")));
 				if (pool.getProperty("SslEnabled") != null)
