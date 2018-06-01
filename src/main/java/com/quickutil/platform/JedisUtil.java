@@ -246,7 +246,7 @@ public class JedisUtil {
 	 * @param seconds-有效时间
 	 */
 	public static Long setExpire(String dbName, String key, int seconds) {
-		if (key == null || seconds == null) {
+		if (key == null) {
 			return null;
 		}
 		JedisPool pool = JedisPoolMap.get(dbName);
@@ -420,7 +420,7 @@ public class JedisUtil {
 	 * @return
 	 */
 	public static List<String> rangeQueue(String dbName, String key, long start, long end) {
-        if (key == null || start == null || end == null) {
+        if (key == null) {
             return null;
         }
 		JedisPool pool = JedisPoolMap.get(dbName);
