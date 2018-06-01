@@ -211,6 +211,9 @@ public class JedisUtil {
 	 * @param key-key名
 	 */
 	public static Long deleteKey(String dbName, String key) {
+		if (key == null) {
+			return null;
+		}
 		JedisPool pool = JedisPoolMap.get(dbName);
 		Jedis jedis = pool.getResource();
 		try {
@@ -243,6 +246,9 @@ public class JedisUtil {
 	 * @param seconds-有效时间
 	 */
 	public static Long setExpire(String dbName, String key, int seconds) {
+		if (key == null || seconds == null) {
+			return null;
+		}
 		JedisPool pool = JedisPoolMap.get(dbName);
 		Jedis jedis = pool.getResource();
 		try {
@@ -264,6 +270,9 @@ public class JedisUtil {
 	 * @param value-数据内容
 	 */
 	public static String setString(String dbName, String key, String value) {
+		if (key == null || value == null) {
+			return null;
+		}
 		JedisPool pool = JedisPoolMap.get(dbName);
 		Jedis jedis = pool.getResource();
 		try {
@@ -285,6 +294,9 @@ public class JedisUtil {
 	 * @return
 	 */
 	public static String getString(String dbName, String key) {
+        if (key == null ) {
+            return null;
+        }
 		JedisPool pool = JedisPoolMap.get(dbName);
 		Jedis jedis = pool.getResource();
 		try {
@@ -306,6 +318,9 @@ public class JedisUtil {
 	 * @param list-数据内容
 	 */
 	public static Long pushQueue(String dbName, String key, List<String> list) {
+        if (key == null ) {
+            return null;
+        }
 		JedisPool pool = JedisPoolMap.get(dbName);
 		Jedis jedis = pool.getResource();
 		try {
@@ -326,6 +341,9 @@ public class JedisUtil {
 	 * @param key-key名
 	 */
 	public static String popQueue(String dbName, String key) {
+        if (key == null ) {
+            return null;
+        }
 		JedisPool pool = JedisPoolMap.get(dbName);
 		Jedis jedis = pool.getResource();
 		try {
@@ -351,6 +369,9 @@ public class JedisUtil {
 	 */
 	@SuppressWarnings("unchecked")
 	public static List<String> popQueueX(String dbName, String key, Integer count) {
+        if (key == null || count == null) {
+            return null;
+        }
 		JedisPool pool = JedisPoolMap.get(dbName);
 		Jedis jedis = pool.getResource();
 		try {
@@ -373,6 +394,9 @@ public class JedisUtil {
 	 * @param list-数据内容
 	 */
 	public static Long backtoQueue(String dbName, String key, List<String> list) {
+        if (key == null ) {
+            return null;
+        }
 		JedisPool pool = JedisPoolMap.get(dbName);
 		Jedis jedis = pool.getResource();
 		try {
@@ -396,6 +420,9 @@ public class JedisUtil {
 	 * @return
 	 */
 	public static List<String> rangeQueue(String dbName, String key, long start, long end) {
+        if (key == null || start == null || end == null) {
+            return null;
+        }
 		JedisPool pool = JedisPoolMap.get(dbName);
 		Jedis jedis = pool.getResource();
 		try {
@@ -418,6 +445,9 @@ public class JedisUtil {
 	 * @return
 	 */
 	public static String setHash(String dbName, String key, Map<String, String> hash) {
+        if (key == null || hash == null) {
+            return null;
+        }
 		JedisPool pool = JedisPoolMap.get(dbName);
 		Jedis jedis = pool.getResource();
 		try {
@@ -477,6 +507,9 @@ public class JedisUtil {
 	 * @return
 	 */
 	public static List<String> getHash(String dbName, String key, List<String> fieldList) {
+        if (key == null) {
+            return null;
+        }
 		JedisPool pool = JedisPoolMap.get(dbName);
 		Jedis jedis = pool.getResource();
 		try {
@@ -529,6 +562,9 @@ public class JedisUtil {
 	 * @return
 	 */
 	public static Map<String, String> getHashAll(String dbName, String key) {
+        if (key == null) {
+            return null;
+        }
 		JedisPool pool = JedisPoolMap.get(dbName);
 		Jedis jedis = pool.getResource();
 		try {
@@ -550,6 +586,9 @@ public class JedisUtil {
 	 * @return
 	 */
 	public static List<String> getHashAllValues(String dbName, String key) {
+        if (key == null) {
+            return null;
+        }
 		JedisPool pool = (JedisPool) JedisPoolMap.get(dbName);
 		Jedis jedis = pool.getResource();
 		try {
