@@ -19,6 +19,8 @@ public class KafkaUtil {
 
 	private static Map<String, KafkaProducer<String, String>> kafkaProducerMap = new HashMap<>();
 	private static Map<String, KafkaConsumer<String, String>> kafkaConsumerMap = new HashMap<>();
+	private static Map<String, Properties> kafkaProducerProperties = new HashMap<>();
+	private static Map<String, Properties> kafkaConsumerProperties = new HashMap<>();
 
 	public static boolean addKafkaProducer(Properties producer) {
 		try {
@@ -41,6 +43,7 @@ public class KafkaUtil {
 						oneProperty.setProperty(sourcekey.substring(key.length() + 1), producer.getProperty(sourcekey));
 					}
 				}
+				kafkaProducerProperties.put(key, oneProperty);
 				kafkaProducerMap.put(key, buildKafkaProducer(oneProperty));
 				LOGGER.info("KafkaProducer init success -- kafkaProvider: {}", key);
 			}
@@ -55,8 +58,12 @@ public class KafkaUtil {
 		return new KafkaProducer<String, String>(oneProperty);
 	}
 
-	public static KafkaProducer<String, String> getKafkaProducer(String key) {
-		return kafkaProducerMap.get(key);
+	public static KafkaProducer<String, String> getKafkaProducer(String producer) {
+		return kafkaProducerMap.get(producer);
+	}
+
+	public static String getKafkaProducerProperty(String producer, String key) {
+		return kafkaProducerProperties.get(producer).getProperty(key);
 	}
 
 	public static boolean addKafkaConsumer(Properties consumer) {
@@ -80,6 +87,7 @@ public class KafkaUtil {
 						oneProperty.setProperty(sourcekey.substring(key.length() + 1), consumer.getProperty(sourcekey));
 					}
 				}
+				kafkaConsumerProperties.put(key, oneProperty);
 				kafkaConsumerMap.put(key, buildKafkaConsumer(oneProperty));
 			}
 			return true;
@@ -93,7 +101,11 @@ public class KafkaUtil {
 		return new KafkaConsumer<String, String>(oneProperty);
 	}
 
-	public static KafkaConsumer<String, String> getKafkaConsumer(String key) {
-		return kafkaConsumerMap.get(key);
+	public static KafkaConsumer<String, String> getKafkaConsumer(String consumer) {
+		return kafkaConsumerMap.get(consumer);
+	}
+
+	public static String getKafkaConsumerProperty(String consumer, String key) {
+		return kafkaConsumerProperties.get(key).getProperty(key);
 	}
 }
