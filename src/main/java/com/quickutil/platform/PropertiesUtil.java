@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Logger;
 
 public class PropertiesUtil {
-	
+
 	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(PropertiesUtil.class);
 
 	/**
@@ -34,7 +34,7 @@ public class PropertiesUtil {
 			if (url != null)
 				return url.getPath() + filePath;
 		} catch (Exception e) {
-			LOGGER.error("",e);
+			LOGGER.error("", e);
 		}
 		return null;
 	}
@@ -78,7 +78,7 @@ public class PropertiesUtil {
 			properties.load(stream);
 			return properties;
 		} catch (Exception e) {
-			LOGGER.error("",e);
+			LOGGER.error("", e);
 		}
 		return null;
 	}
@@ -94,7 +94,11 @@ public class PropertiesUtil {
 		Properties properties = getProperties(filePath);
 		for (Object pkey : properties.keySet()) {
 			String pvalue = properties.getProperty(pkey.toString());
-			properties.setProperty(pkey.toString(), CryptoUtil.aesDecryptStr(pvalue, password));
+			try {
+				properties.setProperty(pkey.toString(), CryptoUtil.aesDecryptStr(pvalue, password));
+			} catch (Exception e) {
+				properties.setProperty(pkey.toString(), pvalue);
+			}
 		}
 		return properties;
 	}
