@@ -627,7 +627,7 @@ public class Jdbc2Util {
 		String sql = combineInsert(tableName, content, false);
 		boolean result = execute(dbName, sql);
 		if (!result)
-			LOGGER.warn(sql);
+			LOGGER.debug(sql);
 		return result;
 	}
 
@@ -646,7 +646,7 @@ public class Jdbc2Util {
 		String sql = combineInsert(tableName, content, true);
 		boolean result = execute(dbName, sql);
 		if (!result)
-			LOGGER.warn(sql);
+			LOGGER.debug(sql);
 		return result;
 	}
 
@@ -737,7 +737,7 @@ public class Jdbc2Util {
 		String sql = combineUpsert(tableName, content, constraint);
 		boolean result = execute(dbName, sql);
 		if (!result)
-			LOGGER.warn(sql);
+			LOGGER.debug(sql);
 		return result;
 	}
 

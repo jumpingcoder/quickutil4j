@@ -20,6 +20,6 @@ Documents can be found here [http://quickutil.com](http://quickutil.com)
 <dependency>
 	<groupId>com.quickutil</groupId>
 	<artifactId>platform</artifactId>
-	<version>1.3.7</version>
+	<version>1.3.8</version>
 </dependency>
 ```
