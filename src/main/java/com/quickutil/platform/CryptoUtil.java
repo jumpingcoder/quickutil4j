@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Logger;
 
 public class CryptoUtil {
-	
+
 	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(CryptoUtil.class);
 
 	private static final String ENCODING = "UTF-8";
@@ -62,7 +62,7 @@ public class CryptoUtil {
 		try {
 			return byte2hex(MessageDigest.getInstance(MD5).digest(bt));
 		} catch (Exception e) {
-			LOGGER.error("",e);
+			LOGGER.error("", e);
 			return null;
 		}
 	}
@@ -77,7 +77,7 @@ public class CryptoUtil {
 		try {
 			return byte2hex(MessageDigest.getInstance(SHA1).digest(bt));
 		} catch (NoSuchAlgorithmException e) {
-			LOGGER.error("",e);
+			LOGGER.error("", e);
 			return null;
 		}
 	}
@@ -98,7 +98,7 @@ public class CryptoUtil {
 			byte[] secretbt = mac.doFinal(encryptContent);
 			return byte2hex(secretbt);
 		} catch (Exception e) {
-			LOGGER.error("",e);
+			LOGGER.error("", e);
 			return null;
 		}
 	}
@@ -119,7 +119,7 @@ public class CryptoUtil {
 			byte[] secretbt = mac.doFinal(encryptContent);
 			return byte2hex(secretbt);
 		} catch (Exception e) {
-			LOGGER.error("",e);
+			LOGGER.error("", e);
 			return null;
 		}
 	}
@@ -187,7 +187,7 @@ public class CryptoUtil {
 			cipher.init(Cipher.ENCRYPT_MODE, key);// 初始化
 			return cipher.doFinal(content); // 加密
 		} catch (Exception e) {
-			LOGGER.error("",e);
+			LOGGER.error("", e);
 		}
 		return null;
 	}
@@ -198,23 +198,19 @@ public class CryptoUtil {
 	 * @param content-需要解密的字节数组
 	 * @param password-解密密钥
 	 * @return
+	 * @throws Exception 
 	 */
-	public static byte[] aesDecrypt(byte[] content, String password) {
-		try {
-			KeyGenerator kgen = KeyGenerator.getInstance("AES");
-			SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
-			random.setSeed(password.getBytes());
-			kgen.init(128, random);
-			SecretKey secretKey = kgen.generateKey();
-			byte[] enCodeFormat = secretKey.getEncoded();
-			SecretKeySpec key = new SecretKeySpec(enCodeFormat, "AES");
-			Cipher cipher = Cipher.getInstance("AES");// 创建密码器
-			cipher.init(Cipher.DECRYPT_MODE, key);// 初始化
-			return cipher.doFinal(content); // 解密
-		} catch (Exception e) {
-			LOGGER.error("",e);
-		}
-		return null;
+	public static byte[] aesDecrypt(byte[] content, String password) throws Exception {
+		KeyGenerator kgen = KeyGenerator.getInstance("AES");
+		SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
+		random.setSeed(password.getBytes());
+		kgen.init(128, random);
+		SecretKey secretKey = kgen.generateKey();
+		byte[] enCodeFormat = secretKey.getEncoded();
+		SecretKeySpec key = new SecretKeySpec(enCodeFormat, "AES");
+		Cipher cipher = Cipher.getInstance("AES");// 创建密码器
+		cipher.init(Cipher.DECRYPT_MODE, key);// 初始化
+		return cipher.doFinal(content); // 解密
 	}
 
 	/**
@@ -234,8 +230,9 @@ public class CryptoUtil {
 	 * @param content-需要解密的字符串
 	 * @param password-解密密钥
 	 * @return
+	 * @throws Exception 
 	 */
-	public static String aesDecryptStr(String content, String password) {
+	public static String aesDecryptStr(String content, String password) throws Exception {
 		return new String(aesDecrypt(hex2byte(content), password));
 	}
 
@@ -253,7 +250,7 @@ public class CryptoUtil {
 			cipher.init(Cipher.ENCRYPT_MODE, key);// 初始化
 			return cipher.doFinal(content); // 加密
 		} catch (Exception e) {
-			LOGGER.error("",e);
+			LOGGER.error("", e);
 		}
 		return null;
 	}
@@ -272,7 +269,7 @@ public class CryptoUtil {
 			cipher.init(Cipher.DECRYPT_MODE, key);// 初始化
 			return cipher.doFinal(content); // 解密
 		} catch (Exception e) {
-			LOGGER.error("",e);
+			LOGGER.error("", e);
 		}
 		return null;
 	}
@@ -291,7 +288,7 @@ public class CryptoUtil {
 			cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(iv));
 			return cipher.doFinal(content); // 加密
 		} catch (Exception e) {
-			LOGGER.error("",e);
+			LOGGER.error("", e);
 		}
 		return null;
 	}
@@ -310,7 +307,7 @@ public class CryptoUtil {
 			cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(iv));// 初始化
 			return cipher.doFinal(content); // 解密
 		} catch (Exception e) {
-			LOGGER.error("",e);
+			LOGGER.error("", e);
 		}
 		return null;
 	}
@@ -325,7 +322,7 @@ public class CryptoUtil {
 		try {
 			return Base64.getDecoder().decode(baseString);
 		} catch (Exception e) {
-			LOGGER.error("",e);
+			LOGGER.error("", e);
 		}
 		return null;
 	}
@@ -340,7 +337,7 @@ public class CryptoUtil {
 		try {
 			return Base64.getEncoder().encodeToString(bt);
 		} catch (Exception e) {
-			LOGGER.error("",e);
+			LOGGER.error("", e);
 		}
 		return null;
 	}
