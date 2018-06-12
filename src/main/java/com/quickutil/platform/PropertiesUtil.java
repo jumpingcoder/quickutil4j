@@ -94,11 +94,8 @@ public class PropertiesUtil {
 		Properties properties = getProperties(filePath);
 		for (Object pkey : properties.keySet()) {
 			String pvalue = properties.getProperty(pkey.toString());
-			try {
-				properties.setProperty(pkey.toString(), CryptoUtil.aesDecryptStr(pvalue, password));
-			} catch (Exception e) {
-				properties.setProperty(pkey.toString(), pvalue);
-			}
+			String result = CryptoUtil.aesDecryptStr(pvalue, password);
+			properties.setProperty(pkey.toString(), result == null ? pvalue : result);
 		}
 		return properties;
 	}
