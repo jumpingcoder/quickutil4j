@@ -94,13 +94,12 @@ public class PropertiesUtil {
 		Properties properties = getProperties(filePath);
 		for (Object pkey : properties.keySet()) {
 			String pvalue = properties.getProperty(pkey.toString());
-			String result = null;
 			try {
-				result = CryptoUtil.aesDecryptStr(pvalue, password);
+				if (pvalue.length() > 1)
+					properties.setProperty(pkey.toString(), CryptoUtil.aesDecryptStr(pvalue, password));
 			} catch (Exception e) {
 				LOGGER.debug("", e);
 			}
-			properties.setProperty(pkey.toString(), result == null ? pvalue : result);
 		}
 		return properties;
 	}
@@ -116,13 +115,12 @@ public class PropertiesUtil {
 		Properties properties = getProperties(stream);
 		for (Object pkey : properties.keySet()) {
 			String pvalue = properties.getProperty(pkey.toString());
-			String result = null;
 			try {
-				result = CryptoUtil.aesDecryptStr(pvalue, password);
+				if (pvalue.length() > 1)
+					properties.setProperty(pkey.toString(), CryptoUtil.aesDecryptStr(pvalue, password));
 			} catch (Exception e) {
 				LOGGER.debug("", e);
 			}
-			properties.setProperty(pkey.toString(), result == null ? pvalue : result);
 		}
 		return properties;
 	}
