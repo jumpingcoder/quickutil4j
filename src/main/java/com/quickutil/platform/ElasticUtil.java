@@ -10,6 +10,9 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+
+import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,6 +21,9 @@ import java.util.Properties;
 import java.util.function.Function;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
+
+
+import org.apache.http.Header;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -38,6 +44,7 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
@@ -55,6 +62,9 @@ public class ElasticUtil {
 	private static final String indexTypeFormat = "/%s/%s/";
 
 	private final String host;
+	private String username;
+	private String password;
+
 
 	public final HttpClient client;
 
@@ -90,9 +100,8 @@ public class ElasticUtil {
 			}
 			HttpClientContext clientContext = HttpClientContext.adapt(context);
 			HttpRequest request = clientContext.getRequest();
-			if (!(request instanceof HttpEntityEnclosingRequest)) { // 如果请求是幂等的，就再次尝试
-				return true;
-			}
+            // 如果请求是幂等的，就再次尝试
+            if (!(request instanceof HttpEntityEnclosingRequest)) return true;
 			return false;
 		}
 	};
@@ -106,6 +115,21 @@ public class ElasticUtil {
 		this.host = host;
 		cm.setMaxPerRoute(new HttpRoute(new HttpHost(host)), 50);
 		this.client = HttpClients.custom().setConnectionManager(cm).setRetryHandler(httpRequestRetryHandler).build();
+	}
+	public ElasticUtil(String host, String username, String password){
+		this.username = username;
+		this.password = password;
+        Header header = new BasicHeader("Authorization",  "Basic " +
+                Base64.getEncoder().encodeToString((username+":"+password).getBytes()));
+        //base64
+		List<Header> headers = new ArrayList<>();
+		headers.add(header);
+        host = host.contains("://") ? "https" + host.substring(host.indexOf(":"), host.length()) : "https://" + host;
+        //whether is a legal url
+        this.host = host;
+        System.out.println(host);
+        cm.setMaxPerRoute(new HttpRoute(new HttpHost(host)), 50);//设置连接池
+        this.client = HttpClients.custom().setDefaultHeaders(headers).setConnectionManager(cm).setRetryHandler(httpRequestRetryHandler).build();
 	}
 
 	private HttpUriRequest getMethod(String url) {
@@ -139,6 +163,8 @@ public class ElasticUtil {
 			if (response == null)
 				return null;
 			else if (200 != response.getStatusLine().getStatusCode()) {
+			    LOGGER.error("response code [{}], with msg [{}]", response.getStatusLine().getStatusCode(),
+                        response.getStatusLine().getReasonPhrase());
 				return null;
 			} else {
 				return getEntity(response);
@@ -471,7 +497,7 @@ public class ElasticUtil {
 	 * @return
 	 */
 	public String search(String index, String type, SearchRequest searchRequest) {
-		HttpResponse response = null;
+		HttpResponse response= null;
 		try {
 			String url = null == type ? String.format(hostIndexFormat, host, index) + "_search" : String.format(hostIndexTypeFormat, host, index, type) + "_search";
 			LOGGER.debug(searchRequest.toJson());
