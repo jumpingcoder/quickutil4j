@@ -1,4 +1,4 @@
-package com.quickutil.platform;
+package com.dji.statistic.report.client.util;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
@@ -8,6 +8,7 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.analytics.Analytics;
 import com.google.api.services.analytics.Analytics.Data.Ga;
 import com.google.api.services.analytics.AnalyticsScopes;
+import com.quickutil.platform.PropertiesUtil;
 import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.PrivateKey;
@@ -18,13 +19,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class GAUtil {
 
-	private static final Logger logger = LoggerFactory.getLogger(GAUtil.class);
 	private static Map<String, Ga> gaClientMap = new HashMap<String, Ga>();
+	private static Map<String, String> gaIdsMap = new HashMap<>();
 
 	public static void addGaClient(Properties properties) {
 		Enumeration<?> keys = properties.propertyNames();
@@ -41,9 +40,11 @@ public class GAUtil {
 				String clientID = properties.getProperty(key + ".clientID");
 				String p12Path = properties.getProperty(key + ".p12Path");
 				String applicationName = properties.getProperty(key + ".applicationName");
+				String ids = properties.getProperty(key + ".ids");
+				gaIdsMap.put(key, ids);
 				addGaClient(key, clientID, PropertiesUtil.getInputStream(p12Path), applicationName);
 			} catch (Exception e) {
-				logger.error("", e);
+				e.printStackTrace();
 			}
 		}
 	}
@@ -60,7 +61,7 @@ public class GAUtil {
 			Ga ga = new Analytics.Builder(httpTransport, jsonFactory, credential).setApplicationName(applicationName).build().data().ga();
 			gaClientMap.put(key, ga);
 		} catch (Exception e) {
-			logger.error("", e);
+			e.printStackTrace();
 		}
 	}
 
@@ -70,5 +71,10 @@ public class GAUtil {
 
 	public static void removeGaClient(String key) {
 		gaClientMap.remove(key);
+
+	}
+
+	public static String getGaIds(String key) {
+		return gaIdsMap.get(key);
 	}
 }
