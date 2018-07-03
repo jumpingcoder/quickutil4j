@@ -1,4 +1,4 @@
-package com.dji.statistic.report.client.util;
+package com.quickutil.platform;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
@@ -8,7 +8,6 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.analytics.Analytics;
 import com.google.api.services.analytics.Analytics.Data.Ga;
 import com.google.api.services.analytics.AnalyticsScopes;
-import com.quickutil.platform.PropertiesUtil;
 import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.PrivateKey;
