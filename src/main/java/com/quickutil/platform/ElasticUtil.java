@@ -127,7 +127,6 @@ public class ElasticUtil {
         host = host.contains("://") ? "https" + host.substring(host.indexOf(":"), host.length()) : "https://" + host;
         //whether is a legal url
         this.host = host;
-        System.out.println(host);
         cm.setMaxPerRoute(new HttpRoute(new HttpHost(host)), 50);//设置连接池
         this.client = HttpClients.custom().setDefaultHeaders(headers).setConnectionManager(cm).setRetryHandler(httpRequestRetryHandler).build();
 	}
@@ -163,8 +162,8 @@ public class ElasticUtil {
 			if (response == null)
 				return null;
 			else if (200 != response.getStatusLine().getStatusCode()) {
-			    LOGGER.error("response code [{}], with msg [{}]", response.getStatusLine().getStatusCode(),
-                        response.getStatusLine().getReasonPhrase());
+			    LOGGER.warn("response code [{}], with msg [{}], with url [{}]", response.getStatusLine().getStatusCode(),
+                        response.getStatusLine().getReasonPhrase(), url);
 				return null;
 			} else {
 				return getEntity(response);
