@@ -162,8 +162,8 @@ public class ElasticUtil {
 			if (response == null)
 				return null;
 			else if (200 != response.getStatusLine().getStatusCode()) {
-			    LOGGER.warn("response code [{}], with msg [{}]", response.getStatusLine().getStatusCode(),
-                        response.getStatusLine().getReasonPhrase());
+			    LOGGER.warn("response code [{}], with msg [{}], with url [{}]", response.getStatusLine().getStatusCode(),
+                        response.getStatusLine().getReasonPhrase(), url);
 				return null;
 			} else {
 				return getEntity(response);
