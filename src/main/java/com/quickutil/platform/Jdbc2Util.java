@@ -844,7 +844,7 @@ public class Jdbc2Util {
 	/**
 	 * 释放生成的DataSource
 	 */
-	public void closeDataSource(String dbName) {
+	public static void closeDataSource(String dbName) {
 		DruidDataSource pool = dataSourceMap.get(dbName);
 		if (pool == null) {
 			return;
@@ -856,7 +856,7 @@ public class Jdbc2Util {
 	/**
 	 * 释放所有生成的DataSource
 	 */
-	public void closeAllDataSource() {
+	public static void closeAllDataSource() {
 		for (String dbName : dataSourceMap.keySet()) {
 			closeDataSource(dbName);
 		}
