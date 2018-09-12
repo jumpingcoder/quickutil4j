@@ -7,6 +7,9 @@
 package com.quickutil.platform;
 
 import ch.qos.logback.classic.Logger;
+
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Properties;
 import org.slf4j.LoggerFactory;
@@ -23,10 +26,30 @@ public class PropertiesUtil {
 	}
 
 	/**
+	 * 获取外部资源文件字节流
+	 */
+	public static InputStream getOuterInputStream(String filePath) {
+		InputStream stream = null;
+		try {
+			stream = new BufferedInputStream(new FileInputStream(filePath));
+		} catch (Exception e) {
+			LOGGER.debug("", e);
+		}
+		return  stream;
+	}
+
+	/**
 	 * 将资源文件读取为Properties
 	 */
 	public static Properties getProperties(String filePath) {
 		return getProperties(getInputStream(filePath));
+	}
+
+	/**
+	 * 将资源文件读取为Properties, 指定完整路径
+	 */
+	public static Properties getOuterProperties(String filePath) {
+		return getProperties(getOuterInputStream(filePath));
 	}
 
 	/**
@@ -102,4 +125,23 @@ public class PropertiesUtil {
 		}
 		return stream;
 	}
+
+	/**
+	 * 获取非标准aes解密properties, 指定完整路径
+	 */
+	public static Properties getOuterPropertiesWithKey(String filePath, String password) {
+		Properties properties = getOuterProperties(filePath);
+		for (Object pkey : properties.keySet()) {
+			String pvalue = properties.getProperty(pkey.toString());
+			try {
+				if (pvalue.length() > 1) {
+					properties.setProperty(pkey.toString(), CryptoUtil.aesDecryptStr(pvalue, password));
+				}
+			} catch (Exception e) {
+				LOGGER.debug("", e);
+			}
+		}
+		return properties;
+	}
+
 }
