@@ -353,9 +353,9 @@ public class Jdbc2Util {
 	}
 
 	/**
-	 * 获取多列数据
+	 * 获取多列数据，有错误抛出
 	 */
-	public static List<Map<String, Object>> getListMap(String dbName, String sql) {
+	public static List<Map<String, Object>> getListMapThrowable(String dbName, String sql) throws Exception {
 		Connection connection = null;
 		PreparedStatement ps = null;
 		ResultSet rs = null;
@@ -380,7 +380,7 @@ public class Jdbc2Util {
 				list.add(map);
 			}
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			throw e;
 		} finally {
 			try {
 				if (rs != null) {
@@ -393,8 +393,21 @@ public class Jdbc2Util {
 					connection.close();
 				}
 			} catch (Exception e) {
-				LOGGER.error("", e);
+				throw e;
 			}
+		}
+		return list;
+	}
+
+	/**
+	 * 获取多列数据
+	 */
+	public static List<Map<String, Object>> getListMap(String dbName, String sql) {
+		List<Map<String, Object>> list = new ArrayList<>();
+		try {
+			list = getListMapThrowable(dbName, sql);
+		} catch (Exception e) {
+			LOGGER.error("", e);
 		}
 		return list;
 	}
