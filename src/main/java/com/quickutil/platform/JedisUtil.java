@@ -1,6 +1,6 @@
 /**
  * Redis工具
- * 
+ *
  * @class JedisUtil
  * @author 0.5
  */
@@ -31,7 +31,7 @@ public class JedisUtil {
 
 	/**
 	 * 增加JedisPool，默认pool配置
-	 * 
+	 *
 	 * @param jedis-jedis配置
 	 */
 	public static boolean addJedisPool(Properties jedis) {
@@ -40,7 +40,7 @@ public class JedisUtil {
 
 	/**
 	 * 增加JedisPool，指定pool配置
-	 * 
+	 *
 	 * @param jedis-jedis配置
 	 * @param pool-pool配置
 	 */
@@ -61,7 +61,15 @@ public class JedisUtil {
 				int timeout = Integer.parseInt(jedis.getProperty(key + ".timeout"));
 				String password = jedis.getProperty(key + ".password");
 				int database = Integer.parseInt(jedis.getProperty(key + ".database"));
-				JedisPoolMap.put(key, buildJedisPool(host, port, timeout, password, database, pool));
+				boolean isSsl = Boolean.parseBoolean(jedis.getProperty(key + ".isSsl"));
+				if (isSsl) {
+					String caPath = jedis.getProperty(key + ".ca");
+					if (caPath == null || caPath.isEmpty()) {
+						throw new Exception("证书路径不能为空!");
+					}
+					System.setProperty("javax.net.ssl.trustStore", caPath);
+				}
+				JedisPoolMap.put(key, buildJedisPool(host, port, timeout, password, database, pool, isSsl));
 			}
 			return true;
 		} catch (Exception e) {
@@ -72,36 +80,63 @@ public class JedisUtil {
 
 	/**
 	 * 增加JedisPool，默认pool配置
-	 * 
+	 *
 	 * @param dbName-数据库名称
 	 * @param host-数据库HOST
 	 * @param port-数据库端口
 	 * @param timeout-超时时间
 	 * @param password-密码
 	 * @param database-数据库编号
+	 * @param isSsl-是否ssl加密连接
+	 * @param caPath-证书路径
 	 */
-	public static void addJedisPool(String dbName, String host, int port, int timeout, String password, int database) {
-		JedisPoolMap.put(dbName, buildJedisPool(host, port, timeout, password, database, null));
+	public static void addJedisPool(String dbName, String host, int port, int timeout, String password, int database, boolean isSsl, String caPath) {
+		try{
+			boolean flag = false;
+			if (!caPath.isEmpty() && isSsl) {
+				System.setProperty("javax.net.ssl.trustStore", caPath);
+				flag = true;
+			} else if (caPath.isEmpty() && isSsl) {
+				throw new Exception("证书路径不能为空!");
+			}
+			JedisPoolMap.put(dbName, buildJedisPool(host, port, timeout, password, database, null, flag));
+		} catch (Exception e) {
+			LOGGER.error("", e);
+		}
+
 	}
 
 	/**
 	 * 增加JedisPool，指定pool配置
-	 * 
+	 *
 	 * @param dbName-数据库名称
 	 * @param host-数据库HOST
 	 * @param port-数据库端口
 	 * @param timeout-超时时间
 	 * @param password-密码
 	 * @param database-数据库编号
+	 * @param isSsl-是否ssl加密连接
+	 * @param caPath-证书路径
 	 * @param pool-pool配置
 	 */
-	public static void addJedisPool(String dbName, String host, int port, int timeout, String password, int database, Properties pool) {
-		JedisPoolMap.put(dbName, buildJedisPool(host, port, timeout, password, database, pool));
+	public static void addJedisPool(String dbName, String host, int port, int timeout, String password, int database, boolean isSsl, String caPath, Properties pool) {
+		try{
+			boolean flag = false;
+			if (!caPath.isEmpty() && isSsl) {
+				System.setProperty("javax.net.ssl.trustStore", caPath);
+				flag = true;
+			} else if (caPath.isEmpty() && isSsl) {
+				throw new Exception("证书路径不能为空!");
+			}
+			JedisPoolMap.put(dbName, buildJedisPool(host, port, timeout, password, database, pool, flag));
+		} catch (Exception e) {
+			LOGGER.error("", e);
+		}
 	}
 
 	/**
 	 * 获取生成的JedisPool
-	 * 
+	 *
 	 * @param dbName-数据库名称
 	 * @return
 	 */
@@ -111,7 +146,7 @@ public class JedisUtil {
 
 	/**
 	 * 释放生成的JedisPool
-	 * 
+	 *
 	 * @param dbName
 	 */
 	public void destroyJedisPool(String dbName) {
@@ -124,7 +159,7 @@ public class JedisUtil {
 
 	/**
 	 * 释放所有的的JedisPool
-	 * 
+	 *
 	 */
 	public void destroyAllJedisPool() {
 		for (String dbName : JedisPoolMap.keySet()) {
@@ -132,10 +167,10 @@ public class JedisUtil {
 		}
 	}
 
-	private static JedisPool buildJedisPool(String host, int port, int timeout, String password, int database, Properties pool) {
+	private static JedisPool buildJedisPool(String host, int port, int timeout, String password, int database, Properties pool, boolean isSsl) {
 		JedisPoolConfig config = new JedisPoolConfig();
 		if (pool == null)
-			return new JedisPool(config, host, port, timeout, password, database);
+			return new JedisPool(config, host, port, timeout, password, database ,isSsl);
 		if (pool.getProperty("BlockWhenExhausted") != null)
 			config.setBlockWhenExhausted(Boolean.parseBoolean(pool.getProperty("BlockWhenExhausted")));
 		if (pool.getProperty("EvictionPolicyClassName") != null)
@@ -174,12 +209,12 @@ public class JedisUtil {
 			config.setTestWhileIdle(Boolean.parseBoolean(pool.getProperty("TestWhileIdle")));
 		if (pool.getProperty("AcquireIncrement") != null)
 			config.setTimeBetweenEvictionRunsMillis(Long.parseLong(pool.getProperty("TimeBetweenEvictionRunsMillis")));
-		return new JedisPool(config, host, port, timeout, password, database);
+		return new JedisPool(config, host, port, timeout, password, database, isSsl);
 	}
 
 	/**
 	 * 查询keys
-	 * 
+	 *
 	 * @param dbName-数据库名称
 	 * @param pattern-表达式
 	 * @return
@@ -206,7 +241,7 @@ public class JedisUtil {
 
 	/**
 	 * 删除key
-	 * 
+	 *
 	 * @param dbName-数据库名称
 	 * @param key-key名
 	 */
@@ -229,7 +264,7 @@ public class JedisUtil {
 
 	/**
 	 * 清空数据
-	 * 
+	 *
 	 * @param dbName-数据库名称
 	 */
 	public static String flushData(String dbName) {
@@ -240,7 +275,7 @@ public class JedisUtil {
 
 	/**
 	 * 设置超时
-	 * 
+	 *
 	 * @param dbName-数据库名称
 	 * @param key-key名
 	 * @param seconds-有效时间
@@ -264,7 +299,7 @@ public class JedisUtil {
 
 	/**
 	 * 存储字符串
-	 * 
+	 *
 	 * @param dbName-数据库名称
 	 * @param key-key名
 	 * @param value-数据内容
@@ -288,15 +323,15 @@ public class JedisUtil {
 
 	/**
 	 * 查询字符串
-	 * 
+	 *
 	 * @param dbName-数据库名称
 	 * @param key-key名
 	 * @return
 	 */
 	public static String getString(String dbName, String key) {
-        if (key == null ) {
-            return null;
-        }
+		if (key == null ) {
+			return null;
+		}
 		JedisPool pool = JedisPoolMap.get(dbName);
 		Jedis jedis = pool.getResource();
 		try {
@@ -312,15 +347,15 @@ public class JedisUtil {
 
 	/**
 	 * 写入队列
-	 * 
+	 *
 	 * @param dbName-数据库名称
 	 * @param key-key名
 	 * @param list-数据内容
 	 */
 	public static Long pushQueue(String dbName, String key, List<String> list) {
-        if (key == null ) {
-            return null;
-        }
+		if (key == null ) {
+			return null;
+		}
 		JedisPool pool = JedisPoolMap.get(dbName);
 		Jedis jedis = pool.getResource();
 		try {
@@ -336,14 +371,14 @@ public class JedisUtil {
 
 	/**
 	 * 取出队列
-	 * 
+	 *
 	 * @param dbName-数据库名称
 	 * @param key-key名
 	 */
 	public static String popQueue(String dbName, String key) {
-        if (key == null ) {
-            return null;
-        }
+		if (key == null ) {
+			return null;
+		}
 		JedisPool pool = JedisPoolMap.get(dbName);
 		Jedis jedis = pool.getResource();
 		try {
@@ -361,7 +396,7 @@ public class JedisUtil {
 
 	/**
 	 * 取出队列（基于Lua）
-	 * 
+	 *
 	 * @param dbName-数据库名称
 	 * @param key-key名
 	 * @param count-数量
@@ -369,9 +404,9 @@ public class JedisUtil {
 	 */
 	@SuppressWarnings("unchecked")
 	public static List<String> popQueueX(String dbName, String key, Integer count) {
-        if (key == null || count == null) {
-            return null;
-        }
+		if (key == null || count == null) {
+			return null;
+		}
 		JedisPool pool = JedisPoolMap.get(dbName);
 		Jedis jedis = pool.getResource();
 		try {
@@ -388,15 +423,15 @@ public class JedisUtil {
 
 	/**
 	 * 放回队列
-	 * 
+	 *
 	 * @param dbName-数据库名称
 	 * @param key-key名
 	 * @param list-数据内容
 	 */
 	public static Long backtoQueue(String dbName, String key, List<String> list) {
-        if (key == null ) {
-            return null;
-        }
+		if (key == null ) {
+			return null;
+		}
 		JedisPool pool = JedisPoolMap.get(dbName);
 		Jedis jedis = pool.getResource();
 		try {
@@ -412,7 +447,7 @@ public class JedisUtil {
 
 	/**
 	 * 查询队列（不删除）
-	 * 
+	 *
 	 * @param dbName-数据库名称
 	 * @param key-key名
 	 * @param start-起始位置
@@ -420,9 +455,9 @@ public class JedisUtil {
 	 * @return
 	 */
 	public static List<String> rangeQueue(String dbName, String key, long start, long end) {
-        if (key == null) {
-            return null;
-        }
+		if (key == null) {
+			return null;
+		}
 		JedisPool pool = JedisPoolMap.get(dbName);
 		Jedis jedis = pool.getResource();
 		try {
@@ -438,16 +473,16 @@ public class JedisUtil {
 
 	/**
 	 * 写入哈希表
-	 * 
+	 *
 	 * @param dbName-数据库名称
 	 * @param key-key名
 	 * @param hash-哈希表
 	 * @return
 	 */
 	public static String setHash(String dbName, String key, Map<String, String> hash) {
-        if (key == null || hash == null) {
-            return null;
-        }
+		if (key == null || hash == null) {
+			return null;
+		}
 		JedisPool pool = JedisPoolMap.get(dbName);
 		Jedis jedis = pool.getResource();
 		try {
@@ -465,7 +500,7 @@ public class JedisUtil {
 
 	/**
 	 * 写入哈希表（基于Lua）
-	 * 
+	 *
 	 * @param dbName-数据库名称
 	 * @param keyList-key数组，一一对应
 	 * @param fieldList-field数组，一一对应
@@ -500,16 +535,16 @@ public class JedisUtil {
 
 	/**
 	 * 查询哈希表
-	 * 
+	 *
 	 * @param dbName-数据库名称
 	 * @param key-key名
 	 * @param fieldList-field数组
 	 * @return
 	 */
 	public static List<String> getHash(String dbName, String key, List<String> fieldList) {
-        if (key == null) {
-            return null;
-        }
+		if (key == null) {
+			return null;
+		}
 		JedisPool pool = JedisPoolMap.get(dbName);
 		Jedis jedis = pool.getResource();
 		try {
@@ -527,7 +562,7 @@ public class JedisUtil {
 
 	/**
 	 * 查询哈希表（基于Lua）
-	 * 
+	 *
 	 * @param dbName-数据库名称
 	 * @param keyList-key数组，一一对应
 	 * @param fieldList-field数组，一一对应
@@ -556,15 +591,15 @@ public class JedisUtil {
 
 	/**
 	 * 获取全部哈希表
-	 * 
+	 *
 	 * @param dbName-数据库名称
 	 * @param key-key名
 	 * @return
 	 */
 	public static Map<String, String> getHashAll(String dbName, String key) {
-        if (key == null) {
-            return null;
-        }
+		if (key == null) {
+			return null;
+		}
 		JedisPool pool = JedisPoolMap.get(dbName);
 		Jedis jedis = pool.getResource();
 		try {
@@ -580,15 +615,15 @@ public class JedisUtil {
 
 	/**
 	 * 获取哈希表的全部值
-	 * 
+	 *
 	 * @param dbName-数据库名称
 	 * @param key-key名
 	 * @return
 	 */
 	public static List<String> getHashAllValues(String dbName, String key) {
-        if (key == null) {
-            return null;
-        }
+		if (key == null) {
+			return null;
+		}
 		JedisPool pool = (JedisPool) JedisPoolMap.get(dbName);
 		Jedis jedis = pool.getResource();
 		try {
@@ -606,7 +641,7 @@ public class JedisUtil {
 
 	/**
 	 * 行存储转kv存储，写入数据（基于Lua）
-	 * 
+	 *
 	 * @param dbName-数据库名称
 	 * @param key-key名
 	 * @param hashTable-数据哈希表
@@ -641,7 +676,7 @@ public class JedisUtil {
 
 	/**
 	 * 行存储转kv存储，查询数据（基于Lua）
-	 * 
+	 *
 	 * @param dbName-数据库名称
 	 * @param key-key名
 	 * @param tableList-表名
@@ -679,7 +714,7 @@ public class JedisUtil {
 
 	/**
 	 * 哈希表计数器（基于Lua）
-	 * 
+	 *
 	 * @param dbName-数据库名称
 	 * @param keyList-key数组，一一对应
 	 * @param fieldList-field数组，一一对应
