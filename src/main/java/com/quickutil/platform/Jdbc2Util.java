@@ -495,6 +495,7 @@ public class Jdbc2Util {
 			return new ResultSetDef(connection, ps, rs, columnName);
 		} catch (Exception e) {
 			LOGGER.error("", e);
+		} finally {
 			try {
 				if (rs != null) {
 					rs.close();
@@ -505,10 +506,9 @@ public class Jdbc2Util {
 				if (connection != null) {
 					connection.close();
 				}
-			} catch (Exception e1) {
-				e1.printStackTrace();
+			} catch (Exception e) {
+				LOGGER.error("", e);
 			}
-
 		}
 		return null;
 	}
