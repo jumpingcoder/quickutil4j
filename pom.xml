@@ -4,7 +4,7 @@
   <groupId>com.quickutil</groupId>
   <artifactId>platform</artifactId>
   <packaging>jar</packaging>
-  <version>1.4.8</version>
+  <version>1.4.9</version>
   <name>quickutil</name>
   <url>http://www.quickutil.com</url>
   <distributionManagement>
