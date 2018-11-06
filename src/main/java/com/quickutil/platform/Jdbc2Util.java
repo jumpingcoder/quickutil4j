@@ -506,7 +506,7 @@ public class Jdbc2Util {
 				}
 				throw e;
 			} catch (Exception e1) {
-				e1.printStackTrace();
+				LOGGER.error("", e1);
 				throw e;
 			}
 		}
