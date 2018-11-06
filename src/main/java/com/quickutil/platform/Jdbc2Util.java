@@ -474,9 +474,9 @@ public class Jdbc2Util {
 	}
 
 	/**
-	 * 获取ResultSet
+	 * 获取ResultSet，有错误抛出
 	 */
-	public static ResultSetDef getResultSet(String dbName, String sql) {
+	public static ResultSetDef getResultSetThrowable(String dbName, String sql)  throws Exception  {
 		Connection connection = null;
 		List<String> columnName = new ArrayList<String>();
 		PreparedStatement ps = null;
@@ -493,9 +493,7 @@ public class Jdbc2Util {
 				columnName.add(rsmd.getColumnLabel(i));
 			}
 			return new ResultSetDef(connection, ps, rs, columnName);
-		} catch (Exception e) {
-			LOGGER.error("", e);
-		} finally {
+		}  catch (Exception e) {
 			try {
 				if (rs != null) {
 					rs.close();
@@ -506,11 +504,24 @@ public class Jdbc2Util {
 				if (connection != null) {
 					connection.close();
 				}
-			} catch (Exception e) {
-				LOGGER.error("", e);
+				throw e;
+			} catch (Exception e1) {
+				LOGGER.error("", e1);
+				throw e;
 			}
 		}
-		return null;
+	}
+
+	/**
+	 * 获取ResultSet
+	 */
+	public static ResultSetDef getResultSet(String dbName, String sql) {
+		try {
+			return getResultSetThrowable(dbName, sql);
+		} catch (Exception e) {
+			LOGGER.error("", e);
+			return null;
+		}
 	}
 
 	/**
