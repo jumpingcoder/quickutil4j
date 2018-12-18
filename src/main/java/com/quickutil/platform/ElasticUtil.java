@@ -124,6 +124,7 @@ public class ElasticUtil {
         //base64
 		List<Header> headers = new ArrayList<>();
 		headers.add(header);
+		headers.add(new BasicHeader("Content-Type", "application/json"));
         host = host.contains("://") ? "https" + host.substring(host.indexOf(":"), host.length()) : "https://" + host;
         //whether is a legal url
         this.host = host;
