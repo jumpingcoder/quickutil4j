@@ -6076,7 +6076,7 @@
     "country_chinese": "中国",
     "state_name": "Guizhou",
     "country_name": "China",
-    "state_chinese": "贵州市",
+    "state_chinese": "贵州省",
     "state_code": "52"
   },
   {
@@ -30328,14 +30328,6 @@
     "state_code": "RE"
   },
   {
-    "country_code": "Rep",
-    "country_chinese": "",
-    "state_name": "Karelija",
-    "country_name": "",
-    "state_chinese": "",
-    "state_code": "KR"
-  },
-  {
     "country_code": "RO",
     "country_chinese": "罗马尼亚",
     "state_name": "Alba",
@@ -38702,14 +38694,6 @@
     "country_name": "United States Minor Outlying Isl",
     "state_chinese": "",
     "state_code": "95"
-  },
-  {
-    "country_code": "Uni",
-    "country_chinese": "",
-    "state_name": "Rhondda Cynon",
-    "country_name": "",
-    "state_chinese": "",
-    "state_code": "RCT"
   },
   {
     "country_code": "US",
