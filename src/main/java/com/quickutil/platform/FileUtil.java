@@ -60,7 +60,7 @@ public class FileUtil {
 	/**
 	 * 读取文件到byte[]
 	 * 
-	 * @param filename-文件路径
+	 * @param filePath-文件路径
 	 * @return
 	 */
 	public static byte[] file2Byte(String filePath) {
@@ -226,7 +226,7 @@ public class FileUtil {
 	/**
 	 * List<String>写入文件
 	 * 
-	 * @param filePath-文件路径
+	 * @param filename-文件路径
 	 * @param contentList-字符串数组
 	 * @param append-是否追加
 	 * @return
@@ -244,6 +244,24 @@ public class FileUtil {
 			LOGGER.error("",e);
 		}
 		return false;
+	}
+
+	/**
+	 * 读输入流并写文件到filePath
+	 * @param input - 输入流
+	 * @param filePath - 写入文件路径
+	 * @param append - 是否追加写
+	 */
+	public static void writeFile(InputStream input, String filePath, boolean append) {
+		try(FileOutputStream fileOutputStream = new FileOutputStream(filePath, append)) {
+			int byteRead = -1;
+			byte[] buffer = new byte[1024 * 2];
+			while ((byteRead = input.read(buffer)) != -1){
+				fileOutputStream.write(buffer, 0, byteRead);
+			}
+		} catch (Exception e){
+			LOGGER.error("", e);
+		}
 	}
 
 	/**
@@ -333,17 +351,22 @@ public class FileUtil {
 	}
 
 	/**
-	 * 删除文件
+	 * 删除文件或目录，如果是目录则删除整个目录下的所有文件
 	 * 
 	 * @param filePath-文件路径
-	 * @return
+	 * @return 是否删除成功，如果文件或目录不存在返回false
 	 */
 	public static boolean deleteFile(String filePath) {
 		try {
 			File file = new File(filePath);
-			if (file.exists())
-				file.delete();
-			return true;
+			if(file.exists()){
+			    if(file.isDirectory()){
+                    for(String path : file.list()){
+                        deleteFile(file.getPath() + File.separator + path);
+                    }
+                }
+                return file.delete();
+            }
 		} catch (Exception e) {
 			LOGGER.error("",e);
 		}

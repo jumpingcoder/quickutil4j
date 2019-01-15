@@ -18,15 +18,23 @@ import com.quickutil.platform.def.GeoPoint;
 import ch.qos.logback.classic.Logger;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 import org.apache.http.HttpResponse;
+import org.quartz.*;
+import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.LoggerFactory;
+
+import static com.quickutil.platform.GeoUtil.ISO_3166_2_Version.V20040308;
+import static com.quickutil.platform.GeoUtil.ISO_3166_2_Version.V20171123;
+import static com.quickutil.platform.GeoUtil.MMDBVersion.GeoIP2City;
+import static com.quickutil.platform.GeoUtil.MMDBVersion.GeoLite2City;
 
 public class GeoUtil {
 	
@@ -39,48 +47,196 @@ public class GeoUtil {
 	private static Map<String, String> countryChineseByCountryCodeMap = new HashMap<String, String>();
 	private static Map<String, String> stateNameByStateCodeMap = new HashMap<String, String>();
 	private static Map<String, String> stateChineseByStateCodeMap = new HashMap<String, String>();
+	private static Map<String, String> stateCodeByStateCodeNewVersionMap = new HashMap<String, String>();
 	private static Map<String, String> stateCodeByStateNameChineseMap = new HashMap<String, String>();
 	private static Map<String, String> stateCodeByStateNameMap = new HashMap<String, String>();
 
-	public static boolean init(String baiduKey, String amapKey) {
+	public enum MMDBVersion{
+		GeoLite2City("GeoLite2-City"),
+		GeoIP2City("GeoIP2-City");
+
+		private String version;
+
+		private MMDBVersion(String version){
+			this.version = version;
+		}
+
+		@Override
+		public String toString() {
+			return version;
+		}
+	}
+
+	public enum ISO_3166_2_Version{
+		V20040308(""),
+		V20171123("_iso_3166_2_20171123");
+
+		private String version;
+
+		private ISO_3166_2_Version(String version){
+			this.version = version;
+		}
+
+		@Override
+		public String toString() {
+			return version;
+		}
+	}
+
+
+	//兼容使用旧版本的GeoIP2-City.mmdb
+	public static boolean init(String baiduKey, String amapKey){
+		return init(baiduKey, amapKey, GeoIP2City, V20040308);
+	}
+
+	/**
+	 * 初始化静态资源，并周期性更新MMDB文件
+	 * @param baiduKey
+	 * @param amapKey
+	 * @param mmdbVersion mmdb文件的版本，GeoLite2City or GeoIP2City
+	 * @param isoVersion ISO国家省份编码版本
+	 * @return
+	 */
+	public static boolean init(String baiduKey, String amapKey, MMDBVersion mmdbVersion, ISO_3166_2_Version isoVersion) {
 		try {
 			// 读取IP库
 			baiduKeyIn = baiduKey;
 			amapKeyIn = amapKey;
-			String mmdbPath = FileUtil.getCurrentPath() + "/GeoIP2-City.mmdb";
+
+			String mmdbPath = FileUtil.getCurrentPath() + File.separator +  mmdbVersion.toString() + ".mmdb";
 			File mmdbFile = new File(mmdbPath);
 			if (!mmdbFile.exists()) {
-				HttpResponse response = HttpUtil.httpGet("http://quickutil.oss-cn-shenzhen.aliyuncs.com/GeoIP2-City.mmdb");
-				byte[] mmdb = FileUtil.stream2byte(response.getEntity().getContent());
-				if (mmdb != null)
-					FileUtil.byte2File(mmdbPath, mmdb);
+				if(mmdbVersion == GeoLite2City){
+					updateGeoLite2CityMMDBFile(mmdbPath);
+				}else if(mmdbVersion == GeoIP2City) {
+					HttpResponse response = HttpUtil.httpGet("http://quickutil.oss-cn-shenzhen.aliyuncs.com/GeoIP2-City.mmdb");
+					byte[] mmdb = FileUtil.stream2byte(response.getEntity().getContent());
+					if (mmdb != null)
+						FileUtil.byte2File(mmdbPath, mmdb);
+				}
 				mmdbFile = new File(mmdbPath);
 			}
 			databaseReader = new DatabaseReader.Builder(mmdbFile).build();
+
 			// 读取国家地区库
-			String countryStatePath = FileUtil.getCurrentPath() + "/country_state.json";
+			String jsonFileName = "country_state" + isoVersion.toString() + ".json";
+			String countryStatePath = FileUtil.getCurrentPath() + File.separator + jsonFileName;
 			File countryStateFile = new File(countryStatePath);
 			if (!countryStateFile.exists()) {
-				HttpResponse response = HttpUtil.httpGet("http://quickutil.oss-cn-shenzhen.aliyuncs.com/country_state.json");
+				HttpResponse response = HttpUtil.httpGet("http://quickutil.oss-cn-shenzhen.aliyuncs.com/" + jsonFileName);
 				byte[] countryState = FileUtil.stream2byte(response.getEntity().getContent());
 				if (countryState != null)
 					FileUtil.byte2File(countryStatePath, countryState);
 			}
 			// 生成缓存
+			String stateCodeNewVersion = "state_code" + isoVersion.toString();
 			List<Map<String, Object>> list = JsonUtil.toList(FileUtil.file2String(countryStatePath));
 			for (Map<String, Object> map : list) {
 				countryCodeByCountryNameMap.put((String) map.get("country_name"), (String) map.get("country_code"));
 				countryChineseByCountryCodeMap.put((String) map.get("country_code"), (String) map.get("country_chinese"));
 				stateNameByStateCodeMap.put((String) map.get("country_code") + "_" + (String) map.get("state_code"), (String) map.get("state_name"));
 				stateChineseByStateCodeMap.put((String) map.get("country_code") + "_" + (String) map.get("state_code"), (String) map.get("state_chinese"));
+				stateCodeByStateCodeNewVersionMap.put(map.get("country_code") + "_" + map.get("state_code"), (String)map.get("state_code"));
+				if(map.containsKey(stateCodeNewVersion)){
+					stateNameByStateCodeMap.put((String) map.get("country_code") + "_" + (String) map.get(stateCodeNewVersion), (String) map.get("state_name"));
+					stateChineseByStateCodeMap.put((String) map.get("country_code") + "_" + (String) map.get(stateCodeNewVersion), (String) map.get("state_chinese"));
+					stateCodeByStateCodeNewVersionMap.put(map.get("country_code") + "_" + map.get(stateCodeNewVersion), (String)map.get("state_code"));
+				}
+				//只建立到旧的state_code的映射，供geoCodeyByBaidu、geoCodeyByAmap使用
 				stateCodeByStateNameMap.put((String) map.get("country_code") + "_" + (String) map.get("state_name"), (String) map.get("state_code"));
 				stateCodeByStateNameChineseMap.put((String) map.get("country_code") + "_" + (String) map.get("state_chinese"), (String) map.get("state_code"));
+			}
+
+			//周期性更新MMDB文件
+			if(isoVersion != V20040308){
+				scheduleUpdateMMDBFileJob(mmdbVersion, mmdbPath);
 			}
 			return true;
 		} catch (Exception e) {
 			LOGGER.error("",e);
 		}
 		return false;
+	}
+
+	/**
+	 * 周期性更新MMDB文件
+	 */
+	private static void scheduleUpdateMMDBFileJob(MMDBVersion mmdbVersion, String mmdbPath){
+		try {
+			JobDetail jobDetail = JobBuilder.newJob(UpdateMMDBFileJob.class)
+					.withIdentity("UpdateMMDBFileJob")
+					.usingJobData("mmdbVersion", mmdbVersion.toString())
+					.usingJobData("mmdbPath", mmdbPath)
+					.build();
+			String cronExpression = "0 0 9 ? * THU";
+			CronScheduleBuilder cronScheduleBuilder = CronScheduleBuilder.cronSchedule(cronExpression);
+			Trigger trigger = TriggerBuilder.newTrigger()
+					.withIdentity("UpdateMMDBFileTrigger")
+					.withSchedule(cronScheduleBuilder)
+					.build();
+			Properties properties= new Properties();
+			properties.setProperty("org.quartz.threadPool.threadCount", "1");
+			Scheduler scheduler = new StdSchedulerFactory(properties).getScheduler();
+			scheduler.scheduleJob(jobDetail, trigger);
+			scheduler.start();
+		} catch (SchedulerException e) {
+			LOGGER.error("scheduleUpdateMMDBFileJob error",e);
+		}
+	}
+
+	public static class UpdateMMDBFileJob implements Job{
+		@Override
+		public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
+			JobDataMap dataMap = jobExecutionContext.getJobDetail().getJobDataMap();
+			String mmdbVersion = dataMap.getString("mmdbVersion");
+			String mmdbPath = dataMap.getString("mmdbPath");
+			if(mmdbVersion.equals(GeoLite2City.toString())){
+				updateGeoLite2CityMMDBFile(mmdbPath);
+			}
+			try {
+				databaseReader = new DatabaseReader.Builder(new File(mmdbPath)).build();
+			} catch (IOException e) {
+				LOGGER.error("", e);
+			}
+		}
+	}
+
+	private static void updateGeoLite2CityMMDBFile(String mmdbPath){
+		LOGGER.info("start update GeoLite2CityMMDB file");
+
+		//从官网获取GeoLite2-City.tar.gz文件
+		String dstFilePath = FileUtil.getCurrentPath() + "/GeoLite2-City.tar.gz";
+		HttpResponse response = HttpUtil.httpGet("http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz");
+		try {
+			byte[] tarGzBytes = FileUtil.stream2byte(response.getEntity().getContent());
+			if (tarGzBytes != null)
+				FileUtil.byte2File(dstFilePath, tarGzBytes);
+		} catch (IOException e) {
+			LOGGER.error("download GeoLite2-City.tar.gz file error", e);
+		}
+
+		//解压获取mmdb文件
+		String decompressRootPath = CompressUtil.decompressTarGz(dstFilePath, FileUtil.getCurrentPath());
+		FileInputStream fileInputStream = null;
+		List<String> pathList =  FileUtil.getAllFilePath(FileUtil.getCurrentPath(), null);
+		for(String path : pathList){
+			if(path.matches(".*GeoLite2-City.mmdb")){
+				try {
+					fileInputStream = new FileInputStream(path);
+				} catch (FileNotFoundException e) {
+					LOGGER.error("cannot find GeoLite2-City.mmdb file", e);
+				}
+				break;
+			}
+		}
+		byte[] mmdb = FileUtil.stream2byte(fileInputStream);
+		if (mmdb != null)
+			FileUtil.byte2File(mmdbPath, mmdb);
+
+		//删除压缩文件和解压后的文件夹
+		FileUtil.deleteFile(dstFilePath);
+		FileUtil.deleteFile(decompressRootPath);
+		LOGGER.info("end update GeoLite2CityMMDB file");
 	}
 
 	private static String countryCodeByCountryName(String countryName) {
@@ -99,6 +255,10 @@ public class GeoUtil {
 		return stateChineseByStateCodeMap.get(countryCode + "_" + stateCode);
 	}
 
+	private static String stateCodeByStateCodeNewVersion(String countryCode, String stateCode){
+		return stateCodeByStateCodeNewVersionMap.get(countryCode + "_" + stateCode);
+	}
+
 	private static String stateCodeByStateName(String countryCode, String stateName) {
 		return stateCodeByStateNameMap.get(countryCode + "_" + stateName);
 	}
@@ -106,6 +266,7 @@ public class GeoUtil {
 	private static String stateCodeByStateChinese(String countryCode, String stateName) {
 		return stateCodeByStateNameChineseMap.get(countryCode + "_" + stateName);
 	}
+
 
 	/**
 	 * 根据IP查询地理信息
@@ -135,6 +296,7 @@ public class GeoUtil {
 			stateCode = result.getMostSpecificSubdivision().getIsoCode();
 			state = stateNameByStateCode(countryCode, stateCode);
 			stateChinese = stateChineseByStateCode(countryCode, stateCode);
+			stateCode = stateCodeByStateCodeNewVersion(countryCode, stateCode);
 			city = result.getCity().getName();
 			if (countryCode != null && countryCode.equals("CN") && city != null && result.getCity().getNames().containsKey("zh-CN")) {
 				if (!result.getCity().getNames().get("zh-CN").endsWith("市")) {
