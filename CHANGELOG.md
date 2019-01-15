@@ -1,7 +1,7 @@
 # [1.5.1] - 2018-12-29
 
 ## add country_state_iso_3166_2_20171123.json
-* add state_code_iso_3166_2_20171123 field*
+*add state_code_iso_3166_2_20171123 field*
 1. 中国 CN
 CN-11 → CN-BJ
 CN-12 → CN-TJ
@@ -52,10 +52,7 @@ add state_code：9、10
 2. auto update GeoLite2-City.mmdb every Thursday at 9 a.m.
 3. it is compatible to use old GeoIP2-City.mmdb and country_state.json file
 
-## add DownloadUtil
-1. add download file from web function
-
-## add CompressUtil
+## CompressUtil
 1. add decompressTarGz function
 
 ## FileUtil

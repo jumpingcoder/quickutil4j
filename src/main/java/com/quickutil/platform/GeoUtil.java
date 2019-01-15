@@ -203,9 +203,19 @@ public class GeoUtil {
 
 	private static void updateGeoLite2CityMMDBFile(String mmdbPath){
 		LOGGER.info("start update GeoLite2CityMMDB file");
-		//从官网获取GeoLite2-City.tar.gz，经解压获取mmdb文件
+
+		//从官网获取GeoLite2-City.tar.gz文件
 		String dstFilePath = FileUtil.getCurrentPath() + "/GeoLite2-City.tar.gz";
-		DownloadUtil.downloadNet("http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz", dstFilePath);
+		HttpResponse response = HttpUtil.httpGet("http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz");
+		try {
+			byte[] tarGzBytes = FileUtil.stream2byte(response.getEntity().getContent());
+			if (tarGzBytes != null)
+				FileUtil.byte2File(dstFilePath, tarGzBytes);
+		} catch (IOException e) {
+			LOGGER.error("download GeoLite2-City.tar.gz file error", e);
+		}
+
+		//解压获取mmdb文件
 		String decompressRootPath = CompressUtil.decompressTarGz(dstFilePath, FileUtil.getCurrentPath());
 		FileInputStream fileInputStream = null;
 		List<String> pathList =  FileUtil.getAllFilePath(FileUtil.getCurrentPath(), null);
