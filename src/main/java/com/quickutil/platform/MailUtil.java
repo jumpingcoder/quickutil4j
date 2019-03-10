@@ -10,13 +10,15 @@ import com.quickutil.platform.def.AttachmentDef;
 
 import ch.qos.logback.classic.Logger;
 
-import java.io.File;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import javax.activation.DataHandler;
 import javax.mail.Authenticator;
 import javax.mail.Message.RecipientType;
-import javax.mail.Multipart;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
@@ -28,30 +30,58 @@ import javax.mail.util.ByteArrayDataSource;
 
 import org.slf4j.LoggerFactory;
 
-@Deprecated
-public class MailUtil {
-	
-	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(MailUtil.class);
-	
-	private static final String format = "text/html;charset=UTF-8";
-	private static Properties mailProperties = null;
-	private static Authenticator authenticator = null;
+public class Mail2Util {
+
+	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(Mail2Util.class);
+
+	private static Map<String, Session> sessionMap = new HashMap<String, Session>();
 
 	/**
 	 * 初始化
 	 * 
 	 * @param properties-配置
 	 */
-	public static void initMail(Properties properties) {
-		mailProperties = properties;
-		authenticator = new Authenticator() {
+	public static void addMailSession(Properties properties) {
+		Map<String, Properties> map = new HashMap<String, Properties>();
+		Enumeration<?> keys = properties.propertyNames();
+		List<String> sessionList = new ArrayList<String>();
+		while (keys.hasMoreElements()) {
+			String key = (String) keys.nextElement();
+			String sessionName = key.split("\\.")[0];
+			if (!sessionList.contains(sessionName)) {
+				map.put(sessionName, new Properties());
+				sessionList.add(sessionName);
+			}
+			map.get(sessionName).setProperty("mail" + key.substring(key.indexOf(".")), properties.getProperty(key));
+		}
+		for (String sessionName : sessionList) {
+			try {
+				sessionMap.put(sessionName, buildMailSession(map.get(sessionName)));
+			} catch (Exception e) {
+				LOGGER.error("", e);
+			}
+		}
+	}
+
+	public static void addMailSession(String sessionName, String host, String port, String username, String password, boolean isSSL) {
+		Properties oneProperty = new Properties();
+		oneProperty.setProperty("mail.smtp.host", host);
+		oneProperty.setProperty("mail.smtp.port", port);
+		oneProperty.setProperty("mail.smtp.user", username);
+		oneProperty.setProperty("mail.smtp.password", password);
+		oneProperty.setProperty("mail.smtp.starttls.enabl", "" + isSSL);
+		oneProperty.setProperty("mail.smtp.auth", "true");
+		sessionMap.put(sessionName, buildMailSession(oneProperty));
+	}
+
+	private static Session buildMailSession(Properties oneProperty) {
+		Authenticator authenticator = new Authenticator() {
 			@Override
 			protected PasswordAuthentication getPasswordAuthentication() {
-				String userName = mailProperties.getProperty("mail.user");
-				String password = (mailProperties.getProperty("mail.password"));
-				return new PasswordAuthentication(userName, password);
+				return new PasswordAuthentication(oneProperty.getProperty("mail.smtp.user"), oneProperty.getProperty("mail.smtp.password"));
 			}
 		};
+		return Session.getInstance(oneProperty, authenticator);
 	}
 
 	/**
@@ -65,7 +95,7 @@ public class MailUtil {
 	 * @param attachmentList-附件
 	 * @return
 	 */
-	public static boolean send(String[] toMails, String[] ccMails, String[] bccMails, String title, String text, List<AttachmentDef> attachmentList) {
+	public static boolean send(String sessionName, String from, String[] toMails, String[] ccMails, String[] bccMails, String title, String text, List<AttachmentDef> attachmentList) {
 		try {
 			InternetAddress[] toAddresses = new InternetAddress[toMails.length];
 			for (int i = 0; i < toMails.length; i++) {
@@ -83,87 +113,41 @@ public class MailUtil {
 			for (int i = 0; i < bccMails.length; i++) {
 				bccAddresses[i] = new InternetAddress(bccMails[i]);
 			}
-			Session mailSession = Session.getInstance(mailProperties, authenticator);
-			MimeMessage message = new MimeMessage(mailSession);
-			message.setFrom(new InternetAddress(mailProperties.getProperty("mail.user")));
+			MimeMessage message = new MimeMessage(sessionMap.get(sessionName));
+			message.setFrom(from);
 			message.setSubject(title);
-			message.setContent(text, format);
 			message.setRecipients(RecipientType.TO, toAddresses);
 			message.setRecipients(RecipientType.CC, ccAddresses);
 			message.setRecipients(RecipientType.BCC, bccAddresses);
+			MimeMultipart bodyMultipart = new MimeMultipart("related");
+			message.setContent(bodyMultipart);
+			MimeBodyPart htmlBodyPart = new MimeBodyPart();
+			bodyMultipart.addBodyPart(htmlBodyPart);
+			StringBuilder htmlContent = new StringBuilder(text);
+			// 附件
 			if (attachmentList != null) {
-				MimeMultipart bodyMultipart = new MimeMultipart("related");// 附件部分
-				message.setContent(bodyMultipart);
-				MimeBodyPart htmlPart = new MimeBodyPart();// 使用html嵌套
-				bodyMultipart.addBodyPart(htmlPart);
-				StringBuilder htmlContent = new StringBuilder("<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" width=\"1280\">");
+				htmlContent.append("<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" width=\"1280\">");
 				String random = CryptoUtil.randomMd5Code();
 				for (int i = 0; i < attachmentList.size(); i++) {
-					MimeBodyPart previewPart = new MimeBodyPart();
-					bodyMultipart.addBodyPart(previewPart);
-					previewPart.setDataHandler(new DataHandler(new ByteArrayDataSource(attachmentList.get(i).file, "application/octet-stream")));
-					previewPart.setFileName(attachmentList.get(i).fileName);
-					previewPart.setHeader("Content-ID", random + i);
-					htmlContent.append("<tr><td><img src=\"cid:" + random + i + "\"/></td></tr>");
+					MimeBodyPart attachmentPart = new MimeBodyPart();
+					bodyMultipart.addBodyPart(attachmentPart);
+					attachmentPart.setDataHandler(new DataHandler(new ByteArrayDataSource(attachmentList.get(i).file, "application/octet-stream")));
+					attachmentPart.setFileName(attachmentList.get(i).fileName);
+					attachmentPart.setHeader("Content-ID", random + i);
+					if (attachmentList.get(i).isImage)
+						htmlContent.append("<tr><td><img src=\"cid:" + random + i + "\"/></td></tr>");
 				}
 				htmlContent.append("</table>");
-				htmlPart.setContent(htmlContent.toString(), format);
 			}
-			// 生成邮件
+			htmlBodyPart.setContent(htmlContent.toString(), "text/html;charset=UTF-8");
+			// 发送邮件
 			message.saveChanges();
 			Transport.send(message);
 			return true;
 		} catch (Exception e) {
-			LOGGER.error("",e);
+			LOGGER.error("", e);
 		}
 		return false;
 	}
 
-	public static boolean send(String[] toMails, String[] ccMails, String[] bccMails, String title, String text, String[] attachments) {
-		try {
-			InternetAddress[] toAddresses = new InternetAddress[toMails.length];
-			for (int i = 0; i < toMails.length; i++) {
-				toAddresses[i] = new InternetAddress(toMails[i]);
-			}
-			if (ccMails == null)
-				ccMails = new String[0];
-			InternetAddress[] ccAddresses = new InternetAddress[ccMails.length];
-			for (int i = 0; i < ccMails.length; i++) {
-				ccAddresses[i] = new InternetAddress(ccMails[i]);
-			}
-			if (bccMails == null)
-				bccMails = new String[0];
-			InternetAddress[] bccAddresses = new InternetAddress[bccMails.length];
-			for (int i = 0; i < bccMails.length; i++) {
-				bccAddresses[i] = new InternetAddress(bccMails[i]);
-			}
-			Session mailSession = Session.getInstance(mailProperties, authenticator);
-			MimeMessage message = new MimeMessage(mailSession);
-			message.setFrom(new InternetAddress(mailProperties.getProperty("mail.user")));
-			message.setSubject(title);
-			message.setRecipients(RecipientType.TO, toAddresses);
-			message.setRecipients(RecipientType.CC, ccAddresses);
-			message.setRecipients(RecipientType.BCC, bccAddresses);
-			Multipart multipart = new MimeMultipart();
-			MimeBodyPart messageBodyPart = new MimeBodyPart();
-			messageBodyPart.setContent(text, "text/html;charset=UTF-8");
-			multipart.addBodyPart(messageBodyPart);
-			for (String filePath: attachments) {
-				MimeBodyPart attachPart = new MimeBodyPart();
-				File file = new File(filePath);
-				if (!file.exists()) {
-					throw new RuntimeException("not exist file: " + filePath);
-				}
-				attachPart.attachFile(filePath);
-				multipart.addBodyPart(attachPart);
-			}
-			message.setContent(multipart);
-			message.saveChanges();
-			Transport.send(message);
-			return true;
-		} catch (Exception e) {
-			LOGGER.error("",e);
-		}
-		return false;
-	}
 }

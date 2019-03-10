@@ -6,16 +6,10 @@
  */
 package com.quickutil.platform;
 
-import com.quickutil.platform.def.AttachmentDef;
-
 import ch.qos.logback.classic.Logger;
+import com.quickutil.platform.def.AttachmentDef;
+import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 import javax.activation.DataHandler;
 import javax.mail.Authenticator;
 import javax.mail.Message.RecipientType;
@@ -27,12 +21,11 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.util.ByteArrayDataSource;
+import java.util.*;
 
-import org.slf4j.LoggerFactory;
+public class MailPoolUtil {
 
-public class Mail2Util {
-
-	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(Mail2Util.class);
+	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(MailPoolUtil.class);
 
 	private static Map<String, Session> sessionMap = new HashMap<String, Session>();
 
