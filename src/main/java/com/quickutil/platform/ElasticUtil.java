@@ -356,11 +356,16 @@ public class ElasticUtil {
                 return new BulkResponse(BulkResponse.RequestFail, insertError);
             }
             if (!e.getAsJsonObject().has("_type")) {
-                entity.append(String.format(indexWithoutType, e.getAsJsonObject().get("_index").getAsString(), e.getAsJsonObject().get("_id").getAsString()) + e.toString() + "\n");
+                entity.append(String.format(indexWithoutType, e.getAsJsonObject().get("_index").getAsString(), e.getAsJsonObject().get("_id").getAsString()));
             } else {
-                entity.append(String.format(indexWithType, e.getAsJsonObject().get("_index").getAsString(), e.getAsJsonObject().get("_type").getAsString(), e.getAsJsonObject().get("_id").getAsString()) + e.toString() + "\n");
+                entity.append(String.format(indexWithType, e.getAsJsonObject().get("_index").getAsString(), e.getAsJsonObject().get("_type").getAsString(), e.getAsJsonObject().get("_id").getAsString()));
             }
+            e.getAsJsonObject().remove("_index");
+            e.getAsJsonObject().remove("_type");
+            e.getAsJsonObject().remove("_id");
+            entity.append(e.toString() + "\n");
         }
+        System.out.println(entity.toString());
         return bulk(null, null, entity.toString());
     }
 
@@ -379,10 +384,14 @@ public class ElasticUtil {
                 return new BulkResponse(BulkResponse.RequestFail, insertError);
             }
             if (map.get("_type") == null) {
-                entity.append(String.format(indexWithoutType, map.get("_index").toString(), map.get("_id").toString()) + JsonUtil.toJson(map) + "\n");
+                entity.append(String.format(indexWithoutType, map.get("_index").toString(), map.get("_id").toString()));
             } else {
-                entity.append(String.format(indexWithType, map.get("_index").toString(), map.get("_type").toString(), map.get("_id").toString()) + JsonUtil.toJson(map) + "\n");
+                entity.append(String.format(indexWithType, map.get("_index").toString(), map.get("_type").toString(), map.get("_id").toString()));
             }
+            map.remove("_index");
+            map.remove("_type");
+            map.remove("_id");
+            entity.append(JsonUtil.toJson(map) + "\n");
         }
         return bulk(null, null, entity.toString());
     }
@@ -404,21 +413,18 @@ public class ElasticUtil {
             }
             if (!e.getAsJsonObject().has("_type")) {
                 entity.append(String.format(updateWithoutType, e.getAsJsonObject().get("_index").getAsString(), e.getAsJsonObject().get("_id").getAsString()));
-                JsonObject item = new JsonObject();
-                item.add("doc", e);
-                if (upsert) {
-                    item.addProperty("doc_as_upsert", true);
-                }
-                entity.append(item.toString() + "\n");
             } else {
                 entity.append(String.format(updateWithType, e.getAsJsonObject().get("_index").getAsString(), e.getAsJsonObject().get("_type").getAsString(), e.getAsJsonObject().get("_id").getAsString()));
-                JsonObject item = new JsonObject();
-                item.add("doc", e);
-                if (upsert) {
-                    item.addProperty("doc_as_upsert", true);
-                }
-                entity.append(item.toString() + "\n");
             }
+            e.getAsJsonObject().remove("_index");
+            e.getAsJsonObject().remove("_type");
+            e.getAsJsonObject().remove("_id");
+            JsonObject item = new JsonObject();
+            item.add("doc", e);
+            if (upsert) {
+                item.addProperty("doc_as_upsert", true);
+            }
+            entity.append(item.toString() + "\n");
         }
         return bulk(null, null, entity.toString());
     }
@@ -440,21 +446,19 @@ public class ElasticUtil {
             }
             if (map.get("_type") == null) {
                 entity.append(String.format(updateWithoutType, map.get("_index").toString(), map.get("_id").toString()));
-                Map<String, Object> item = new HashMap<>();
-                item.put("doc", map);
-                if (upsert) {
-                    map.put("doc_as_upsert", true);
-                }
-                entity.append(JsonUtil.toJson(item) + "\n");
+
             } else {
                 entity.append(String.format(updateWithType, map.get("_index").toString(), map.get("_type").toString(), map.get("_id").toString()));
-                Map<String, Object> item = new HashMap<>();
-                item.put("doc", map);
-                if (upsert) {
-                    map.put("doc_as_upsert", true);
-                }
-                entity.append(JsonUtil.toJson(item) + "\n");
             }
+            map.remove("_index");
+            map.remove("_type");
+            map.remove("_id");
+            Map<String, Object> item = new HashMap<>();
+            item.put("doc", map);
+            if (upsert) {
+                map.put("doc_as_upsert", true);
+            }
+            entity.append(JsonUtil.toJson(item) + "\n");
         }
         return bulk(null, null, entity.toString());
     }
@@ -515,10 +519,14 @@ public class ElasticUtil {
                 return new BulkResponse(BulkResponse.RequestFail, insertError);
             }
             if (!e.getAsJsonObject().has("_type")) {
-                entity.append(String.format(deleteWithoutType, e.getAsJsonObject().get("_index").getAsString(), e.getAsJsonObject().get("_id").getAsString()) + e.toString() + "\n");
+                entity.append(String.format(deleteWithoutType, e.getAsJsonObject().get("_index").getAsString(), e.getAsJsonObject().get("_id").getAsString()));
             } else {
-                entity.append(String.format(deleteWithType, e.getAsJsonObject().get("_index").getAsString(), e.getAsJsonObject().get("_type").getAsString(), e.getAsJsonObject().get("_id").getAsString()) + e.toString() + "\n");
+                entity.append(String.format(deleteWithType, e.getAsJsonObject().get("_index").getAsString(), e.getAsJsonObject().get("_type").getAsString(), e.getAsJsonObject().get("_id").getAsString()));
             }
+            e.getAsJsonObject().remove("_index");
+            e.getAsJsonObject().remove("_type");
+            e.getAsJsonObject().remove("_id");
+            entity.append(e.toString() + "\n");
         }
         return bulk(null, null, entity.toString());
     }
@@ -538,10 +546,14 @@ public class ElasticUtil {
                 return new BulkResponse(BulkResponse.RequestFail, insertError);
             }
             if (map.get("_type") == null) {
-                entity.append(String.format(deleteWithoutType, map.get("_index").toString(), map.get("_id").toString()) + JsonUtil.toJson(map) + "\n");
+                entity.append(String.format(deleteWithoutType, map.get("_index").toString(), map.get("_id").toString()));
             } else {
-                entity.append(String.format(deleteWithType, map.get("_index").toString(), map.get("_type").toString(), map.get("_id").toString()) + JsonUtil.toJson(map) + "\n");
+                entity.append(String.format(deleteWithType, map.get("_index").toString(), map.get("_type").toString(), map.get("_id").toString()));
             }
+            map.remove("_index");
+            map.remove("_type");
+            map.remove("_id");
+            entity.append(JsonUtil.toJson(map) + "\n");
         }
         return bulk(null, null, entity.toString());
     }
