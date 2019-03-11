@@ -365,7 +365,6 @@ public class ElasticUtil {
             e.getAsJsonObject().remove("_id");
             entity.append(e.toString() + "\n");
         }
-        System.out.println(entity.toString());
         return bulk(null, null, entity.toString());
     }
 
