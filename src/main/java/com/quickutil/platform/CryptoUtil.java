@@ -106,7 +106,7 @@ public class CryptoUtil {
 	/**
 	 * hmac-sha1签名
 	 * 
-	 * @param encryptText-需要签名的内容
+	 * @param encryptContent-需要签名的内容
 	 * @param encryptKey-用于签名的KEY
 	 * @return
 	 */

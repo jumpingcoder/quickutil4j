@@ -193,6 +193,8 @@ public class StringUtil {
 	 * @param suffix-后缀(optional,default empty)
 	 * @return
 	 */
+
+
 	public static String joinString(String[] array, String delimiter, String prefix, String suffix) {
 		Objects.requireNonNull(delimiter, "The delimiter must not be null");
 		if (null == prefix)

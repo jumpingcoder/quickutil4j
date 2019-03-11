@@ -96,7 +96,7 @@ public class AliCellUtil {
 	 * 
 	 * @param dayuName-大鱼名称
 	 * @param cell-手机号
-	 * @param message-发送的信息模板
+	 * @param smsParamMap-发送的信息模板
 	 * @return
 	 */
 	public static boolean sendMessage(String dayuName, String cell, Map<String, Object> smsParamMap) {
