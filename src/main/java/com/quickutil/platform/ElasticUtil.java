@@ -675,6 +675,17 @@ public class ElasticUtil {
         return null;
     }
 
+    public String getFromPath(String path) {
+        HttpResponse response = null;
+        try {
+            response = client.execute(getMethod(host + path));
+            return getEntity(response);
+        } catch (Exception e) {
+            LOGGER.error("", e);
+        }
+        return null;
+    }
+
     /**
      * ES管理：正则获取所有相关的 index 名字
      *
