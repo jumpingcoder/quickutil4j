@@ -9,10 +9,7 @@ import org.apache.http.*;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.*;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.conn.routing.HttpRoute;
@@ -120,6 +117,12 @@ public class ElasticUtil {
             httpPost.setEntity(new ByteArrayEntity(entity.getBytes()));
         }
         return httpPost;
+    }
+
+    private HttpUriRequest deleteMethod(String url) {
+        HttpDelete httpDelete = new HttpDelete(url);
+        httpDelete.setConfig(requestConfig);
+        return httpDelete;
     }
 
     /**
@@ -231,6 +234,43 @@ public class ElasticUtil {
             }
         } catch (Exception e) {
             LOGGER.error("fail on url: " + url + "\nwith source:" + sourceString + "\n", e);
+        } finally {
+            HttpClientUtils.closeQuietly(response);
+        }
+        return false;
+    }
+
+    /**
+     * 写入一个文档,返回成功或失败
+     *
+     * @param index-ES的index
+     * @param type-ES的type
+     * @param id-ES的id
+     * @return 返回结果
+     */
+    public boolean delete(String index, String type, String id) {
+        if (null == index) {
+            return false;
+        }
+        if (type == null && id != null) {
+            return false;
+        }
+        String url = null;
+        if (id == null)
+            url = String.format("%s/%s", host, index).replace(" ", "");
+        else
+            url = String.format("%s/%s/%s/%s", host, index, type, id).replace(" ", "");
+        HttpResponse response = null;
+        try {
+            response = client.execute(deleteMethod(url));
+            if (200 == response.getStatusLine().getStatusCode() || 201 == response.getStatusLine().getStatusCode()) {
+                return true;
+            } else {
+                LOGGER.error("fail on delete url: " + url + "\n" + getEntity(response));
+                return false;
+            }
+        } catch (Exception e) {
+            LOGGER.error("fail on delete url: " + url, e);
         } finally {
             HttpClientUtils.closeQuietly(response);
         }
