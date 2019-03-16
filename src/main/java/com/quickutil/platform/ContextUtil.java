@@ -33,7 +33,7 @@ public class ContextUtil {
 
     protected transient static ThreadLocal<HttpServletRequest> request = new ThreadLocal<HttpServletRequest>();
     protected transient static ThreadLocal<HttpServletResponse> response = new ThreadLocal<HttpServletResponse>();
-    private static final Logger LOGGER = LoggerFactory.getLogger(ElasticUtil.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ContextUtil.class);
 
     /**
      * 设置request
