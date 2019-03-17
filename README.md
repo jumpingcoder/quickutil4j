@@ -11,7 +11,7 @@ Documents can be found here [http://quickutil.com](http://quickutil.com)
 ```xml
 <repository>
 	<id>com.quickutil</id>
-	<url>http://nexus.quickutil.com/content/repositories/com.quickutil</url>
+	<url>http://nexus.quickutil.com/repository/com.quickutil</url>
 </repository>
 ```
 
