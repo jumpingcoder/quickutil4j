@@ -25,6 +25,7 @@ public class AliSmsPoolUtil {
                 String accessSecret = smsProperties.getProperty(key + ".accessSecret");
                 String templateCode = smsProperties.getProperty(key + ".templateCode");
                 String signName = smsProperties.getProperty(key + ".signName");
+                signName = new String(signName.getBytes("ISO-8859-1"), "utf-8");
                 smsMap.put(key, new AliSmsUtil(accessKey, accessSecret, templateCode, signName));
             } catch (Exception e) {
                 LOGGER.error("", e);

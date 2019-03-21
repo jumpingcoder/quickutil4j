@@ -23,11 +23,11 @@ public class AliSmsUtil {
     private String templateCode;
     private String signName;
 
-    public AliSmsUtil(String accessKey, String accessSecret, String templateCode, String SignName) {
+    public AliSmsUtil(String accessKey, String accessSecret, String templateCode, String signName) {
         DefaultProfile profile = DefaultProfile.getProfile("default", accessKey, accessSecret);
         client = new DefaultAcsClient(profile);
         this.templateCode = templateCode;
-        this.signName = SignName;
+        this.signName = signName;
     }
 
     public String send(List<Map<String, Object>> list) {
@@ -40,6 +40,7 @@ public class AliSmsUtil {
             }
             phoneNumbers.add((String) map.get("phoneNumber"));
             signNames.add(signName);
+            map.remove("phoneNumber");
         }
         CommonRequest request = new CommonRequest();
         //request.setProtocol(ProtocolType.HTTPS);
@@ -47,8 +48,11 @@ public class AliSmsUtil {
         request.setDomain("dysmsapi.aliyuncs.com");
         request.setVersion("2017-05-25");
         request.setAction("SendBatchSms");
+        LOGGER.info(JsonUtil.toJson(phoneNumbers));
+        LOGGER.info(JsonUtil.toJson(signNames));
+        LOGGER.info(JsonUtil.toJson(list));
         request.putQueryParameter("PhoneNumberJson", JsonUtil.toJson(phoneNumbers));
-        request.putQueryParameter("TemplateCode", "SMS_1955290");
+        request.putQueryParameter("TemplateCode", this.templateCode);
         request.putQueryParameter("SignNameJson", JsonUtil.toJson(signNames));
         request.putQueryParameter("TemplateParamJson", JsonUtil.toJson(list));
         try {
