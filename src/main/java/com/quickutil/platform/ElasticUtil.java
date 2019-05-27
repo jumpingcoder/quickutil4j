@@ -33,11 +33,7 @@ import org.apache.http.TruncatedChunkException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.*;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.conn.routing.HttpRoute;
@@ -689,6 +685,22 @@ public class ElasticUtil {
 			HttpClientUtils.closeQuietly(response);
 		}
 	}
+
+    public boolean deleteIndex(List<String> indices) {
+        String deleteIndexUrl = String.format(hostIndexFormat, host, String.join(",", indices));
+        HttpResponse response = null;
+        try {
+            response = HttpUtil.httpDelete(deleteIndexUrl);
+            if (200 != response.getStatusLine().getStatusCode()) {
+                LOGGER.error("delete index fail, response: " + getEntity(response));
+                return false;
+            }
+            return true;
+        } catch (Exception e) {
+            LOGGER.error("delete index error", e);
+            return false;
+        }
+    }
 
 	/**
 	 * 获取 index 的 mapping
