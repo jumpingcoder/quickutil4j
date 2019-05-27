@@ -33,11 +33,7 @@ import org.apache.http.TruncatedChunkException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.*;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.conn.routing.HttpRoute;
@@ -1077,6 +1073,17 @@ public class ElasticUtil {
 		httpPut.setConfig(requestConfig);
 		httpPut.setEntity(new ByteArrayEntity(entity.toString().getBytes()));
 		return httpMethod(httpPut);
+	}
+
+	/**
+	 * 使用 http delete 将请求发给 es
+	 * @param urlSuffix 例如 删除指定index
+	 * @return
+	 */
+	public String delete(String urlSuffix) {
+		HttpDelete httpDelete = new HttpDelete(host + urlSuffix);
+		httpDelete.setConfig(requestConfig);
+		return httpMethod(httpDelete);
 	}
 
 	private String httpMethod(HttpRequestBase httpRequestBase) {
