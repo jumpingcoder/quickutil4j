@@ -951,6 +951,15 @@ public class ElasticUtil {
 		}
 	}
 
+	public String deleteIndex(List<String> indices) {
+		try {
+			return delete(String.join(",", indices));
+		} catch (Exception e) {
+			LOGGER.error("delete index error", e);
+			return null;
+		}
+	}
+
 	/**
 	 * delete by query api
 	 * @param index 支持多个 index, 用逗号分隔
