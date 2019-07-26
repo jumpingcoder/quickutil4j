@@ -88,12 +88,15 @@ public class ElasticUtil {
         if (username != null && password != null) {
             Header header = new BasicHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes()));
             headers.add(header);
-            headers.add(new BasicHeader("Content-Type", "application/json"));
         }
+        headers.add(new BasicHeader("Content-Type", "application/json"));
         this.host = host;
         connectionManager.setMaxPerRoute(new HttpRoute(new HttpHost(host)), 50);//设置连接池
         connectionManager.setMaxTotal(50);
-        this.client = HttpClients.custom().setDefaultHeaders(headers).setConnectionManager(connectionManager).setRetryHandler(httpRequestRetryHandler).build();
+        this.client = HttpClients.custom()
+            .setDefaultHeaders(headers)
+            .setConnectionManager(connectionManager)
+            .setRetryHandler(httpRequestRetryHandler).build();
     }
 
     public HttpClient getElasticClient() {
