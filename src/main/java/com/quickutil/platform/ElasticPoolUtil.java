@@ -5,6 +5,11 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+/**
+ * ES工具-配置池
+ *
+ * @author 0.5
+ */
 public class ElasticPoolUtil {
 
     private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(ElasticPoolUtil.class);

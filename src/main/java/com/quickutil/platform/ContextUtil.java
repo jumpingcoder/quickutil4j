@@ -1,9 +1,3 @@
-/**
- * Http会话过滤器容器
- *
- * @class ContextUtil
- * @author 0.5
- */
 package com.quickutil.platform;
 
 import com.google.gson.JsonObject;
@@ -14,6 +8,11 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * Http会话过滤器-容器
+ *
+ * @author 0.5
+ */
 public class ContextUtil {
 
     private static final String iPhone = "iPhone";

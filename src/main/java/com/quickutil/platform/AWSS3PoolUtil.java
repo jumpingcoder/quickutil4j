@@ -5,6 +5,12 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+/**
+ * AWS对象存储工具-配置池
+ * 官方文档参见：https://aws.amazon.com/cn/sdk-for-java/
+ *
+ * @author 0.5
+ */
 public class AWSS3PoolUtil {
 
     private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(AWSS3PoolUtil.class);

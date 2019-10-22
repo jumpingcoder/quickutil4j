@@ -1,9 +1,3 @@
-/**
- * IP工具
- * 
- * @class IpUtil
- * @author 0.5
- */
 package com.quickutil.platform;
 
 import java.net.Inet4Address;
@@ -17,6 +11,11 @@ import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
 
+/**
+ * IP工具
+ *
+ * @author 0.5
+ */
 public class IPUtil {
 	
 	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(IPUtil.class);

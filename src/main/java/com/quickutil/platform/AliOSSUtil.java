@@ -16,6 +16,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * 阿里云对象存储工具
+ * 官方文档参见：https://help.aliyun.com
+ *
+ * @author 0.5
+ */
 public class AliOSSUtil {
     private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(AliOSSUtil.class);
 

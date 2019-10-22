@@ -1,37 +1,26 @@
 /**
  * Json工具
- * 
+ *
  * @class JsonUtil
  * @author 0.5
  */
 package com.quickutil.platform;
 
-import java.util.List;
-import java.util.Map;
-
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import java.util.List;
+import java.util.Map;
 
 public class JsonUtil {
 
 	private static Gson gson = new Gson();
 
 	/**
-	 * json字符串转字符数组
-	 * 
-	 * @param json-json字符串
-	 * @return
-	 */
-	public static List<String> toListString(String json) {
-		return gson.fromJson(json, new TypeToken<List<String>>() {
-		}.getType());
-	}
-
-	/**
-	 * json字符串转哈希表
-	 * 
+	 * json字符串转Map
+	 *
 	 * @param json-json字符串
 	 * @return
 	 */
@@ -41,8 +30,19 @@ public class JsonUtil {
 	}
 
 	/**
-	 * json字符串转哈希表数组
-	 * 
+	 * json字符串转List<String>
+	 *
+	 * @param json-json字符串
+	 * @return
+	 */
+	public static List<String> toListString(String json) {
+		return gson.fromJson(json, new TypeToken<List<String>>() {
+		}.getType());
+	}
+
+	/**
+	 * json字符串转List<Map<String,Object>>
+	 *
 	 * @param json-json字符串
 	 * @return
 	 */
@@ -53,7 +53,7 @@ public class JsonUtil {
 
 	/**
 	 * json字符串转json对象
-	 * 
+	 *
 	 * @param json-json字符串
 	 * @return
 	 */
@@ -63,7 +63,7 @@ public class JsonUtil {
 
 	/**
 	 * json字符串转json数组
-	 * 
+	 *
 	 * @param json-json字符串
 	 * @return
 	 */
@@ -73,7 +73,7 @@ public class JsonUtil {
 
 	/**
 	 * 对象转json字符串
-	 * 
+	 *
 	 * @param object-对象
 	 * @return
 	 */
@@ -82,14 +82,26 @@ public class JsonUtil {
 	}
 
 	/**
-	 * 将json字符串封装为jsonp所需格式
-	 * 
+	 * 对象转json字符串
+	 *
 	 * @param object-对象
 	 * @return
 	 */
+	public static String toJsonWithFormat(Object object, GsonBuilder builder) {
+		return builder.create().toJson(object);
+	}
+
+	/**
+	 * 将json字符串封装为jsonp所需格式
+	 *
+	 * @param callback-回调函数名
+	 * @param json-数据结果
+	 * @return
+	 */
 	public static String toJsonP(String callback, String json) {
-		if (callback == null)
+		if (callback == null) {
 			return json;
+		}
 		return callback + "(" + json + ")";
 	}
 }

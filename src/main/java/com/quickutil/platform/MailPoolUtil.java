@@ -1,9 +1,3 @@
-/**
- * 邮件发送工具
- *
- * @class MailUtil
- * @author 0.5
- */
 package com.quickutil.platform;
 
 import ch.qos.logback.classic.Logger;
@@ -11,6 +5,11 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+/**
+ * 邮件发送工具-配置池
+ *
+ * @author 0.5
+ */
 public class MailPoolUtil {
 
     private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(MailPoolUtil.class);

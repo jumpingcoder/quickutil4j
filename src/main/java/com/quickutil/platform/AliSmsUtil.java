@@ -15,6 +15,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 阿里云大于发送短信工具
+ * 官方文档参见：https://help.aliyun.com
+ *
+ * @author 0.5
+ */
 public class AliSmsUtil {
 
     private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(AliSmsUtil.class);
@@ -58,9 +64,7 @@ public class AliSmsUtil {
         try {
             CommonResponse response = client.getCommonResponse(request);
             return response.getData();
-        } catch (ServerException e) {
-            e.printStackTrace();
-        } catch (ClientException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;

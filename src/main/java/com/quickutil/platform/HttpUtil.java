@@ -1,9 +1,3 @@
-/**
- * HttpClient工具
- *
- * @class HttpUtil
- * @author 0.5
- */
 package com.quickutil.platform;
 
 import ch.qos.logback.classic.Logger;
@@ -29,6 +23,11 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Map;
 
+/**
+ * HttpClient工具
+ *
+ * @author 0.5
+ */
 public class HttpUtil {
 
     private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(HttpUtil.class);

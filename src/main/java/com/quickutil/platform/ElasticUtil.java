@@ -33,13 +33,13 @@ import java.util.*;
 import java.util.function.Function;
 
 /**
+ * ES工具
+ *
  * @author shijie.ruan
  */
 public class ElasticUtil {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ElasticUtil.class);
-//    private static final String indexFormat = "/%s/";
-//    private static final String indexTypeFormat = "/%s/%s/";
 
     private HttpClient client;
     private String host;

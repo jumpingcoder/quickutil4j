@@ -1,9 +1,3 @@
-/**
- * 登录工具-暂不开放
- * 
- * @class PassportUtil
- * @author 0.5
- */
 package com.quickutil.platform;
 
 import java.net.URLEncoder;
@@ -16,6 +10,11 @@ import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
 
+/**
+ * Oauth工具-已废弃
+ *
+ * @author 0.5
+ */
 public class PassportUtil {
 	
 	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(PassportUtil.class);

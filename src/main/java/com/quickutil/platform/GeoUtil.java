@@ -1,10 +1,3 @@
-/**
- * IP/经纬度地理查询
- * 
- * @class GeoUtil
- * @author 0.5
- */
-
 package com.quickutil.platform;
 
 import com.google.gson.JsonArray;
@@ -36,6 +29,11 @@ import static com.quickutil.platform.GeoUtil.ISO_3166_2_Version.V20171123;
 import static com.quickutil.platform.GeoUtil.MMDBVersion.GeoIP2City;
 import static com.quickutil.platform.GeoUtil.MMDBVersion.GeoLite2City;
 
+/**
+ * IP/经纬度地理工具
+ *
+ * @author 0.5
+ */
 public class GeoUtil {
 	
 	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(GeoUtil.class);

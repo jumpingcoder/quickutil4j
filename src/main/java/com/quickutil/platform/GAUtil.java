@@ -23,6 +23,12 @@ import java.util.Map;
 import java.util.Properties;
 import org.slf4j.LoggerFactory;
 
+/**
+ * GA工具
+ * 官方文档详见https://developers.google.com/analytics/devguides/reporting/core/v3/quickstart/installed-java
+ *
+ * @author 0.5
+ */
 public class GAUtil {
 
 	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(GAUtil.class);

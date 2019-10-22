@@ -1,10 +1,3 @@
-/**
- * JdbcUtil
- *
- * @class JdbcUtil
- * @author 0.5
- */
-
 package com.quickutil.platform;
 
 import ch.qos.logback.classic.Logger;
@@ -15,6 +8,11 @@ import org.slf4j.LoggerFactory;
 import java.sql.*;
 import java.util.*;
 
+/**
+ * 关系型数据库Jdbc工具
+ *
+ * @author 0.5
+ */
 public class JdbcUtil {
 
     private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(JdbcUtil.class);

@@ -12,6 +12,11 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.slf4j.LoggerFactory;
 
 
+/**
+ * 文件压缩解压缩工具
+ *
+ * @author shijie.ruan
+ */
 public class CompressUtil {
 
     private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(CompressUtil.class);

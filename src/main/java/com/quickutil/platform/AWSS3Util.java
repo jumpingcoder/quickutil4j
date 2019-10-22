@@ -16,6 +16,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * AWS对象存储工具
+ * 官方文档参见：https://aws.amazon.com/cn/sdk-for-java/
+ *
+ * @author 0.5
+ */
 public class AWSS3Util {
 
     private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(AWSS3Util.class);

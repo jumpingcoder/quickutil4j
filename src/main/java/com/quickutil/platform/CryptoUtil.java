@@ -1,9 +1,3 @@
-/**
- * 加解密工具
- * 
- * @class CryptoUtil
- * @author 0.5
- */
 package com.quickutil.platform;
 
 import java.security.MessageDigest;
@@ -23,6 +17,11 @@ import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
 
+/**
+ * 加解密工具
+ *
+ * @author 0.5
+ */
 public class CryptoUtil {
 
 	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(CryptoUtil.class);
@@ -37,7 +36,7 @@ public class CryptoUtil {
 	/**
 	 * 获取随机md5
 	 * 
-	 * @return
+	 * @return 随机的md5字符串
 	 */
 	public static String randomMd5Code() {
 		return md5Encode((System.currentTimeMillis() + random.nextDouble() + "").getBytes());
@@ -46,7 +45,7 @@ public class CryptoUtil {
 	/**
 	 * 获取随机sha1
 	 * 
-	 * @return
+	 * @return 随机的sha1字符串
 	 */
 	public static String randomSha1Code() {
 		return sha1Encode((System.currentTimeMillis() + random.nextDouble() + "").getBytes());
@@ -56,7 +55,7 @@ public class CryptoUtil {
 	 * 计算md5
 	 * 
 	 * @param bt-字节数组
-	 * @return
+	 * @return 计算过md5的字符串
 	 */
 	public static String md5Encode(byte[] bt) {
 		try {
@@ -71,7 +70,7 @@ public class CryptoUtil {
 	 * 计算sha1
 	 * 
 	 * @param bt-字节数组
-	 * @return
+	 * @return 计算过sha1的字符串
 	 */
 	public static String sha1Encode(byte[] bt) {
 		try {
@@ -87,7 +86,7 @@ public class CryptoUtil {
 	 * 
 	 * @param encryptContent-需要签名的内容
 	 * @param encryptKey-用于签名的KEY
-	 * @return
+	 * @return 计算过HMAC-md5的字符串
 	 */
 	public static String HmacMD5Encrypt(byte[] encryptContent, String encryptKey) {
 		try {
@@ -108,7 +107,7 @@ public class CryptoUtil {
 	 * 
 	 * @param encryptContent-需要签名的内容
 	 * @param encryptKey-用于签名的KEY
-	 * @return
+	 * @return 计算过HMAC-sha1的字符串
 	 */
 	public static String HmacSHA1Encrypt(byte[] encryptContent, String encryptKey) {
 		try {
@@ -128,7 +127,7 @@ public class CryptoUtil {
 	 * byte[]转16进制字符串
 	 * 
 	 * @param bt-字节数组
-	 * @return
+	 * @return 字节流序列化成16进制字符串表示的字符串
 	 */
 	public static String byte2hex(byte[] bt) {
 		if (bt == null)
@@ -146,7 +145,7 @@ public class CryptoUtil {
 	 * 16进制字符串转byte[]
 	 * 
 	 * @param hexString-16进制字符串
-	 * @return
+	 * @return 16进制字符串表示的字符串反序列化成字节流
 	 */
 	public static byte[] hex2byte(String hexString) {
 		if (hexString == null || hexString.equals("")) {
@@ -168,11 +167,11 @@ public class CryptoUtil {
 	}
 
 	/**
-	 * 非标准aes加密
+	 * aes加密
 	 * 
 	 * @param content-需要加密的字节数组
 	 * @param password-加密密钥
-	 * @return
+	 * @return aes加密后的字节流
 	 */
 	public static byte[] aesEncrypt(byte[] content, String password) {
 		try {
@@ -193,12 +192,11 @@ public class CryptoUtil {
 	}
 
 	/**
-	 * 非标准aes字节数组解密
+	 * aes解密
 	 * 
 	 * @param content-需要解密的字节数组
 	 * @param password-解密密钥
-	 * @return
-	 * @throws Exception 
+	 * @return aes解密后的字节流
 	 */
 	public static byte[] aesDecrypt(byte[] content, String password) throws Exception {
 		KeyGenerator kgen = KeyGenerator.getInstance("AES");
@@ -214,34 +212,33 @@ public class CryptoUtil {
 	}
 
 	/**
-	 * 非标准aes字符串加密
+	 * aes字符串加密
 	 * 
 	 * @param content-需要加密的字符串
 	 * @param password-加密密钥
-	 * @return
+	 * @return aes加密后的字符串
 	 */
 	public static String aesEncryptStr(String content, String password) {
 		return byte2hex(aesEncrypt(content.getBytes(), password));
 	}
 
 	/**
-	 * 非标准aes字符串解密
+	 * aes字符串解密
 	 * 
 	 * @param content-需要解密的字符串
 	 * @param password-解密密钥
-	 * @return
-	 * @throws Exception 
+	 * @return aes解密后的字符串
 	 */
 	public static String aesDecryptStr(String content, String password) throws Exception {
 		return new String(aesDecrypt(hex2byte(content), password));
 	}
 
 	/**
-	 * 标准aes-ecb加密
+	 * aes-ecb加密
 	 * 
 	 * @param content-需要加密的字节数组
 	 * @param password-加密的密钥
-	 * @return
+	 * @return aes-ebc加密后的字节流
 	 */
 	public static byte[] aesecbEncrypt(byte[] content, String password) {
 		try {
@@ -256,11 +253,11 @@ public class CryptoUtil {
 	}
 
 	/**
-	 * 标准aes-ecb解密
+	 * aes-ecb解密
 	 * 
 	 * @param content-需要解密的字节数组
 	 * @param password-解密的密钥
-	 * @return
+	 * @return aes-ebc解密后的字节流
 	 */
 	public static byte[] aesecbDecrypt(byte[] content, String password) {
 		try {
@@ -275,11 +272,11 @@ public class CryptoUtil {
 	}
 
 	/**
-	 * 标准aes-ecb加密
+	 * aes-cbc加密
 	 * 
 	 * @param content-需要加密的字节数组
 	 * @param password-加密的密钥
-	 * @return
+	 * @return aes-cbc加密后的字节流
 	 */
 	public static byte[] aescbcEncrypt(byte[] content, String password, byte[] iv) {
 		try {
@@ -294,11 +291,11 @@ public class CryptoUtil {
 	}
 
 	/**
-	 * 标准aes-ecb解密
+	 * 标准aes-cbc解密
 	 * 
 	 * @param content-需要解密的字节数组
 	 * @param password-解密的密钥
-	 * @return
+	 * @return aes-cbc解密后的字节流
 	 */
 	public static byte[] aescbcDecrypt(byte[] content, String password, byte[] iv) {
 		try {
@@ -316,7 +313,7 @@ public class CryptoUtil {
 	 * base64字符串转换为byte[]
 	 * 
 	 * @param baseString-base64字符串
-	 * @return
+	 * @return 字节流
 	 */
 	public static byte[] base64ToByte(String baseString) {
 		try {
@@ -331,7 +328,7 @@ public class CryptoUtil {
 	 * byte[]转换为base64字符串
 	 * 
 	 * @param bt-字节数组
-	 * @return
+	 * @return 字符串
 	 */
 	public static String byteToBase64(byte[] bt) {
 		try {

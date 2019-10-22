@@ -5,6 +5,12 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+/**
+ * 阿里云对象存储工具-配置池
+ * 官方文档参见：https://help.aliyun.com
+ *
+ * @author 0.5
+ */
 public class AliOSSPoolUtil {
     private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(AliOSSPoolUtil.class);
 

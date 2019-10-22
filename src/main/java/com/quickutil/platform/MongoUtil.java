@@ -1,9 +1,3 @@
-/**
- * MongoDB工具
- *
- * @class MongoUtil
- * @author 0.5
- */
 package com.quickutil.platform;
 
 import ch.qos.logback.classic.Logger;
@@ -26,6 +20,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+/**
+ * MongoDB客户端工具
+ *
+ * @author 0.5
+ */
 public class MongoUtil {
 
     private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(MongoUtil.class);

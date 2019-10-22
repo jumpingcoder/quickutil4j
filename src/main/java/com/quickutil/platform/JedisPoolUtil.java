@@ -1,9 +1,3 @@
-/**
- * Redis工具
- *
- * @class JedisUtil
- * @author 0.5
- */
 package com.quickutil.platform;
 
 import ch.qos.logback.classic.Logger;
@@ -11,6 +5,11 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+/**
+ * Redis工具-配置池
+ *
+ * @author 0.5
+ */
 public class JedisPoolUtil {
 
     private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(JedisPoolUtil.class);
