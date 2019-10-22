@@ -1,5 +1,6 @@
 package com.quickutil.platform.def;
 
+import com.google.gson.GsonBuilder;
 import com.quickutil.platform.JsonUtil;
 
 public class Result {
@@ -37,6 +38,10 @@ public class Result {
 
 	public String toJson() {
 		return JsonUtil.toJson(this);
+	}
+
+	public String toJsonWithFormat(GsonBuilder builder) {
+		return JsonUtil.toJsonWithFormat(this, builder);
 	}
 
 	public Result clone() {
