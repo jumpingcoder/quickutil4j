@@ -127,6 +127,18 @@ public class ElasticUtil {
         httpDelete.setConfig(requestConfig);
         return httpDelete;
     }
+    /**
+     * 获取metadata
+     */
+    public String getEsMetaData(){
+        try {
+            HttpResponse response=client.execute(getMethod("/"));
+            return getEntity(response);
+        }catch (Exception e){
+            LOGGER.error("",e);
+        }
+        return null;
+    }
 
     /**
      * 使用id查询数据 有任何错误返回都返回空
