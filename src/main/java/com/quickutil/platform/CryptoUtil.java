@@ -35,7 +35,7 @@ public class CryptoUtil {
 
 	/**
 	 * 获取随机md5
-	 * 
+	 *
 	 * @return 随机的md5字符串
 	 */
 	public static String randomMd5Code() {
@@ -44,7 +44,7 @@ public class CryptoUtil {
 
 	/**
 	 * 获取随机sha1
-	 * 
+	 *
 	 * @return 随机的sha1字符串
 	 */
 	public static String randomSha1Code() {
@@ -53,7 +53,7 @@ public class CryptoUtil {
 
 	/**
 	 * 计算md5
-	 * 
+	 *
 	 * @param bt-字节数组
 	 * @return 计算过md5的字符串
 	 */
@@ -68,7 +68,7 @@ public class CryptoUtil {
 
 	/**
 	 * 计算sha1
-	 * 
+	 *
 	 * @param bt-字节数组
 	 * @return 计算过sha1的字符串
 	 */
@@ -83,7 +83,7 @@ public class CryptoUtil {
 
 	/**
 	 * hmac-md5签名
-	 * 
+	 *
 	 * @param encryptContent-需要签名的内容
 	 * @param encryptKey-用于签名的KEY
 	 * @return 计算过HMAC-md5的字符串
@@ -104,7 +104,7 @@ public class CryptoUtil {
 
 	/**
 	 * hmac-sha1签名
-	 * 
+	 *
 	 * @param encryptContent-需要签名的内容
 	 * @param encryptKey-用于签名的KEY
 	 * @return 计算过HMAC-sha1的字符串
@@ -125,7 +125,7 @@ public class CryptoUtil {
 
 	/**
 	 * byte[]转16进制字符串
-	 * 
+	 *
 	 * @param bt-字节数组
 	 * @return 字节流序列化成16进制字符串表示的字符串
 	 */
@@ -143,7 +143,7 @@ public class CryptoUtil {
 
 	/**
 	 * 16进制字符串转byte[]
-	 * 
+	 *
 	 * @param hexString-16进制字符串
 	 * @return 16进制字符串表示的字符串反序列化成字节流
 	 */
@@ -168,7 +168,7 @@ public class CryptoUtil {
 
 	/**
 	 * aes加密
-	 * 
+	 *
 	 * @param content-需要加密的字节数组
 	 * @param password-加密密钥
 	 * @return aes加密后的字节流
@@ -193,7 +193,7 @@ public class CryptoUtil {
 
 	/**
 	 * aes解密
-	 * 
+	 *
 	 * @param content-需要解密的字节数组
 	 * @param password-解密密钥
 	 * @return aes解密后的字节流
@@ -213,7 +213,7 @@ public class CryptoUtil {
 
 	/**
 	 * aes字符串加密
-	 * 
+	 *
 	 * @param content-需要加密的字符串
 	 * @param password-加密密钥
 	 * @return aes加密后的字符串
@@ -224,7 +224,7 @@ public class CryptoUtil {
 
 	/**
 	 * aes字符串解密
-	 * 
+	 *
 	 * @param content-需要解密的字符串
 	 * @param password-解密密钥
 	 * @return aes解密后的字符串
@@ -235,7 +235,7 @@ public class CryptoUtil {
 
 	/**
 	 * aes-ecb加密
-	 * 
+	 *
 	 * @param content-需要加密的字节数组
 	 * @param password-加密的密钥
 	 * @return aes-ebc加密后的字节流
@@ -254,7 +254,7 @@ public class CryptoUtil {
 
 	/**
 	 * aes-ecb解密
-	 * 
+	 *
 	 * @param content-需要解密的字节数组
 	 * @param password-解密的密钥
 	 * @return aes-ebc解密后的字节流
@@ -273,7 +273,7 @@ public class CryptoUtil {
 
 	/**
 	 * aes-cbc加密
-	 * 
+	 *
 	 * @param content-需要加密的字节数组
 	 * @param password-加密的密钥
 	 * @return aes-cbc加密后的字节流
@@ -292,7 +292,7 @@ public class CryptoUtil {
 
 	/**
 	 * 标准aes-cbc解密
-	 * 
+	 *
 	 * @param content-需要解密的字节数组
 	 * @param password-解密的密钥
 	 * @return aes-cbc解密后的字节流
@@ -311,7 +311,7 @@ public class CryptoUtil {
 
 	/**
 	 * base64字符串转换为byte[]
-	 * 
+	 *
 	 * @param baseString-base64字符串
 	 * @return 字节流
 	 */
@@ -326,7 +326,7 @@ public class CryptoUtil {
 
 	/**
 	 * byte[]转换为base64字符串
-	 * 
+	 *
 	 * @param bt-字节数组
 	 * @return 字符串
 	 */
