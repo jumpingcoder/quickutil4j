@@ -19,6 +19,14 @@ import org.quartz.TriggerBuilder;
 import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.LoggerFactory;
 
+/**
+ * CronJobUtil
+ *
+ * 基于Quartz实现的cronjob工具类，支持redis实现锁，统一了任务执行前后的日志结构
+ *
+ * @author 0.5
+ */
+
 public class CronJobUtil {
 
 	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(CronJobUtil.class);
@@ -45,11 +53,12 @@ public class CronJobUtil {
 					String cron = jobProperties.getProperty(jobName + ".cron");
 					String params = jobProperties.getProperty(jobName + ".params");
 					boolean available = Boolean.parseBoolean(jobProperties.getProperty(jobName + ".available"));
-					boolean repeat = Boolean.parseBoolean(jobProperties.getProperty(jobName + ".repeat"));
-					CronJob cronJob = new CronJob(jobName, classpath, method, cron, params, available, repeat, jedisUtil);
+					boolean lock = Boolean.parseBoolean(jobProperties.getProperty(jobName + ".lock"));
+					int lockExpire = Integer.parseInt(jobProperties.getProperty(jobName + ".lockExpire"));
+					CronJob cronJob = new CronJob(jobName, classpath, cron, params, available, lock, lockExpire, jedisUtil);
 					startJob(cronJob);
 				} catch (Exception e) {
-					LOGGER.error("Job " + jobName + " properties load failed", e);
+					LOGGER.error("CronJob " + jobName + " properties load failed", e);
 				}
 			}
 		} catch (Exception e) {
@@ -65,34 +74,41 @@ public class CronJobUtil {
 	public static void startJob(CronJob cronJob) {
 		try {
 			if (sd.checkExists(new JobKey(cronJob.getJobName()))) {
-				LOGGER.warn("Job " + cronJob.getJobName() + " load failed, " + cronJob.getJobName() + " already exists");
+				LOGGER.warn("CronJob " + cronJob.getJobName() + " load failed, " + cronJob.getJobName() + " already exists");
 			}
-			jobNameToJob.put(cronJob.getJobName(), cronJob);
 			if (null == cronJob.getJobName() || null == cronJob.getClasspath() || null == cronJob.getCron()) {
-				LOGGER.warn("Job " + cronJob.getJobName() + " load failed, jobName, classpath, cron can not be null");
+				LOGGER.warn("CronJob " + cronJob.getJobName() + " load failed, jobName, classpath, cron can not be null");
 				return;
 			}
-			if (!cronJob.getRepeat() && null == cronJob.getJedisUtil()) {
-				LOGGER.warn("Job " + cronJob.getJobName() + " load failed, can not run with repeat=false and jedisutil=null");
+			if (cronJob.getLock() && null == cronJob.getJedisUtil()) {
+				LOGGER.warn("CronJob " + cronJob.getJobName() + " load failed, when lock=true, jedisutil cannot be null ");
 				return;
 			}
 			jobNameToJob.put(cronJob.getJobName(), cronJob);
 			if (!cronJob.getAvailable()) {
-				LOGGER.info("Job" + cronJob.getJobName() + " available is false, will not be loaded");
+				LOGGER.info("CronJob" + cronJob.getJobName() + " available is false, will not be loaded");
 				return;
 			}
-			JobDetail jd = JobBuilder.newJob((Class<? extends Job>) Class.forName("com.quickutil.platform.def.CronJob")).withIdentity(cronJob.getJobName()).build();
+			JobDetail jd = JobBuilder.newJob((Class<? extends Job>) Class.forName("com.quickutil.platform.def.JobRunner")).withIdentity(cronJob.getJobName()).build();
 			Trigger tg = TriggerBuilder.newTrigger().withSchedule(CronScheduleBuilder.cronSchedule(cronJob.getCron())).build();
 			sd.scheduleJob(jd, tg);
-			LOGGER.info("Job " + cronJob.getJobName() + " load successfully");
+			LOGGER.info("CronJob " + cronJob.getJobName() + " load successfully");
 		} catch (ClassNotFoundException e) {
-			LOGGER.warn("Job " + cronJob.getJobName() + " load failed, classpath is wrong");
+			LOGGER.warn("CronJob " + cronJob.getJobName() + " load failed, classpath is wrong");
 		} catch (RuntimeException e) {
-			LOGGER.warn("Job " + cronJob.getJobName() + " load failed, cron is wrong");
+			LOGGER.warn("CronJob " + cronJob.getJobName() + " load failed, cron is wrong");
 		} catch (Exception e) {
-			LOGGER.error("Job " + cronJob.getJobName() + " load failed, exception", e);
+			LOGGER.error("CronJob " + cronJob.getJobName() + " load failed, exception", e);
 		}
 	}
 
+	public static void clear() {
+		try {
+			sd.clear();
+			jobNameToJob.clear();
+		} catch (Exception e) {
+			LOGGER.error("CronJob clear failed", e);
+		}
+	}
 
 }

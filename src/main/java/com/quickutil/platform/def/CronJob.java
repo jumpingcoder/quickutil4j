@@ -1,37 +1,34 @@
 package com.quickutil.platform.def;
 
-import ch.qos.logback.classic.Logger;
-import com.quickutil.platform.CronJobUtil;
 import com.quickutil.platform.JedisUtil;
-import java.lang.reflect.Method;
-import org.quartz.Job;
-import org.quartz.JobExecutionContext;
-import org.slf4j.LoggerFactory;
 
-public class CronJob implements Job {
+/**
+ * CronJob
+ *
+ * CronJobUtil的实体类，用于保存任务属性
+ *
+ * @author 0.5
+ */
 
-	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(CronJob.class);
+public class CronJob {
+
 	private String jobName;
 	private String classpath;
-	private String method;
 	private String cron;
 	private String params;
 	private boolean available;
-	private boolean repeat;
+	private boolean lock;
+	private int lockExpire;
 	private JedisUtil jedisUtil;
-	private boolean loaded;
 
-	public CronJob() {
-	}
-
-	public CronJob(String jobName, String classpath, String method, String cron, String params, boolean available, boolean repeat, JedisUtil jedisUtil) {
+	public CronJob(String jobName, String classpath, String cron, String params, boolean available, boolean lock, int lockExpire, JedisUtil jedisUtil) {
 		this.jobName = jobName;
 		this.classpath = classpath;
-		this.method = method;
 		this.cron = cron;
 		this.params = params;
 		this.available = available;
-		this.repeat = repeat;
+		this.lock = lock;
+		this.lockExpire = lockExpire;
 		this.jedisUtil = jedisUtil;
 	}
 
@@ -55,38 +52,16 @@ public class CronJob implements Job {
 		return this.available;
 	}
 
-	public boolean getRepeat() {
-		return this.repeat;
+	public boolean getLock() {
+		return this.lock;
 	}
 
 	public JedisUtil getJedisUtil() {
 		return this.jedisUtil;
 	}
 
-	public boolean getLoaded() {
-		return this.loaded;
-	}
-
-	public void setLoaded(boolean loaded) {
-		this.loaded = loaded;
-	}
-
-	public String getMethod() {
-		return this.method;
-	}
-
-	@Override
-	public void execute(JobExecutionContext context) {
-		try {
-			CronJob cronJob = CronJobUtil.getJob(context.getJobDetail().getKey().getName());
-			Class c = Class.forName(cronJob.getClasspath());
-			Method m = c.getDeclaredMethod(cronJob.getMethod(), CronJob.class);
-			LOGGER.info("Job " + cronJob.getJobName() + " start");
-			m.invoke(c.newInstance(), cronJob);
-			LOGGER.info("Job " + cronJob.getJobName() + " finished");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	public int getLockExpire() {
+		return this.lockExpire;
 	}
 
 }
