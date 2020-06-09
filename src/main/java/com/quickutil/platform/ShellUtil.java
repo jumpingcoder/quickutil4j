@@ -1,9 +1,3 @@
-/**
- * Shell调用工具
- * 
- * @class ShellUtil
- * @author 0.5
- */
 package com.quickutil.platform;
 
 import java.lang.management.ManagementFactory;
@@ -12,6 +6,11 @@ import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
 
+/**
+ * Shell调用工具
+ *
+ * @author 0.5
+ */
 public class ShellUtil {
 	
 	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(ShellUtil.class);

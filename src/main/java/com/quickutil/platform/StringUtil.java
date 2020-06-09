@@ -1,10 +1,3 @@
-/**
- * 字符串工具
- * 
- * @class StringUtil
- * @author 0.5
- * @author shijie.ruan
- */
 package com.quickutil.platform;
 
 import java.lang.reflect.Field;
@@ -18,6 +11,12 @@ import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
 
+/**
+ * 字符串工具
+ *
+ * @author 0.5
+ * @author shijie.ruan
+ */
 public class StringUtil {
 
 	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(StringUtil.class);
@@ -193,6 +192,8 @@ public class StringUtil {
 	 * @param suffix-后缀(optional,default empty)
 	 * @return
 	 */
+
+
 	public static String joinString(String[] array, String delimiter, String prefix, String suffix) {
 		Objects.requireNonNull(delimiter, "The delimiter must not be null");
 		if (null == prefix)

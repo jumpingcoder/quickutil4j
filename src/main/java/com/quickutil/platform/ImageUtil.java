@@ -1,9 +1,3 @@
-/**
- * 图像处理工具
- * 
- * @class ImageUtil
- * @author 0.5
- */
 package com.quickutil.platform;
 
 import java.awt.Image;
@@ -19,6 +13,11 @@ import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
 
+/**
+ * 图像处理工具
+ *
+ * @author 0.5
+ */
 public class ImageUtil {
 	
 	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(ImageUtil.class);

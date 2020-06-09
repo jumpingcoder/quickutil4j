@@ -1,9 +1,3 @@
-/**
- * 验证码生成工具
- * 
- * @class ConfirmCodeUtil
- * @author 0.5
- */
 package com.quickutil.platform;
 
 import java.awt.Color;
@@ -14,6 +8,11 @@ import java.util.Random;
 
 import com.quickutil.platform.ImageUtil;
 
+/**
+ * 图形验证码工具
+ *
+ * @author 0.5
+ */
 public class ConfirmCodeUtil {
 
 	private static char[] codeSequence = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '1', '2', '3', '4', '5', '6',

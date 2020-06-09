@@ -1,10 +1,3 @@
-/**
- * 文件与字节数组
- * 
- * @class FileUtil
- * @author 0.5
- */
-
 package com.quickutil.platform;
 
 import java.io.BufferedReader;
@@ -26,6 +19,11 @@ import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
 
+/**
+ * 文件工具
+ *
+ * @author 0.5
+ */
 public class FileUtil {
 	
 	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(FileUtil.class);
@@ -33,7 +31,7 @@ public class FileUtil {
 	/**
 	 * 获取程序运行时路径
 	 * 
-	 * @return
+	 * @return 路径
 	 */
 	public static String getCurrentPath() {
 		File file = new File("");
@@ -44,7 +42,7 @@ public class FileUtil {
 	 * 创建文件夹
 	 * 
 	 * @param dirPath-文件夹路径
-	 * @return
+	 * @return 是否成功
 	 */
 	public static boolean mkdirByFile(String dirPath) {
 		try {
@@ -61,7 +59,7 @@ public class FileUtil {
 	 * 读取文件到byte[]
 	 * 
 	 * @param filePath-文件路径
-	 * @return
+	 * @return 文件字节数组
 	 */
 	public static byte[] file2Byte(String filePath) {
 		File file = new File(filePath);
@@ -89,8 +87,8 @@ public class FileUtil {
 	 * 将byte[]写入文件
 	 * 
 	 * @param filePath-文件路径
-	 * @param bt-字节流
-	 * @return
+	 * @param bt-字节数组
+	 * @return 是否成功
 	 */
 	public static boolean byte2File(String filePath, byte[] bt) {
 		try {
@@ -112,7 +110,7 @@ public class FileUtil {
 	 * 读取文件到inputstream
 	 * 
 	 * @param filePath-文件路径
-	 * @return
+	 * @return 字节流
 	 */
 	public static InputStream file2Stream(String filePath) {
 		try {
@@ -127,7 +125,7 @@ public class FileUtil {
 	 * inputstream转byte[]
 	 * 
 	 * @param stream-输入字节流
-	 * @return
+	 * @return 字节数组
 	 */
 	public static byte[] stream2byte(InputStream stream) {
 		if (stream == null)
@@ -156,7 +154,7 @@ public class FileUtil {
 	 * inputstream转string
 	 * 
 	 * @param stream-输入字节流
-	 * @return
+	 * @return 字符串
 	 */
 	public static String stream2string(InputStream stream) {
 		return new String(stream2byte(stream));
@@ -166,7 +164,7 @@ public class FileUtil {
 	 * 读取文件到string
 	 * 
 	 * @param filePath-文件路径
-	 * @return
+	 * @return 文本
 	 */
 	public static String file2String(String filePath) {
 		try {
@@ -183,7 +181,7 @@ public class FileUtil {
 	 * @param filePath-文件路径
 	 * @param content-字符串内容
 	 * @param append-是否追加
-	 * @return
+	 * @return 是否成功
 	 */
 	public static boolean string2File(String filePath, String content, boolean append) {
 		File file = new File(filePath);
@@ -206,7 +204,7 @@ public class FileUtil {
 	 * 读取文件到List<String>
 	 * 
 	 * @param filePath-文件路径
-	 * @return
+	 * @return 文本列表
 	 */
 	public static List<String> readFileByLine(String filePath) {
 		List<String> list = new ArrayList<String>();
@@ -229,7 +227,7 @@ public class FileUtil {
 	 * @param filename-文件路径
 	 * @param contentList-字符串数组
 	 * @param append-是否追加
-	 * @return
+	 * @return 是否成功
 	 */
 	public static boolean writeFileByLine(String filename, List<String> contentList, boolean append) {
 		mkdirByFile(filename);
@@ -269,7 +267,7 @@ public class FileUtil {
 	 * 
 	 * @param dirPath-文件夹路径
 	 * @param withDirectory-是否包含文件夹名
-	 * @return
+	 * @return 文件路径列表
 	 */
 	public static List<String> getDirFiles(String dirPath, boolean withDirectory) {
 		List<String> filepaths = new ArrayList<String>();
@@ -294,7 +292,7 @@ public class FileUtil {
 	 * 
 	 * @param dirPath-文件夹路径
 	 * @param filter-关键词，过滤不需要的文件夹或文件
-	 * @return
+	 * @return 文件路径列表
 	 */
 	public static List<String> getAllFilePath(String dirPath, List<String> filter) {
 		List<String> filePaths = new ArrayList<String>();
@@ -317,7 +315,7 @@ public class FileUtil {
 	 * 
 	 * @param fromFile-源文件路径
 	 * @param toFile-目标文件路径
-	 * @return
+	 * @return 是否成功
 	 */
 	public static boolean copyFile(String fromFile, String toFile) {
 		try {
@@ -334,7 +332,7 @@ public class FileUtil {
 	 * 
 	 * @param fromFile-源文件路径
 	 * @param toFile-目标文件路径
-	 * @return
+	 * @return 是否成功
 	 */
 	public static boolean moveFile(String fromFile, String toFile) {
 		try {
@@ -354,7 +352,7 @@ public class FileUtil {
 	 * 删除文件或目录，如果是目录则删除整个目录下的所有文件
 	 * 
 	 * @param filePath-文件路径
-	 * @return 是否删除成功，如果文件或目录不存在返回false
+	 * @return 是否成功
 	 */
 	public static boolean deleteFile(String filePath) {
 		try {
@@ -377,7 +375,7 @@ public class FileUtil {
 	 * 多个byte[]合并为一个byte[]
 	 * 
 	 * @param list-多个字节数组
-	 * @return
+	 * @return 字节数组
 	 */
 	public static byte[] joinbyte(List<byte[]> list) {
 		int totallength = 0;
@@ -398,7 +396,7 @@ public class FileUtil {
 	 * 
 	 * @param bt-字节数组
 	 * @param chunkLength-切割块的大小
-	 * @return
+	 * @return 字节数组列表
 	 */
 	public static List<byte[]> cutbyte(byte[] bt, int chunkLength) {
 		List<byte[]> list = new ArrayList<byte[]>();
@@ -415,7 +413,7 @@ public class FileUtil {
 	 * 获取文件后缀
 	 * 
 	 * @param filePath-文件路径
-	 * @return
+	 * @return 文件后缀
 	 */
 	public static String getSuffix(String filePath) {
 		int index = filePath.lastIndexOf(".");
@@ -448,7 +446,7 @@ public class FileUtil {
 	 * 获取文件类型
 	 * 
 	 * @param bt-字节数组
-	 * @return
+	 * @return 文件类型
 	 */
 	public static FileType getFileType(byte[] bt) {
 		byte[] headByte = new byte[28];

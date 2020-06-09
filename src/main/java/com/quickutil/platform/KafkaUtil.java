@@ -13,6 +13,11 @@ import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
 
+/**
+ * Kafka客户端工具
+ *
+ * @author hao.hu
+ */
 public class KafkaUtil {
 
 	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(KafkaUtil.class);

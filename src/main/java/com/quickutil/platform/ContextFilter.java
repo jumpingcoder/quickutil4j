@@ -1,9 +1,3 @@
-/**
- * Http会话过滤器
- * 
- * @class ContextFilter
- * @author 0.5
- */
 package com.quickutil.platform;
 
 import java.io.IOException;
@@ -19,6 +13,11 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.quickutil.platform.ContextUtil;
 
+/**
+ * Http会话过滤器
+ *
+ * @author 0.5
+ */
 public class ContextFilter implements Filter {
 
 	@Override
