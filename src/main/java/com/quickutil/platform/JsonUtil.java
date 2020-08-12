@@ -16,13 +16,10 @@ import java.util.Map;
 
 public class JsonUtil {
 
-	private static Gson gson = new Gson();
+	private static Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().serializeNulls().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
 
 	/**
 	 * json字符串转Map
-	 *
-	 * @param json-json字符串
-	 * @return
 	 */
 	public static Map<String, Object> toMap(String json) {
 		return gson.fromJson(json, new TypeToken<Map<String, Object>>() {
@@ -31,9 +28,6 @@ public class JsonUtil {
 
 	/**
 	 * json字符串转List<String>
-	 *
-	 * @param json-json字符串
-	 * @return
 	 */
 	public static List<String> toListString(String json) {
 		return gson.fromJson(json, new TypeToken<List<String>>() {
@@ -42,9 +36,6 @@ public class JsonUtil {
 
 	/**
 	 * json字符串转List<Map<String,Object>>
-	 *
-	 * @param json-json字符串
-	 * @return
 	 */
 	public static List<Map<String, Object>> toList(String json) {
 		return gson.fromJson(json, new TypeToken<List<Map<String, Object>>>() {
@@ -53,9 +44,6 @@ public class JsonUtil {
 
 	/**
 	 * json字符串转json对象
-	 *
-	 * @param json-json字符串
-	 * @return
 	 */
 	public static JsonObject toJsonMap(String json) {
 		return gson.toJsonTree(toMap(json)).getAsJsonObject();
@@ -63,9 +51,6 @@ public class JsonUtil {
 
 	/**
 	 * json字符串转json数组
-	 *
-	 * @param json-json字符串
-	 * @return
 	 */
 	public static JsonArray toJsonArray(String json) {
 		return gson.toJsonTree(toList(json)).getAsJsonArray();
@@ -73,9 +58,6 @@ public class JsonUtil {
 
 	/**
 	 * 对象转json字符串
-	 *
-	 * @param object-对象
-	 * @return
 	 */
 	public static String toJson(Object object) {
 		return gson.toJson(object);
@@ -83,9 +65,6 @@ public class JsonUtil {
 
 	/**
 	 * 对象转json字符串
-	 *
-	 * @param object-对象
-	 * @return
 	 */
 	public static String toJsonWithFormat(Object object, GsonBuilder builder) {
 		return builder.create().toJson(object);
@@ -93,15 +72,15 @@ public class JsonUtil {
 
 	/**
 	 * 将json字符串封装为jsonp所需格式
-	 *
-	 * @param callback-回调函数名
-	 * @param json-数据结果
-	 * @return
 	 */
 	public static String toJsonP(String callback, String json) {
 		if (callback == null) {
 			return json;
 		}
 		return callback + "(" + json + ")";
+	}
+
+	public void init(GsonBuilder builder) {
+		gson = builder.create();
 	}
 }

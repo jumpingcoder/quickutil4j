@@ -2,6 +2,7 @@ package com.quickutil.platform;
 
 import ch.qos.logback.classic.Logger;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -35,23 +36,6 @@ public class FileUtil {
 	}
 
 	/**
-	 * 创建文件夹
-	 *
-	 * @return 是否成功
-	 */
-	public static boolean mkdirByFile(String dirPath) {
-		try {
-			File file = new File(dirPath);
-			if (!file.exists()) {
-				return file.mkdirs();
-			}
-		} catch (Exception e) {
-			LOGGER.error("", e);
-		}
-		return false;
-	}
-
-	/**
 	 * 读取文件到byte[]
 	 *
 	 * @return 文件字节数组
@@ -80,58 +64,6 @@ public class FileUtil {
 			LOGGER.error("", e);
 		}
 		return false;
-	}
-
-	/**
-	 * 读取文件到inputstream
-	 *
-	 * @return 字节流
-	 */
-	public static InputStream file2Stream(String filePath) {
-		try {
-			return new FileInputStream(new File(filePath));
-		} catch (Exception e) {
-			LOGGER.error("", e);
-		}
-		return null;
-	}
-
-	/**
-	 * inputstream转byte[]
-	 *
-	 * @return 字节数组
-	 */
-	public static byte[] stream2byte(InputStream input) {
-		if (input == null) {
-			return null;
-		}
-		ByteArrayOutputStream output = new ByteArrayOutputStream();
-		try {
-			byte[] buffer = new byte[4096];
-			int n = 0;
-			while (-1 != (n = input.read(buffer))) {
-				output.write(buffer, 0, n);
-			}
-		} catch (Exception e) {
-			LOGGER.error("", e);
-		} finally {
-			try {
-				output.close();
-				input.close();
-			} catch (IOException e) {
-				LOGGER.error("", e);
-			}
-		}
-		return output.toByteArray();
-	}
-
-	/**
-	 * inputstream转string
-	 *
-	 * @return 字符串
-	 */
-	public static String stream2string(InputStream stream) {
-		return new String(stream2byte(stream));
 	}
 
 	/**
@@ -168,6 +100,95 @@ public class FileUtil {
 			LOGGER.error("", e);
 		}
 		return false;
+	}
+
+	/**
+	 * 读取文件到inputstream
+	 *
+	 * @return 字节流
+	 */
+	public static InputStream file2Stream(String filePath) {
+		try {
+			return new FileInputStream(new File(filePath));
+		} catch (Exception e) {
+			LOGGER.error("", e);
+		}
+		return null;
+	}
+
+	/**
+	 * 读输入流并写文件到filePath
+	 *
+	 * @param input - 输入流
+	 * @param filePath - 写入文件路径
+	 * @param append - 是否追加写
+	 */
+	public static void stream2file(InputStream input, String filePath, boolean append) {
+		try (FileOutputStream fileOutputStream = new FileOutputStream(filePath, append)) {
+			int byteRead = -1;
+			byte[] buffer = new byte[1024 * 2];
+			while ((byteRead = input.read(buffer)) != -1) {
+				fileOutputStream.write(buffer, 0, byteRead);
+			}
+		} catch (Exception e) {
+			LOGGER.error("", e);
+		}
+	}
+
+	/**
+	 * inputstream转byte[]
+	 *
+	 * @return 字节数组
+	 */
+	public static byte[] stream2byte(InputStream input) {
+		if (input == null) {
+			return null;
+		}
+		ByteArrayOutputStream output = new ByteArrayOutputStream();
+		try {
+			byte[] buffer = new byte[4096];
+			int n = 0;
+			while (-1 != (n = input.read(buffer))) {
+				output.write(buffer, 0, n);
+			}
+		} catch (Exception e) {
+			LOGGER.error("", e);
+		} finally {
+			try {
+				output.close();
+				input.close();
+			} catch (IOException e) {
+				LOGGER.error("", e);
+			}
+		}
+		return output.toByteArray();
+	}
+
+	/**
+	 * byte[]转inputstream
+	 *
+	 * @return inputstream
+	 */
+	public static InputStream byte2stream(byte[] input) {
+		return new ByteArrayInputStream(input);
+	}
+
+	/**
+	 * inputstream转string
+	 *
+	 * @return 字符串
+	 */
+	public static String stream2string(InputStream input) {
+		return new String(stream2byte(input));
+	}
+
+	/**
+	 * string转inputstream
+	 *
+	 * @return 字符串
+	 */
+	public static InputStream string2stream(String input) {
+		return new ByteArrayInputStream(input.getBytes());
 	}
 
 	/**
@@ -212,22 +233,20 @@ public class FileUtil {
 	}
 
 	/**
-	 * 读输入流并写文件到filePath
+	 * 创建文件夹
 	 *
-	 * @param input - 输入流
-	 * @param filePath - 写入文件路径
-	 * @param append - 是否追加写
+	 * @return 是否成功
 	 */
-	public static void writeFile(InputStream input, String filePath, boolean append) {
-		try (FileOutputStream fileOutputStream = new FileOutputStream(filePath, append)) {
-			int byteRead = -1;
-			byte[] buffer = new byte[1024 * 2];
-			while ((byteRead = input.read(buffer)) != -1) {
-				fileOutputStream.write(buffer, 0, byteRead);
+	public static boolean mkdirByFile(String dirPath) {
+		try {
+			File file = new File(dirPath);
+			if (!file.exists()) {
+				return file.mkdirs();
 			}
 		} catch (Exception e) {
 			LOGGER.error("", e);
 		}
+		return false;
 	}
 
 	/**

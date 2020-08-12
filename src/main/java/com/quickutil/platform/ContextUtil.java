@@ -1,6 +1,10 @@
 package com.quickutil.platform;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import java.io.InputStream;
+import java.util.Map;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -29,8 +33,9 @@ public class ContextUtil {
 	private static final String X_Forwarded_Proto = "X-Forwarded-Proto";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ContextUtil.class);
-	protected transient static ThreadLocal<HttpServletRequest> request = new ThreadLocal<HttpServletRequest>();
-	protected transient static ThreadLocal<HttpServletResponse> response = new ThreadLocal<HttpServletResponse>();
+	protected transient static ThreadLocal<HttpServletRequest> request = new ThreadLocal<>();
+	protected transient static ThreadLocal<HttpServletResponse> response = new ThreadLocal<>();
+	protected transient static ThreadLocal<byte[]> stream = new ThreadLocal<>();
 
 	/**
 	 * 获取request
@@ -61,13 +66,6 @@ public class ContextUtil {
 	}
 
 	/**
-	 * 获取Header
-	 */
-	public static String getHeader(String key) {
-		return request.get().getHeader(key);
-	}
-
-	/**
 	 * 获取请求的IP，获取顺序X-Real-IP,X-Forwarded-For第一段,直连机器的ip
 	 */
 	public static String getIp() {
@@ -80,6 +78,13 @@ public class ContextUtil {
 			}
 		}
 		return request.get().getRemoteAddr();
+	}
+
+	/**
+	 * 获取Header
+	 */
+	public static String getHeader(String key) {
+		return request.get().getHeader(key);
 	}
 
 	/**
@@ -212,15 +217,94 @@ public class ContextUtil {
 	}
 
 	/**
-	 * 当请求的content-type是application/json，且请求结构是{}时
+	 * 以inputstream的方式获取body
 	 */
-	public static JsonObject getRequestJson() {
+	public static InputStream getRequestStream() {
 		try {
-			return JsonUtil.toJsonMap(FileUtil.stream2string(request.get().getInputStream()));
+			if (ContextUtil.getHeader("content-type").equals("application/x-www-form-urlencoded")) {
+				return FileUtil.string2stream(buildQueryString(request.get().getParameterMap()));
+			}
+			return request.get().getInputStream();
 		} catch (Exception e) {
 			LOGGER.error("", e);
 		}
 		return null;
 	}
 
+	/**
+	 * 以String的方式获取body
+	 */
+	public static String getRequestString() {
+		try {
+			if (ContextUtil.getHeader("content-type").equals("application/x-www-form-urlencoded")) {
+				return buildQueryString(request.get().getParameterMap());
+			}
+			return FileUtil.stream2string(request.get().getInputStream());
+		} catch (Exception e) {
+			LOGGER.error("", e);
+		}
+		return null;
+	}
+
+	private static String buildQueryString(Map<String, String[]> map) {
+		StringBuilder sb = new StringBuilder();
+		for (String key : map.keySet()) {
+			for (String value : map.get(key)) {
+				sb.append(key).append("=").append(value).append("&");
+			}
+		}
+		if (sb.length() > 0) {
+			return sb.deleteCharAt(sb.length() - 1).toString();
+		}
+		return "";
+	}
+
+	/**
+	 * 当请求的content-type是application/json，且请求结构是{}时
+	 */
+	public static JsonObject getRequestJsonObject() {
+		try {
+			String body = null;
+			if (ContextUtil.getHeader("content-type").equals("application/x-www-form-urlencoded")) {
+				body = JsonUtil.toJson(request.get().getParameterMap());
+			} else {
+				body = FileUtil.stream2string(request.get().getInputStream());
+			}
+			return JsonUtil.toJsonMap(body);
+		} catch (Exception e) {
+			LOGGER.error("", e);
+		}
+		return null;
+	}
+
+	/**
+	 * 当请求的content-type是application/json，且请求结构是[]时
+	 */
+	public static JsonArray getRequestJsonArray() {
+		try {
+			if (ContextUtil.getHeader("content-type").equals("application/x-www-form-urlencoded")) {
+				LOGGER.warn("Only support application/json");
+				return null;
+			}
+			return JsonUtil.toJsonArray(FileUtil.stream2string(request.get().getInputStream()));
+		} catch (Exception e) {
+			LOGGER.error("", e);
+		}
+		return null;
+	}
+
+	public static <T> T getRequestObject(Class<T> tClass) {
+		try {
+			String body = null;
+			if (ContextUtil.getHeader("content-type").equals("application/x-www-form-urlencoded")) {
+				body = JsonUtil.toJson(request.get().getParameterMap());
+			} else {
+				body = FileUtil.stream2string(request.get().getInputStream());
+			}
+			return new Gson().fromJson(body, tClass);
+		} catch (Exception e) {
+			LOGGER.error("", e);
+		}
+		return null;
+	}
 }

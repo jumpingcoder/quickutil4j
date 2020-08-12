@@ -15,6 +15,7 @@ import ch.qos.logback.classic.Logger;
  *
  * @author 0.5
  */
+@Deprecated
 public class PassportUtil {
 	
 	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(PassportUtil.class);
