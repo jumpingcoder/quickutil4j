@@ -335,7 +335,7 @@ public class GeoUtil {
 			double[] delta = WGSToGCJPointer(latitude, longitude);
 			delta = GCJToBDPointer(delta[0], delta[1]);
 			String queryUrl = String.format("http://api.map.baidu.com/geocoder/v2/?ak=%s&location=%s,%s&output=json", baiduKeyIn, delta[0], delta[1]);
-			JsonObject object = JsonUtil.toJsonMap(FileUtil.stream2string(HttpUtil.httpGet(queryUrl).getEntity().getContent()));
+			JsonObject object = JsonUtil.toJsonObject(FileUtil.stream2string(HttpUtil.httpGet(queryUrl).getEntity().getContent()));
 			String country = object.getAsJsonObject("result").getAsJsonObject("addressComponent").get("country").getAsString();
 			if (country.equals("中国"))
 				country = "China";
@@ -385,7 +385,7 @@ public class GeoUtil {
 			}
 			String queryUrl = String.format("http://api.map.baidu.com/geocoder/v2/?ak=%s&location=%s&output=json&batch=true", baiduKeyIn,
 					URLEncoder.encode(builder.substring(0, builder.length() - 1), "UTF-8"));
-			JsonObject object = JsonUtil.toJsonMap(FileUtil.stream2string(HttpUtil.httpGet(queryUrl).getEntity().getContent()));
+			JsonObject object = JsonUtil.toJsonObject(FileUtil.stream2string(HttpUtil.httpGet(queryUrl).getEntity().getContent()));
 			JsonArray array = object.getAsJsonArray("areas");
 			List<GeoDef> geodefList = new ArrayList<GeoDef>();
 			for (int i = 0; i < points.size(); i++) {
@@ -434,7 +434,7 @@ public class GeoUtil {
 		try {
 			double[] delta = WGSToGCJPointer(latitude, longitude);
 			String queryUrl = String.format("http://restapi.amap.com/v3/geocode/regeo?output=json&location=%s,%s&key=%s", delta[1], delta[0], amapKeyIn);
-			JsonObject object = JsonUtil.toJsonMap(FileUtil.stream2string(HttpUtil.httpGet(queryUrl).getEntity().getContent()));
+			JsonObject object = JsonUtil.toJsonObject(FileUtil.stream2string(HttpUtil.httpGet(queryUrl).getEntity().getContent()));
 			String country = object.getAsJsonObject("regeocode").getAsJsonObject("addressComponent").get("country").getAsString();
 			if (country.equals("中国"))
 				country = "China";

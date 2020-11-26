@@ -272,7 +272,7 @@ public class ContextUtil {
             } else {
                 body = FileUtil.stream2string(request.get().getInputStream());
             }
-            return JsonUtil.toJsonMap(body);
+            return JsonUtil.toJsonObject(body);
         } catch (Exception e) {
             LOGGER.error("", e);
         }
