@@ -11,19 +11,17 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 
 public class JsonUtil {
 
-	private static Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().serializeNulls().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
+	private static Gson gson = new GsonBuilder().serializeNulls().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
 
-	/**
-	 * json字符串转Map
-	 */
-	public static Map<String, Object> toMap(String json) {
-		return gson.fromJson(json, new TypeToken<Map<String, Object>>() {
-		}.getType());
+	public static void init(GsonBuilder builder) {
+		gson = builder.create();
 	}
 
 	/**
@@ -31,6 +29,14 @@ public class JsonUtil {
 	 */
 	public static List<String> toListString(String json) {
 		return gson.fromJson(json, new TypeToken<List<String>>() {
+		}.getType());
+	}
+
+	/**
+	 * json字符串转Map
+	 */
+	public static Map<String, Object> toMap(String json) {
+		return gson.fromJson(json, new TypeToken<Map<String, Object>>() {
 		}.getType());
 	}
 
@@ -45,15 +51,52 @@ public class JsonUtil {
 	/**
 	 * json字符串转json对象
 	 */
-	public static JsonObject toJsonMap(String json) {
-		return gson.toJsonTree(toMap(json)).getAsJsonObject();
+	public static JsonObject toJsonObject(String json) {
+		return gson.fromJson(json, JsonObject.class);
 	}
 
 	/**
 	 * json字符串转json数组
 	 */
 	public static JsonArray toJsonArray(String json) {
-		return gson.toJsonTree(toList(json)).getAsJsonArray();
+		return gson.fromJson(json, JsonArray.class);
+	}
+
+	/**
+	 * json字符串转class对象
+	 */
+	public static <T>T toClass(String json,Class<T> clazz) {
+		return gson.fromJson(json, clazz);
+	}
+
+	/**
+	 * json字符串转class数组
+	 */
+	public static <T> List<T> toClassList(String json,Class<T> clazz) {
+		return gson.fromJson(json, new ParameterizedTypeImpl(clazz));
+	}
+
+	private static class ParameterizedTypeImpl implements ParameterizedType {
+		Class<?> clazz;
+
+		public ParameterizedTypeImpl(Class<?> clazz) {
+			this.clazz = clazz;
+		}
+
+		@Override
+		public Type[] getActualTypeArguments() {
+			return new Type[]{clazz};
+		}
+
+		@Override
+		public Type getRawType() {
+			return List.class;
+		}
+
+		@Override
+		public Type getOwnerType() {
+			return null;
+		}
 	}
 
 	/**
@@ -70,17 +113,4 @@ public class JsonUtil {
 		return builder.create().toJson(object);
 	}
 
-	/**
-	 * 将json字符串封装为jsonp所需格式
-	 */
-	public static String toJsonP(String callback, String json) {
-		if (callback == null) {
-			return json;
-		}
-		return callback + "(" + json + ")";
-	}
-
-	public void init(GsonBuilder builder) {
-		gson = builder.create();
-	}
 }

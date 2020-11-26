@@ -361,10 +361,10 @@ public class ElasticUtil {
 			LOGGER.debug("time for execute bulk:" + (System.currentTimeMillis() - start));
 			result = getEntity(response);
 			if (200 != response.getStatusLine().getStatusCode()) {
-				JsonObject bulkRequestError = JsonUtil.toJsonMap(result).getAsJsonObject("error");
+				JsonObject bulkRequestError = JsonUtil.toJsonObject(result).getAsJsonObject("error");
 				return new BulkResponse(BulkResponse.RequestFail, bulkRequestError);
 			} else {
-				JsonObject responseObject = JsonUtil.toJsonMap(result);
+				JsonObject responseObject = JsonUtil.toJsonObject(result);
 				boolean hasErrors = responseObject.get("errors").getAsBoolean();
 				if (!hasErrors) {
 					return new BulkResponse(BulkResponse.Success);
@@ -879,7 +879,7 @@ public class ElasticUtil {
 				LOGGER.info("search get empty result, terminate.");
 				return;
 			}
-			JsonObject result = JsonUtil.toJsonMap(resp);
+			JsonObject result = JsonUtil.toJsonObject(resp);
 			String scrollId;
 			JsonArray array = result.getAsJsonObject("hits").getAsJsonArray("hits");
 			long total = result.getAsJsonObject("hits").get("total").getAsLong();
@@ -901,7 +901,7 @@ public class ElasticUtil {
 				if (null == resp) {
 					return;
 				}
-				array = JsonUtil.toJsonMap(resp).getAsJsonObject("hits").getAsJsonArray("hits");
+				array = JsonUtil.toJsonObject(resp).getAsJsonObject("hits").getAsJsonArray("hits");
 				LOGGER.debug("index: " + index + ShellUtil.printProgress((double) count / total));
 			}
 		} catch (Exception e) {
@@ -1035,7 +1035,7 @@ public class ElasticUtil {
 
 	public String updataByQuery(String index, String type, SearchRequest searchRequest) {
 		try {
-			return updataByQuery(index, type, true, 1000, 1, true, JsonUtil.toJsonMap(searchRequest.toJson()));
+			return updataByQuery(index, type, true, 1000, 1, true, JsonUtil.toJsonObject(searchRequest.toJson()));
 		} catch (Exception e) {
 			LOGGER.error("format search query error", e);
 			return null;
@@ -1058,7 +1058,7 @@ public class ElasticUtil {
 
 	public String updataByQuery(String index, String type, boolean proceedConflicts, int scrollSize, int slices, boolean wait, SearchRequest searchRequest) {
 		try {
-			return xxByQuery("update", index, type, proceedConflicts, scrollSize, slices, wait, JsonUtil.toJsonMap(searchRequest.toJson()));
+			return xxByQuery("update", index, type, proceedConflicts, scrollSize, slices, wait, JsonUtil.toJsonObject(searchRequest.toJson()));
 		} catch (Exception e) {
 			LOGGER.error("format search query error", e);
 		}
@@ -1078,7 +1078,7 @@ public class ElasticUtil {
 
 	public String deleteByQuery(String index, String type, SearchRequest searchRequest) {
 		try {
-			return deleteByQuery(index, type, true, 1000, 1, true, JsonUtil.toJsonMap(searchRequest.toJson()));
+			return deleteByQuery(index, type, true, 1000, 1, true, JsonUtil.toJsonObject(searchRequest.toJson()));
 		} catch (Exception e) {
 			LOGGER.error("format search query error", e);
 		}
@@ -1101,7 +1101,7 @@ public class ElasticUtil {
 
 	public String deleteByQuery(String index, String type, boolean proceedConflicts, int scrollSize, int slices, boolean wait, SearchRequest searchRequest) {
 		try {
-			return xxByQuery("delete", index, type, true, 1000, 1, wait, JsonUtil.toJsonMap(searchRequest.toJson()));
+			return xxByQuery("delete", index, type, true, 1000, 1, wait, JsonUtil.toJsonObject(searchRequest.toJson()));
 		} catch (Exception e) {
 			LOGGER.error("format search query error", e);
 		}
