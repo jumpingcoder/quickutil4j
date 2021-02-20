@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import com.quickutil.platform.constants.Symbol;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.slf4j.LoggerFactory;
@@ -54,7 +55,7 @@ public class KafkaUtil {
 			}
 			return true;
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return false;
 	}
@@ -97,7 +98,7 @@ public class KafkaUtil {
 			}
 			return true;
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return false;
 	}

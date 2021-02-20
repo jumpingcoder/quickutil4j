@@ -7,6 +7,8 @@ import java.net.NetworkInterface;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+
+import com.quickutil.platform.constants.Symbol;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -35,7 +37,7 @@ public class IPUtil {
 				}
 			}
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return ipList;
 	}
@@ -73,7 +75,7 @@ public class IPUtil {
 				}
 			}
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return ipList;
 	}

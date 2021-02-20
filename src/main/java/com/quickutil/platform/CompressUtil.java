@@ -1,6 +1,7 @@
 package com.quickutil.platform;
 
 import ch.qos.logback.classic.Logger;
+import com.quickutil.platform.constants.Symbol;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -52,7 +53,7 @@ public class CompressUtil {
 				}
 			}
 		} catch (Exception e) {
-			LOGGER.error("decompressTarGz error", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return rootPath;
 	}

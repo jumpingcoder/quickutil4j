@@ -1,6 +1,7 @@
 package com.quickutil.platform;
 
 import ch.qos.logback.classic.Logger;
+import com.quickutil.platform.constants.Symbol;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
@@ -41,7 +42,7 @@ public class JedisPoolUtil {
                 jedisUtilMap.put(key, new JedisUtil(host, port, timeout, password, database, isSsl, caPath, jedisPoolProperties));
             }
         } catch (Exception e) {
-            LOGGER.error("", e);
+            LOGGER.error(Symbol.BLANK, e);
         }
     }
 

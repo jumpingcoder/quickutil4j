@@ -1,6 +1,7 @@
 package com.quickutil.platform;
 
 import ch.qos.logback.classic.Logger;
+import com.quickutil.platform.constants.Symbol;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
@@ -38,7 +39,7 @@ public class MailPoolUtil {
                 boolean isSSL = Boolean.parseBoolean(mailProperties.getProperty(key + ".isSSL"));
                 sessionMap.put(key, new MailUtil(host, port, username, password, isSSL));
             } catch (Exception e) {
-                LOGGER.error("", e);
+                LOGGER.error(Symbol.BLANK, e);
             }
         }
     }

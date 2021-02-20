@@ -2,6 +2,7 @@ package com.quickutil.platform;
 
 import java.lang.management.ManagementFactory;
 
+import com.quickutil.platform.constants.Symbol;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
@@ -50,7 +51,7 @@ public class ShellUtil {
 			process.waitFor();
 			return result;
 		} catch (Exception e) {
-			LOGGER.error("",e);
+			LOGGER.error(Symbol.BLANK,e);
 			return null;
 		}
 	}

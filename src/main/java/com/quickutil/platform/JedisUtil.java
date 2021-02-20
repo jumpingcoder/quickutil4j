@@ -7,11 +7,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+
+import com.quickutil.platform.constants.Symbol;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
-import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.params.SetParams;
 
 /**
@@ -131,7 +132,7 @@ public class JedisUtil {
 				keyList.add(iterator.next().toString());
 			}
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		} finally {
 			if (jedis != null) {
 				jedis.close();
@@ -151,7 +152,7 @@ public class JedisUtil {
 		try {
 			return jedis.del(key);
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		} finally {
 			if (jedis != null) {
 				jedis.close();
@@ -168,7 +169,7 @@ public class JedisUtil {
 		try {
 			return jedis.flushDB();
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		} finally {
 			if (jedis != null) {
 				jedis.close();
@@ -188,7 +189,7 @@ public class JedisUtil {
 		try {
 			return jedis.expire(key, seconds);
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		} finally {
 			if (jedis != null) {
 				jedis.close();
@@ -208,7 +209,7 @@ public class JedisUtil {
 		try {
 			return jedis.set(key, value);
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		} finally {
 			if (jedis != null) {
 				jedis.close();
@@ -228,7 +229,7 @@ public class JedisUtil {
 		try {
 			return jedis.get(key);
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		} finally {
 			if (jedis != null) {
 				jedis.close();
@@ -242,7 +243,7 @@ public class JedisUtil {
 		try {
 			return "OK".equals(jedis.set(key, value, new SetParams().nx().ex(expireSeconds)));
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		} finally {
 			if (jedis != null) {
 				jedis.close();
@@ -262,7 +263,7 @@ public class JedisUtil {
 		try {
 			return jedis.lpush(key, list.toArray(new String[list.size()]));
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		} finally {
 			if (jedis != null) {
 				jedis.close();
@@ -282,7 +283,7 @@ public class JedisUtil {
 		try {
 			return jedis.rpush(key, list.toArray(new String[list.size()]));
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		} finally {
 			if (jedis != null) {
 				jedis.close();
@@ -302,7 +303,7 @@ public class JedisUtil {
 		try {
 			return jedis.lpop(key);
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		} finally {
 			if (jedis != null) {
 				jedis.close();
@@ -322,7 +323,7 @@ public class JedisUtil {
 		try {
 			return jedis.rpop(key);
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		} finally {
 			if (jedis != null) {
 				jedis.close();
@@ -342,7 +343,7 @@ public class JedisUtil {
 		try {
 			return jedis.lrange(key, start, end);
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		} finally {
 			if (jedis != null) {
 				jedis.close();
@@ -364,7 +365,7 @@ public class JedisUtil {
 			List<String> list = (List<String>) jedis.eval(rpopQueueLua, 1, key, count.toString());
 			return list;
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		} finally {
 			if (jedis != null) {
 				jedis.close();
@@ -386,7 +387,7 @@ public class JedisUtil {
 			List<String> list = (List<String>) jedis.eval(lpopQueueLua, 1, key, count.toString());
 			return list;
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		} finally {
 			if (jedis != null) {
 				jedis.close();
@@ -406,7 +407,7 @@ public class JedisUtil {
 		try {
 			return jedis.hmset(key, hash);
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		} finally {
 			if (jedis != null) {
 				jedis.close();
@@ -437,7 +438,7 @@ public class JedisUtil {
 			jedis.eval(setHashLua, 0, params);
 			return true;
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		} finally {
 			if (jedis != null) {
 				jedis.close();
@@ -457,7 +458,7 @@ public class JedisUtil {
 		try {
 			return jedis.hmget(key, fieldList.toArray(new String[fieldList.size()]));
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		} finally {
 			if (jedis != null) {
 				jedis.close();
@@ -481,7 +482,7 @@ public class JedisUtil {
 			String[] params = paramList.toArray(new String[paramList.size()]);
 			return (List<String>) jedis.eval(getHashLua, 0, params);
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		} finally {
 			if (jedis != null) {
 				jedis.close();
@@ -501,7 +502,7 @@ public class JedisUtil {
 		try {
 			return jedis.hgetAll(key);
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		} finally {
 			if (jedis != null) {
 				jedis.close();
@@ -521,7 +522,7 @@ public class JedisUtil {
 		try {
 			return jedis.hvals(key);
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		} finally {
 			if (jedis != null) {
 				jedis.close();

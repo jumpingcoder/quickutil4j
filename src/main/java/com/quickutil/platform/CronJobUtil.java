@@ -1,7 +1,8 @@
 package com.quickutil.platform;
 
 import ch.qos.logback.classic.Logger;
-import com.quickutil.platform.def.CronJob;
+import com.quickutil.platform.constants.Symbol;
+import com.quickutil.platform.entity.CronJob;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -62,7 +63,7 @@ public class CronJobUtil {
 				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error(Symbol.BLANK,e);
 		}
 	}
 
@@ -89,7 +90,7 @@ public class CronJobUtil {
 				LOGGER.info("CronJob" + cronJob.getJobName() + " available is false, will not be loaded");
 				return;
 			}
-			JobDetail jd = JobBuilder.newJob((Class<? extends Job>) Class.forName("com.quickutil.platform.def.JobRunner")).withIdentity(cronJob.getJobName()).build();
+			JobDetail jd = JobBuilder.newJob((Class<? extends Job>) Class.forName("com.quickutil.platform.entity.JobRunner")).withIdentity(cronJob.getJobName()).build();
 			Trigger tg = TriggerBuilder.newTrigger().withSchedule(CronScheduleBuilder.cronSchedule(cronJob.getCron())).build();
 			sd.scheduleJob(jd, tg);
 			LOGGER.info("CronJob " + cronJob.getJobName() + " load successfully");

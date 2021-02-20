@@ -1,7 +1,8 @@
 package com.quickutil.platform;
 
 import ch.qos.logback.classic.Logger;
-import com.quickutil.platform.def.AttachmentDef;
+import com.quickutil.platform.entity.AttachmentDef;
+import com.quickutil.platform.constants.Symbol;
 import org.slf4j.LoggerFactory;
 
 import javax.activation.DataHandler;
@@ -113,7 +114,7 @@ public class MailUtil {
             Transport.send(message);
             return true;
         } catch (Exception e) {
-            LOGGER.error("", e);
+            LOGGER.error(Symbol.BLANK, e);
         }
         return false;
     }

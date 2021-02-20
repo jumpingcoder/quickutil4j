@@ -1,11 +1,11 @@
 package com.quickutil.platform;
 
+import com.quickutil.platform.constants.Symbol;
 import org.markdownj.MarkdownProcessor;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
 
-import java.io.File;
 import java.util.*;
 
 /**
@@ -37,7 +37,7 @@ public class AnnotationUtil {
 				String htmlContent = markdownToHtml(mdContent);
 				FileUtil.string2File(htmlPath, htmlContent, false);
 			} catch (Exception e) {
-				LOGGER.error("", e);
+				LOGGER.error(Symbol.BLANK, e);
 			}
 		}
 	}

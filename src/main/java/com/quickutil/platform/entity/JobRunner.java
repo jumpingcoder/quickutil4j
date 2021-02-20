@@ -1,4 +1,4 @@
-package com.quickutil.platform.def;
+package com.quickutil.platform.entity;
 
 import ch.qos.logback.classic.Logger;
 import com.quickutil.platform.CronJobUtil;

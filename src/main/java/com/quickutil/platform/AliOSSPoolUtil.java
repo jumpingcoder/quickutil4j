@@ -1,6 +1,7 @@
 package com.quickutil.platform;
 
 import ch.qos.logback.classic.Logger;
+import com.quickutil.platform.constants.Symbol;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
@@ -32,7 +33,7 @@ public class AliOSSPoolUtil {
                 String bucketname = properties.getProperty(key + ".bucketname");
                 ossMap.put(key, new AliOSSUtil(accessKeyId, accessKeySecret, endpoint, bucketname));
             } catch (Exception e) {
-                LOGGER.error("", e);
+                LOGGER.error(Symbol.BLANK, e);
             }
         }
     }

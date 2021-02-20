@@ -1,6 +1,7 @@
 package com.quickutil.platform;
 
 import ch.qos.logback.classic.Logger;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -12,8 +13,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
+import java.nio.channels.FileChannel;
+import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.quickutil.platform.constants.Symbol;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -24,6 +29,7 @@ import org.slf4j.LoggerFactory;
 public class FileUtil {
 
 	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(FileUtil.class);
+	private static final int BUFFER_SIZE = 8192;
 
 	/**
 	 * 获取程序运行时路径
@@ -61,7 +67,7 @@ public class FileUtil {
 			out.close();
 			return true;
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return false;
 	}
@@ -75,7 +81,7 @@ public class FileUtil {
 		try {
 			return new String(file2Byte(filePath));
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return null;
 	}
@@ -97,21 +103,21 @@ public class FileUtil {
 			out.close();
 			return true;
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return false;
 	}
 
 	/**
-	 * 读取文件到inputstream
+	 * 文件映射到FileInputStream
 	 *
 	 * @return 字节流
 	 */
-	public static InputStream file2Stream(String filePath) {
+	public static FileInputStream file2Stream(String filePath) {
 		try {
-			return new FileInputStream(new File(filePath));
+			return new FileInputStream(filePath);
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return null;
 	}
@@ -126,12 +132,12 @@ public class FileUtil {
 	public static void stream2file(InputStream input, String filePath, boolean append) {
 		try (FileOutputStream fileOutputStream = new FileOutputStream(filePath, append)) {
 			int byteRead = -1;
-			byte[] buffer = new byte[1024 * 2];
+			byte[] buffer = new byte[BUFFER_SIZE];
 			while ((byteRead = input.read(buffer)) != -1) {
 				fileOutputStream.write(buffer, 0, byteRead);
 			}
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 	}
 
@@ -146,19 +152,19 @@ public class FileUtil {
 		}
 		ByteArrayOutputStream output = new ByteArrayOutputStream();
 		try {
-			byte[] buffer = new byte[4096];
+			byte[] buffer = new byte[BUFFER_SIZE];
 			int n = 0;
 			while (-1 != (n = input.read(buffer))) {
 				output.write(buffer, 0, n);
 			}
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		} finally {
 			try {
 				output.close();
 				input.close();
 			} catch (IOException e) {
-				LOGGER.error("", e);
+				LOGGER.error(Symbol.BLANK, e);
 			}
 		}
 		return output.toByteArray();
@@ -191,6 +197,39 @@ public class FileUtil {
 		return new ByteArrayInputStream(input.getBytes());
 	}
 
+
+	/**
+	 * FileInputStream 写入 FileOutputStream
+	 *
+	 * @return FileInputStream长度
+	 */
+	public static long stream2stream(FileInputStream fis, FileOutputStream fos) {
+		try {
+			FileChannel fic = fis.getChannel();
+			fic.transferTo(0, fic.size(), fos.getChannel());
+			return fic.size();
+		} catch (Exception e) {
+			LOGGER.error(Symbol.BLANK, e);
+		}
+		return -1;
+	}
+
+	/**
+	 * FileInputStream 写入 SocketChannel
+	 *
+	 * @return FileInputStream长度
+	 */
+	public static long stream2stream(FileInputStream fis, SocketChannel soc) {
+		try {
+			FileChannel fic = fis.getChannel();
+			fic.transferTo(0, fic.size(), soc);
+			return fic.size();
+		} catch (Exception e) {
+			LOGGER.error(Symbol.BLANK, e);
+		}
+		return -1;
+	}
+
 	/**
 	 * 读取文件到List<String>
 	 *
@@ -206,7 +245,7 @@ public class FileUtil {
 			}
 			bw.close();
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return list;
 	}
@@ -227,7 +266,7 @@ public class FileUtil {
 			writer.close();
 			return true;
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return false;
 	}
@@ -244,7 +283,7 @@ public class FileUtil {
 				return file.mkdirs();
 			}
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return false;
 	}
@@ -269,7 +308,7 @@ public class FileUtil {
 				}
 			}
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return filepaths;
 	}
@@ -308,7 +347,7 @@ public class FileUtil {
 			byte[] bt = file2Byte(fromFile);
 			return byte2File(toFile, bt);
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return false;
 	}
@@ -328,7 +367,7 @@ public class FileUtil {
 			oldFile.renameTo(newFile);
 			return true;
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return false;
 	}
@@ -350,7 +389,7 @@ public class FileUtil {
 				return file.delete();
 			}
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return false;
 	}

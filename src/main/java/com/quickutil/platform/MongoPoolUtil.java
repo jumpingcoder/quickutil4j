@@ -1,6 +1,7 @@
 package com.quickutil.platform;
 
 import ch.qos.logback.classic.Logger;
+import com.quickutil.platform.constants.Symbol;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
@@ -38,7 +39,7 @@ public class MongoPoolUtil {
             try {
                 mongoUtilMap.put(key, new MongoUtil(username, password, host, port, database, builderProperties));
             } catch (Exception e) {
-                LOGGER.error("", e);
+                LOGGER.error(Symbol.BLANK, e);
             }
         }
     }

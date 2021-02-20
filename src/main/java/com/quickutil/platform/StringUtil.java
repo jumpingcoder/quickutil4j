@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.StringJoiner;
 
+import com.quickutil.platform.constants.Symbol;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
@@ -104,7 +105,7 @@ public class StringUtil {
 				map.put(field.getName(), field.get(object));
 			}
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return map;
 	}

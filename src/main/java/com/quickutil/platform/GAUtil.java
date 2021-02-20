@@ -11,6 +11,7 @@ import com.google.api.services.analytics.Analytics.Data;
 import com.google.api.services.analytics.Analytics.Data.Ga;
 import com.google.api.services.analytics.Analytics.Data.Realtime;
 import com.google.api.services.analytics.AnalyticsScopes;
+import com.quickutil.platform.constants.Symbol;
 import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.PrivateKey;
@@ -24,8 +25,7 @@ import java.util.Properties;
 import org.slf4j.LoggerFactory;
 
 /**
- * GA工具
- * 官方文档详见https://developers.google.com/analytics/devguides/reporting/core/v3/quickstart/installed-java
+ * GA工具 官方文档详见https://developers.google.com/analytics/devguides/reporting/core/v3/quickstart/installed-java
  *
  * @author 0.5
  */
@@ -56,7 +56,7 @@ public class GAUtil {
 				addGaClient(key, clientID, PropertiesUtil.getInputStream(p12Path), applicationName);
 				addGaRTClient(key, clientID, PropertiesUtil.getInputStream(p12Path), applicationName);
 			} catch (Exception e) {
-				LOGGER.error("", e);
+				LOGGER.error(Symbol.BLANK, e);
 			}
 		}
 	}
@@ -64,16 +64,16 @@ public class GAUtil {
 	public static void addGaClient(String key, String clientID, InputStream p12InputStream, String applicationName) {
 		try {
 			Data data = buildData(clientID, p12InputStream, applicationName);
-			if(data != null){
+			if (data != null) {
 				Ga ga = data.ga();
 				gaClientMap.put(key, ga);
 			}
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 	}
 
-	private static Data buildData(String clientID, InputStream p12InputStream, String applicationName){
+	private static Data buildData(String clientID, InputStream p12InputStream, String applicationName) {
 		try {
 			HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
 			JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
@@ -84,7 +84,7 @@ public class GAUtil {
 					.setServiceAccountScopes(Collections.singleton(AnalyticsScopes.ANALYTICS_READONLY)).build();
 			return new Analytics.Builder(httpTransport, jsonFactory, credential).setApplicationName(applicationName).build().data();
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 			return null;
 		}
 	}
@@ -92,12 +92,12 @@ public class GAUtil {
 	public static void addGaRTClient(String key, String clientID, InputStream p12InputStream, String applicationName) {
 		try {
 			Data data = buildData(clientID, p12InputStream, applicationName);
-			if(data != null){
+			if (data != null) {
 				Realtime rt = data.realtime();
 				gaRTClientMap.put(key, rt);
 			}
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 	}
 
@@ -105,7 +105,7 @@ public class GAUtil {
 		return gaClientMap.get(key);
 	}
 
-	public static Realtime getGaRTClient(String key){
+	public static Realtime getGaRTClient(String key) {
 		return gaRTClientMap.get(key);
 	}
 

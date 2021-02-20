@@ -1,4 +1,4 @@
-package com.quickutil.platform.def;
+package com.quickutil.platform.entity;
 
 public class GeoPoint {
 	public double latitude = 0.0;

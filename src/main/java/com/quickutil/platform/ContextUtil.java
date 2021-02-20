@@ -3,6 +3,7 @@ package com.quickutil.platform;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.quickutil.platform.constants.Symbol;
 import java.io.InputStream;
 import java.util.Map;
 import javax.servlet.http.Cookie;
@@ -228,7 +229,7 @@ public class ContextUtil {
             }
             return request.get().getInputStream();
         } catch (Exception e) {
-            LOGGER.error("", e);
+            LOGGER.error(Symbol.BLANK, e);
         }
         return null;
     }
@@ -243,7 +244,7 @@ public class ContextUtil {
             }
             return FileUtil.stream2string(request.get().getInputStream());
         } catch (Exception e) {
-            LOGGER.error("", e);
+            LOGGER.error(Symbol.BLANK, e);
         }
         return null;
     }
@@ -274,7 +275,7 @@ public class ContextUtil {
             }
             return JsonUtil.toJsonObject(body);
         } catch (Exception e) {
-            LOGGER.error("", e);
+            LOGGER.error(Symbol.BLANK, e);
         }
         return null;
     }
@@ -290,7 +291,7 @@ public class ContextUtil {
             }
             return JsonUtil.toJsonArray(FileUtil.stream2string(request.get().getInputStream()));
         } catch (Exception e) {
-            LOGGER.error("", e);
+            LOGGER.error(Symbol.BLANK, e);
         }
         return null;
     }
@@ -305,7 +306,7 @@ public class ContextUtil {
             }
             return new Gson().fromJson(body, tClass);
         } catch (Exception e) {
-            LOGGER.error("", e);
+            LOGGER.error(Symbol.BLANK, e);
         }
         return null;
     }

@@ -1,6 +1,7 @@
 package com.quickutil.platform;
 
 import ch.qos.logback.classic.Logger;
+import com.quickutil.platform.constants.Symbol;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.*;
@@ -112,7 +113,7 @@ public class HttpUtil {
             response = httpClient.execute(method);
             return response;
         } catch (Exception e) {
-            LOGGER.error("", e);
+            LOGGER.error(Symbol.BLANK, e);
         }
         return null;
     }
@@ -196,7 +197,7 @@ public class HttpUtil {
             response = httpClient.execute(method);
             return response;
         } catch (Exception e) {
-            LOGGER.error("", e);
+            LOGGER.error(Symbol.BLANK, e);
         }
         return null;
     }
@@ -280,7 +281,7 @@ public class HttpUtil {
             response = httpClient.execute(method);
             return response;
         } catch (Exception e) {
-            LOGGER.error("", e);
+            LOGGER.error(Symbol.BLANK, e);
         }
         return null;
     }
@@ -346,7 +347,7 @@ public class HttpUtil {
             response = httpClient.execute(method);
             return response;
         } catch (Exception e) {
-            LOGGER.error("", e);
+            LOGGER.error(Symbol.BLANK, e);
         }
         return null;
     }
@@ -406,7 +407,7 @@ public class HttpUtil {
                     .register("https", socketFactory).build();
             return new PoolingHttpClientConnectionManager(socketFactoryRegistry);
         } catch (Exception e) {
-            LOGGER.error("", e);
+            LOGGER.error(Symbol.BLANK, e);
             return null;
         }
     }

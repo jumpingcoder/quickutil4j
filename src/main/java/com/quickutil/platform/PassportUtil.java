@@ -5,6 +5,7 @@ import java.util.Enumeration;
 import java.util.Map;
 import java.util.Properties;
 
+import com.quickutil.platform.constants.Symbol;
 import org.apache.http.HttpResponse;
 import org.slf4j.LoggerFactory;
 
@@ -85,7 +86,7 @@ public class PassportUtil {
 			requestUrl = URLEncoder.encode(requestUrl, "UTF-8");
 			redirectUrl = URLEncoder.encode(redirectUrl, "UTF-8");
 		} catch (Exception e) {
-			LOGGER.error("",e);
+			LOGGER.error(Symbol.BLANK,e);
 		}
 		long time = System.currentTimeMillis();
 		String secretkey = CryptoUtil.HmacSHA1Encrypt(String.format(showLoginSec, PassportAppid, requestUrl, redirectUrl, time).getBytes(), PassportAppkey);
@@ -111,7 +112,7 @@ public class PassportUtil {
 			if ((Boolean) map.get("success"))
 				return true;
 		} catch (Exception e) {
-			LOGGER.error("",e);
+			LOGGER.error(Symbol.BLANK,e);
 		}
 		return false;
 	}
@@ -142,7 +143,7 @@ public class PassportUtil {
 			String result = new String(FileUtil.stream2byte(response.getEntity().getContent()));
 			return JsonUtil.toMap(result);
 		} catch (Exception e) {
-			LOGGER.error("",e);
+			LOGGER.error(Symbol.BLANK,e);
 		}
 		return null;
 	}
@@ -173,7 +174,7 @@ public class PassportUtil {
 			if ((Boolean) map.get("success"))
 				return true;
 		} catch (Exception e) {
-			LOGGER.error("",e);
+			LOGGER.error(Symbol.BLANK,e);
 		}
 		return false;
 	}
@@ -204,7 +205,7 @@ public class PassportUtil {
 			if ((Boolean) map.get("success"))
 				return true;
 		} catch (Exception e) {
-			LOGGER.error("",e);
+			LOGGER.error(Symbol.BLANK,e);
 		}
 		return false;
 	}
@@ -235,7 +236,7 @@ public class PassportUtil {
 			if ((Boolean) map.get("success"))
 				return true;
 		} catch (Exception e) {
-			LOGGER.error("",e);
+			LOGGER.error(Symbol.BLANK,e);
 		}
 		return false;
 	}

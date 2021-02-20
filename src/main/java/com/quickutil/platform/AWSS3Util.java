@@ -7,6 +7,7 @@ import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.*;
+import com.quickutil.platform.constants.Symbol;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
@@ -101,7 +102,7 @@ public class AWSS3Util {
                 list.add(uploadFile(FileUtil.file2Byte(path), filePath, contentType, groupGrantee, permission));
             }
         } catch (Exception e) {
-            LOGGER.error("", e);
+            LOGGER.error(Symbol.BLANK, e);
         }
         return list;
     }

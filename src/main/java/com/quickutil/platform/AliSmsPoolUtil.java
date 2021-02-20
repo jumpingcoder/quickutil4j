@@ -1,6 +1,7 @@
 package com.quickutil.platform;
 
 import ch.qos.logback.classic.Logger;
+import com.quickutil.platform.constants.Symbol;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
@@ -34,7 +35,7 @@ public class AliSmsPoolUtil {
                 signName = new String(signName.getBytes("ISO-8859-1"), "utf-8");
                 smsMap.put(key, new AliSmsUtil(accessKey, accessSecret, templateCode, signName));
             } catch (Exception e) {
-                LOGGER.error("", e);
+                LOGGER.error(Symbol.BLANK, e);
             }
         }
 

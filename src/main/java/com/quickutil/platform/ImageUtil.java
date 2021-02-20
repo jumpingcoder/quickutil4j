@@ -9,6 +9,7 @@ import java.nio.ByteBuffer;
 
 import javax.imageio.ImageIO;
 
+import com.quickutil.platform.constants.Symbol;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
@@ -40,7 +41,7 @@ public class ImageUtil {
 			byte[] bytes = baos.toByteArray();
 			buffer = ByteBuffer.wrap(bytes);
 		} catch (Exception e) {
-			LOGGER.error("",e);
+			LOGGER.error(Symbol.BLANK,e);
 		}
 		return buffer;
 	}
@@ -56,7 +57,7 @@ public class ImageUtil {
 			ByteArrayInputStream in = new ByteArrayInputStream(bt);
 			return ImageIO.read(in);
 		} catch (Exception e) {
-			LOGGER.error("",e);
+			LOGGER.error(Symbol.BLANK,e);
 		}
 		return null;
 	}
@@ -71,7 +72,7 @@ public class ImageUtil {
 		try {
 			return ImageIO.read(new File(filePath));
 		} catch (Exception e) {
-			LOGGER.error("",e);
+			LOGGER.error(Symbol.BLANK,e);
 		}
 		return null;
 	}

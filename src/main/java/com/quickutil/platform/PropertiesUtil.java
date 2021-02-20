@@ -1,6 +1,7 @@
 package com.quickutil.platform;
 
 import ch.qos.logback.classic.Logger;
+import com.quickutil.platform.constants.Symbol;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
@@ -82,20 +83,20 @@ public class PropertiesUtil {
         try {
             stream = this.getClass().getClassLoader().getResourceAsStream(filePath);
         } catch (Exception e) {
-            LOGGER.debug("", e);
+            LOGGER.debug(Symbol.BLANK, e);
         }
         if (stream == null) {
             try {
                 stream = this.getClass().getResourceAsStream("/resources/" + filePath);
             } catch (Exception e) {
-                LOGGER.debug("", e);
+                LOGGER.debug(Symbol.BLANK, e);
             }
         }
         if (stream == null) {
             try {
                 stream = this.getClass().getResourceAsStream(filePath);
             } catch (Exception e) {
-                LOGGER.debug("", e);
+                LOGGER.debug(Symbol.BLANK, e);
             }
         }
         return stream;

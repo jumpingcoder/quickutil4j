@@ -10,14 +10,26 @@
   <distributionManagement>
     <repository>
       <id>com.quickutil</id>
-      <url>http://nexus.quickutil.com/repository/com.quickutil</url>
+      <url>https://nexus.quickutil.com/repository/com.quickutil</url>
     </repository>
   </distributionManagement>
+  <repositories>
+    <repository>
+      <id>com.quickutil</id>
+      <url>https://nexus.quickutil.com/repository/maven-public/</url>
+    </repository>
+  </repositories>
   <dependencies>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <version>1.7.30</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.13.1</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>

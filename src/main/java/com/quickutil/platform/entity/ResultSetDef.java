@@ -1,4 +1,4 @@
-package com.quickutil.platform.def;
+package com.quickutil.platform.entity;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

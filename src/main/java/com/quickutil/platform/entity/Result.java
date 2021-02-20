@@ -1,4 +1,4 @@
-package com.quickutil.platform.def;
+package com.quickutil.platform.entity;
 
 import com.google.gson.GsonBuilder;
 import com.quickutil.platform.JsonUtil;

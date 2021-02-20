@@ -3,8 +3,9 @@ package com.quickutil.platform;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.quickutil.platform.def.BulkResponse;
-import com.quickutil.platform.def.SearchRequest;
+import com.quickutil.platform.entity.BulkResponse;
+import com.quickutil.platform.constants.Symbol;
+import com.quickutil.platform.entity.SearchRequest;
 import java.io.File;
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -190,7 +191,7 @@ public class ElasticUtil {
 			HttpResponse response = client.execute(getMethod(host));
 			return getEntity(response);
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return null;
 	}
@@ -414,7 +415,7 @@ public class ElasticUtil {
 				return true;
 			}
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return false;
 	}
@@ -758,7 +759,7 @@ public class ElasticUtil {
 			response = client.execute(getMethod(host + path));
 			return getEntity(response);
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return null;
 	}
@@ -959,7 +960,7 @@ public class ElasticUtil {
 			}
 			return false;
 		} catch (IOException e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		} finally {
 			HttpClientUtils.closeQuietly(response);
 		}
@@ -978,7 +979,7 @@ public class ElasticUtil {
 			client.execute(httpPut);
 			return true;
 		} catch (IOException e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return false;
 	}
@@ -996,7 +997,7 @@ public class ElasticUtil {
 			response = client.execute(httpPost);
 			return true;
 		} catch (IOException e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		} finally {
 			HttpClientUtils.closeQuietly(response);
 		}
@@ -1017,7 +1018,7 @@ public class ElasticUtil {
 			HttpResponse response = client.execute(httpPost);
 			return new String(FileUtil.stream2byte(response.getEntity().getContent()));
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return null;
 	}
@@ -1154,7 +1155,7 @@ public class ElasticUtil {
 			HttpResponse response = client.execute(httpPost);
 			return new String(FileUtil.stream2byte(response.getEntity().getContent()));
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return null;
 	}

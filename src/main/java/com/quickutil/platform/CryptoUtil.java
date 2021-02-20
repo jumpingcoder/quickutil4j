@@ -1,5 +1,6 @@
 package com.quickutil.platform;
 
+import com.quickutil.platform.constants.Symbol;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -54,14 +55,13 @@ public class CryptoUtil {
 	/**
 	 * 计算md5
 	 *
-	 * @param bt-字节数组
 	 * @return 计算过md5的字符串
 	 */
 	public static String md5Encode(byte[] bt) {
 		try {
 			return byte2hex(MessageDigest.getInstance(MD5).digest(bt));
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 			return null;
 		}
 	}
@@ -69,14 +69,13 @@ public class CryptoUtil {
 	/**
 	 * 计算sha1
 	 *
-	 * @param bt-字节数组
 	 * @return 计算过sha1的字符串
 	 */
 	public static String sha1Encode(byte[] bt) {
 		try {
 			return byte2hex(MessageDigest.getInstance(SHA1).digest(bt));
 		} catch (NoSuchAlgorithmException e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 			return null;
 		}
 	}
@@ -84,8 +83,6 @@ public class CryptoUtil {
 	/**
 	 * hmac-md5签名
 	 *
-	 * @param encryptContent-需要签名的内容
-	 * @param encryptKey-用于签名的KEY
 	 * @return 计算过HMAC-md5的字符串
 	 */
 	public static String HmacMD5Encrypt(byte[] encryptContent, String encryptKey) {
@@ -97,7 +94,7 @@ public class CryptoUtil {
 			byte[] secretbt = mac.doFinal(encryptContent);
 			return byte2hex(secretbt);
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 			return null;
 		}
 	}
@@ -105,8 +102,6 @@ public class CryptoUtil {
 	/**
 	 * hmac-sha1签名
 	 *
-	 * @param encryptContent-需要签名的内容
-	 * @param encryptKey-用于签名的KEY
 	 * @return 计算过HMAC-sha1的字符串
 	 */
 	public static String HmacSHA1Encrypt(byte[] encryptContent, String encryptKey) {
@@ -126,12 +121,12 @@ public class CryptoUtil {
 	/**
 	 * byte[]转16进制字符串
 	 *
-	 * @param bt-字节数组
 	 * @return 字节流序列化成16进制字符串表示的字符串
 	 */
 	public static String byte2hex(byte[] bt) {
-		if (bt == null)
+		if (bt == null) {
 			return null;
+		}
 		StringBuffer sb = new StringBuffer();
 		for (int i = 0; i < bt.length; ++i) {
 			int x = bt[i] & 0xFF, h = x >>> 4, l = x & 0x0F;
@@ -144,7 +139,6 @@ public class CryptoUtil {
 	/**
 	 * 16进制字符串转byte[]
 	 *
-	 * @param hexString-16进制字符串
 	 * @return 16进制字符串表示的字符串反序列化成字节流
 	 */
 	public static byte[] hex2byte(String hexString) {
@@ -169,8 +163,6 @@ public class CryptoUtil {
 	/**
 	 * aes加密
 	 *
-	 * @param content-需要加密的字节数组
-	 * @param password-加密密钥
 	 * @return aes加密后的字节流
 	 */
 	public static byte[] aesEncrypt(byte[] content, String password) {
@@ -186,7 +178,7 @@ public class CryptoUtil {
 			cipher.init(Cipher.ENCRYPT_MODE, key);// 初始化
 			return cipher.doFinal(content); // 加密
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return null;
 	}
@@ -194,8 +186,6 @@ public class CryptoUtil {
 	/**
 	 * aes解密
 	 *
-	 * @param content-需要解密的字节数组
-	 * @param password-解密密钥
 	 * @return aes解密后的字节流
 	 */
 	public static byte[] aesDecrypt(byte[] content, String password) throws Exception {
@@ -214,8 +204,6 @@ public class CryptoUtil {
 	/**
 	 * aes字符串加密
 	 *
-	 * @param content-需要加密的字符串
-	 * @param password-加密密钥
 	 * @return aes加密后的字符串
 	 */
 	public static String aesEncryptStr(String content, String password) {
@@ -225,8 +213,6 @@ public class CryptoUtil {
 	/**
 	 * aes字符串解密
 	 *
-	 * @param content-需要解密的字符串
-	 * @param password-解密密钥
 	 * @return aes解密后的字符串
 	 */
 	public static String aesDecryptStr(String content, String password) throws Exception {
@@ -236,8 +222,6 @@ public class CryptoUtil {
 	/**
 	 * aes-ecb加密
 	 *
-	 * @param content-需要加密的字节数组
-	 * @param password-加密的密钥
 	 * @return aes-ebc加密后的字节流
 	 */
 	public static byte[] aesecbEncrypt(byte[] content, String password) {
@@ -247,7 +231,7 @@ public class CryptoUtil {
 			cipher.init(Cipher.ENCRYPT_MODE, key);// 初始化
 			return cipher.doFinal(content); // 加密
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return null;
 	}
@@ -255,8 +239,6 @@ public class CryptoUtil {
 	/**
 	 * aes-ecb解密
 	 *
-	 * @param content-需要解密的字节数组
-	 * @param password-解密的密钥
 	 * @return aes-ebc解密后的字节流
 	 */
 	public static byte[] aesecbDecrypt(byte[] content, String password) {
@@ -266,7 +248,7 @@ public class CryptoUtil {
 			cipher.init(Cipher.DECRYPT_MODE, key);// 初始化
 			return cipher.doFinal(content); // 解密
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return null;
 	}
@@ -274,8 +256,6 @@ public class CryptoUtil {
 	/**
 	 * aes-cbc加密
 	 *
-	 * @param content-需要加密的字节数组
-	 * @param password-加密的密钥
 	 * @return aes-cbc加密后的字节流
 	 */
 	public static byte[] aescbcEncrypt(byte[] content, String password, byte[] iv) {
@@ -285,7 +265,7 @@ public class CryptoUtil {
 			cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(iv));
 			return cipher.doFinal(content); // 加密
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return null;
 	}
@@ -293,8 +273,6 @@ public class CryptoUtil {
 	/**
 	 * 标准aes-cbc解密
 	 *
-	 * @param content-需要解密的字节数组
-	 * @param password-解密的密钥
 	 * @return aes-cbc解密后的字节流
 	 */
 	public static byte[] aescbcDecrypt(byte[] content, String password, byte[] iv) {
@@ -304,7 +282,7 @@ public class CryptoUtil {
 			cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(iv));// 初始化
 			return cipher.doFinal(content); // 解密
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return null;
 	}
@@ -312,14 +290,13 @@ public class CryptoUtil {
 	/**
 	 * base64字符串转换为byte[]
 	 *
-	 * @param baseString-base64字符串
 	 * @return 字节流
 	 */
 	public static byte[] base64ToByte(String baseString) {
 		try {
 			return Base64.getDecoder().decode(baseString);
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return null;
 	}
@@ -327,14 +304,13 @@ public class CryptoUtil {
 	/**
 	 * byte[]转换为base64字符串
 	 *
-	 * @param bt-字节数组
 	 * @return 字符串
 	 */
 	public static String byteToBase64(byte[] bt) {
 		try {
 			return Base64.getEncoder().encodeToString(bt);
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return null;
 	}

@@ -11,6 +11,7 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.UpdateResult;
+import com.quickutil.platform.constants.Symbol;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.slf4j.LoggerFactory;
@@ -100,7 +101,7 @@ public class MongoUtil {
             MongoClient client = new MongoClient(new MongoClientURI(String.format(mongoProtocol, username, password, host, port, database), builder));
             return client;
         } catch (Exception e) {
-            LOGGER.error("", e);
+            LOGGER.error(Symbol.BLANK, e);
         }
         return null;
     }
@@ -117,7 +118,7 @@ public class MongoUtil {
             while (cursor.hasNext())
                 list.add(cursor.next());
         } catch (Exception e) {
-            LOGGER.error("", e);
+            LOGGER.error(Symbol.BLANK, e);
         }
         return null;
     }
@@ -148,7 +149,7 @@ public class MongoUtil {
             database.createCollection(collectionName);
             return true;
         } catch (Exception e) {
-            LOGGER.error("", e);
+            LOGGER.error(Symbol.BLANK, e);
         }
         return false;
     }
@@ -213,7 +214,7 @@ public class MongoUtil {
             database.getCollection(collectionName).insertMany(list);
             return true;
         } catch (Exception e) {
-            LOGGER.error("", e);
+            LOGGER.error(Symbol.BLANK, e);
         }
         return false;
     }

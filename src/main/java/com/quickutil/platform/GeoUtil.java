@@ -5,8 +5,9 @@ import com.google.gson.JsonObject;
 import com.maxmind.geoip2.DatabaseReader;
 import com.maxmind.geoip2.exception.AddressNotFoundException;
 import com.maxmind.geoip2.model.CityResponse;
-import com.quickutil.platform.def.GeoDef;
-import com.quickutil.platform.def.GeoPoint;
+import com.quickutil.platform.constants.Symbol;
+import com.quickutil.platform.entity.GeoDef;
+import com.quickutil.platform.entity.GeoPoint;
 
 import ch.qos.logback.classic.Logger;
 
@@ -25,7 +26,6 @@ import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.LoggerFactory;
 
 import static com.quickutil.platform.GeoUtil.ISO_3166_2_Version.V20040308;
-import static com.quickutil.platform.GeoUtil.ISO_3166_2_Version.V20171123;
 import static com.quickutil.platform.GeoUtil.MMDBVersion.GeoIP2City;
 import static com.quickutil.platform.GeoUtil.MMDBVersion.GeoLite2City;
 
@@ -151,7 +151,7 @@ public class GeoUtil {
 			}
 			return true;
 		} catch (Exception e) {
-			LOGGER.error("",e);
+			LOGGER.error(Symbol.BLANK,e);
 		}
 		return false;
 	}
@@ -194,7 +194,7 @@ public class GeoUtil {
 			try {
 				databaseReader = new DatabaseReader.Builder(new File(mmdbPath)).build();
 			} catch (IOException e) {
-				LOGGER.error("", e);
+				LOGGER.error(Symbol.BLANK, e);
 			}
 		}
 	}
@@ -308,7 +308,7 @@ public class GeoUtil {
 		} catch (AddressNotFoundException ae) {
 		} catch (UnknownHostException ue) {
 		} catch (Exception e) {
-			LOGGER.error("",e);
+			LOGGER.error(Symbol.BLANK,e);
 		}
 		countryCode = (countryCode == null) ? UNKNOWN : countryCode;
 		country = (country == null) ? UNKNOWN : country;
@@ -362,7 +362,7 @@ public class GeoUtil {
 			city = (city == null) ? UNKNOWN : city;
 			return new GeoDef(latitude, longitude, countryCode, country, countryChinese, stateCode, state, stateChinese, city, description);
 		} catch (Exception e) {
-			LOGGER.error("",e);
+			LOGGER.error(Symbol.BLANK,e);
 		}
 		return null;
 	}
@@ -418,7 +418,7 @@ public class GeoUtil {
 			}
 			return geodefList;
 		} catch (Exception e) {
-			LOGGER.error("",e);
+			LOGGER.error(Symbol.BLANK,e);
 		}
 		return null;
 	}
@@ -463,7 +463,7 @@ public class GeoUtil {
 			city = (city == null) ? UNKNOWN : city;
 			return new GeoDef(latitude, longitude, countryCode, country, countryChinese, stateCode, state, stateChinese, city, description);
 		} catch (Exception e) {
-			LOGGER.error("",e);
+			LOGGER.error(Symbol.BLANK,e);
 		}
 		return null;
 	}
