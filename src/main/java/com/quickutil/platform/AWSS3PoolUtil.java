@@ -2,6 +2,7 @@ package com.quickutil.platform;
 
 import ch.qos.logback.classic.Logger;
 import com.quickutil.platform.constants.Symbol;
+import com.quickutil.platform.exception.MissingParametersException;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
@@ -31,8 +32,10 @@ public class AWSS3PoolUtil {
 				String secretKey = s3Properties.getProperty(key + ".secretKey");
 				String endPoint = s3Properties.getProperty(key + ".endPoint");
 				String region = s3Properties.getProperty(key + ".region");
-				String bucketname = s3Properties.getProperty(key + ".bucketname");
-				s3Map.put(key, new AWSS3Util(accessKey, secretKey, endPoint, region, bucketname));
+				String bucketName = s3Properties.getProperty(key + ".bucketname");
+				if(accessKey==null||secretKey==null||endPoint==null||region==null||bucketName==null)
+					throw new MissingParametersException("init requires accessKey, secretKey, endPoint, region, bucketname");
+				s3Map.put(key, new AWSS3Util(accessKey, secretKey, endPoint, region, bucketName));
 			} catch (Exception e) {
 				LOGGER.error(Symbol.BLANK, e);
 			}

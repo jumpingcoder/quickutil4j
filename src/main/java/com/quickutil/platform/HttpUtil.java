@@ -42,12 +42,12 @@ public class HttpUtil {
     public static String paramToQuery(Map<String, String> params) {
         if (params == null)
             return "";
-        StringBuffer sb = new StringBuffer("?");
+        StringBuffer sb = new StringBuffer(Symbol.QUESTION_MARK);
         for (String key : params.keySet()) {
             sb.append(key);
-            sb.append("=");
+            sb.append(Symbol.EQUAL);
             sb.append(params.get(key));
-            sb.append("&");
+            sb.append(Symbol.AND);
         }
         return sb.substring(0, sb.length() - 1);
     }

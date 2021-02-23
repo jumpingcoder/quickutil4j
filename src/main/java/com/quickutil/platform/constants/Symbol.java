@@ -10,5 +10,7 @@ public class Symbol {
 	public static final String SLASH = "/";
 	public static final String PROTOCOL = "://";
 	public static final String QUESTION_MARK = "?";
+	public static final String EQUAL = "=";
+	public static final String AND = "&";
 
 }

@@ -2,6 +2,7 @@ package com.quickutil.platform;
 
 import ch.qos.logback.classic.Logger;
 import com.quickutil.platform.constants.Symbol;
+import com.quickutil.platform.exception.MissingParametersException;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
@@ -30,8 +31,10 @@ public class AliOSSPoolUtil {
                 String accessKeyId = properties.getProperty(key + ".accessKeyId");
                 String accessKeySecret = properties.getProperty(key + ".accessKeySecret");
                 String endpoint = properties.getProperty(key + ".endpoint");
-                String bucketname = properties.getProperty(key + ".bucketname");
-                ossMap.put(key, new AliOSSUtil(accessKeyId, accessKeySecret, endpoint, bucketname));
+                String bucketName = properties.getProperty(key + ".bucketname");
+                if(accessKeyId==null||accessKeySecret==null||endpoint==null||bucketName==null)
+					throw new MissingParametersException("init requires accessKeyId, accessKeySecret, endpoint, bucketname");
+                ossMap.put(key, new AliOSSUtil(accessKeyId, accessKeySecret, endpoint, bucketName));
             } catch (Exception e) {
                 LOGGER.error(Symbol.BLANK, e);
             }

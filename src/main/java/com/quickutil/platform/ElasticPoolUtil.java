@@ -2,6 +2,7 @@ package com.quickutil.platform;
 
 import ch.qos.logback.classic.Logger;
 import com.quickutil.platform.constants.Symbol;
+import com.quickutil.platform.exception.MissingParametersException;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
@@ -35,6 +36,8 @@ public class ElasticPoolUtil {
 				String host = elasticProperties.getProperty(key + ".host");
 				String username = elasticProperties.getProperty(key + ".username");
 				String password = elasticProperties.getProperty(key + ".password");
+				if (host == null || username == null || password == null)
+					throw new MissingParametersException("init requires host, username, password");
 				elasticUtilMap.put(key, new ElasticUtil(host, username, password));
 			}
 		} catch (Exception e) {

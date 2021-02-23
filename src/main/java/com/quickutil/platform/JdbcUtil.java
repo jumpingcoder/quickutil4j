@@ -36,7 +36,7 @@ public class JdbcUtil {
 	}
 
 
-	private DruidDataSource buildDataSource(String dbName, String jdbcUrl, String username, String password, int initconnum, int minconnum, int maxconnum, Properties pool) {
+	private DruidDataSource buildDataSource(String dbName, String jdbcUrl, String username, String password, int initconnum, int minconnum, int maxconnum, Properties druidProperties) {
 		if (jdbcUrl == null || username == null || password == null) {
 			return null;
 		}
@@ -47,156 +47,163 @@ public class JdbcUtil {
 			datasource.setUsername(username);
 			datasource.setPassword(password);
 			datasource.setInitialSize(initconnum);
+			datasource.setMinIdle(minconnum);
 			datasource.setMaxActive(maxconnum);
-			if (pool == null) {
+			if (minconnum < 1) {
+				LOGGER.warn("The minimum number of connections is less than one");
+			}
+			if (maxconnum > Runtime.getRuntime().availableProcessors() * 2) {
+				LOGGER.warn("The maximum number of connections is more than twice the number of CPU cores");
+			}
+			if (druidProperties == null) {
 				return datasource;
 			}
-			if (pool.getProperty("DriverClass") != null) {
-				datasource.setDriverClassName((pool.getProperty("DriverClass")));
+			if (druidProperties.getProperty("DriverClass") != null) {
+				datasource.setDriverClassName((druidProperties.getProperty("DriverClass")));
 			}
-			if (pool.getProperty("AccessToUnderlyingConnectionAllowed") != null) {
-				datasource.setAccessToUnderlyingConnectionAllowed(Boolean.parseBoolean(pool.getProperty("AccessToUnderlyingConnectionAllowed")));
+			if (druidProperties.getProperty("AccessToUnderlyingConnectionAllowed") != null) {
+				datasource.setAccessToUnderlyingConnectionAllowed(Boolean.parseBoolean(druidProperties.getProperty("AccessToUnderlyingConnectionAllowed")));
 			}
-			if (pool.getProperty("AsyncCloseConnectionEnable") != null) {
-				datasource.setAsyncCloseConnectionEnable(Boolean.parseBoolean(pool.getProperty("AsyncCloseConnectionEnable")));
+			if (druidProperties.getProperty("AsyncCloseConnectionEnable") != null) {
+				datasource.setAsyncCloseConnectionEnable(Boolean.parseBoolean(druidProperties.getProperty("AsyncCloseConnectionEnable")));
 			}
-			if (pool.getProperty("BreakAfterAcquireFailure") != null) {
-				datasource.setBreakAfterAcquireFailure(Boolean.parseBoolean(pool.getProperty("BreakAfterAcquireFailure")));
+			if (druidProperties.getProperty("BreakAfterAcquireFailure") != null) {
+				datasource.setBreakAfterAcquireFailure(Boolean.parseBoolean(druidProperties.getProperty("BreakAfterAcquireFailure")));
 			}
-			if (pool.getProperty("ClearFiltersEnable") != null) {
-				datasource.setClearFiltersEnable(Boolean.parseBoolean(pool.getProperty("ClearFiltersEnable")));
+			if (druidProperties.getProperty("ClearFiltersEnable") != null) {
+				datasource.setClearFiltersEnable(Boolean.parseBoolean(druidProperties.getProperty("ClearFiltersEnable")));
 			}
-			if (pool.getProperty("ConnectionErrorRetryAttempts") != null) {
-				datasource.setConnectionErrorRetryAttempts(Integer.parseInt(pool.getProperty("ConnectionErrorRetryAttempts")));
+			if (druidProperties.getProperty("ConnectionErrorRetryAttempts") != null) {
+				datasource.setConnectionErrorRetryAttempts(Integer.parseInt(druidProperties.getProperty("ConnectionErrorRetryAttempts")));
 			}
-			if (pool.getProperty("DbType") != null) {
-				datasource.setDbType(pool.getProperty("DbType"));
+			if (druidProperties.getProperty("DbType") != null) {
+				datasource.setDbType(druidProperties.getProperty("DbType"));
 			}
-			if (pool.getProperty("DefaultAutoCommit") != null) {
-				datasource.setDefaultAutoCommit(Boolean.parseBoolean(pool.getProperty("DefaultAutoCommit")));
+			if (druidProperties.getProperty("DefaultAutoCommit") != null) {
+				datasource.setDefaultAutoCommit(Boolean.parseBoolean(druidProperties.getProperty("DefaultAutoCommit")));
 			}
-			if (pool.getProperty("DefaultCatalog") != null) {
-				datasource.setDefaultCatalog(pool.getProperty("DefaultCatalog"));
+			if (druidProperties.getProperty("DefaultCatalog") != null) {
+				datasource.setDefaultCatalog(druidProperties.getProperty("DefaultCatalog"));
 			}
-			if (pool.getProperty("DefaultReadOnly") != null) {
-				datasource.setDefaultReadOnly(Boolean.parseBoolean(pool.getProperty("DefaultReadOnly")));
+			if (druidProperties.getProperty("DefaultReadOnly") != null) {
+				datasource.setDefaultReadOnly(Boolean.parseBoolean(druidProperties.getProperty("DefaultReadOnly")));
 			}
-			if (pool.getProperty("DefaultTransactionIsolation") != null) {
-				datasource.setDefaultTransactionIsolation(Integer.parseInt(pool.getProperty("DefaultTransactionIsolation")));
+			if (druidProperties.getProperty("DefaultTransactionIsolation") != null) {
+				datasource.setDefaultTransactionIsolation(Integer.parseInt(druidProperties.getProperty("DefaultTransactionIsolation")));
 			}
-			if (pool.getProperty("Enable") != null) {
-				datasource.setEnable(Boolean.parseBoolean(pool.getProperty("Enable")));
+			if (druidProperties.getProperty("Enable") != null) {
+				datasource.setEnable(Boolean.parseBoolean(druidProperties.getProperty("Enable")));
 			}
-			if (pool.getProperty("FailFast") != null) {
-				datasource.setFailFast(Boolean.parseBoolean(pool.getProperty("FailFast")));
+			if (druidProperties.getProperty("FailFast") != null) {
+				datasource.setFailFast(Boolean.parseBoolean(druidProperties.getProperty("FailFast")));
 			}
-			if (pool.getProperty("InitGlobalVariants") != null) {
-				datasource.setInitGlobalVariants(Boolean.parseBoolean(pool.getProperty("InitGlobalVariants")));
+			if (druidProperties.getProperty("InitGlobalVariants") != null) {
+				datasource.setInitGlobalVariants(Boolean.parseBoolean(druidProperties.getProperty("InitGlobalVariants")));
 			}
-			if (pool.getProperty("InitVariants") != null) {
-				datasource.setInitVariants(Boolean.parseBoolean(pool.getProperty("InitVariants")));
+			if (druidProperties.getProperty("InitVariants") != null) {
+				datasource.setInitVariants(Boolean.parseBoolean(druidProperties.getProperty("InitVariants")));
 			}
-			if (pool.getProperty("KeepAlive") != null) {
-				datasource.setKeepAlive(Boolean.parseBoolean(pool.getProperty("KeepAlive")));
+			if (druidProperties.getProperty("KeepAlive") != null) {
+				datasource.setKeepAlive(Boolean.parseBoolean(druidProperties.getProperty("KeepAlive")));
 			}
-			if (pool.getProperty("KillWhenSocketReadTimeout") != null) {
-				datasource.setKillWhenSocketReadTimeout(Boolean.parseBoolean(pool.getProperty("KillWhenSocketReadTimeout")));
+			if (druidProperties.getProperty("KillWhenSocketReadTimeout") != null) {
+				datasource.setKillWhenSocketReadTimeout(Boolean.parseBoolean(druidProperties.getProperty("KillWhenSocketReadTimeout")));
 			}
-			if (pool.getProperty("LogAbandoned") != null) {
-				datasource.setLogAbandoned(Boolean.parseBoolean(pool.getProperty("LogAbandoned")));
+			if (druidProperties.getProperty("LogAbandoned") != null) {
+				datasource.setLogAbandoned(Boolean.parseBoolean(druidProperties.getProperty("LogAbandoned")));
 			}
-			if (pool.getProperty("LogDifferentThread") != null) {
-				datasource.setLogDifferentThread(Boolean.parseBoolean(pool.getProperty("LogDifferentThread")));
+			if (druidProperties.getProperty("LogDifferentThread") != null) {
+				datasource.setLogDifferentThread(Boolean.parseBoolean(druidProperties.getProperty("LogDifferentThread")));
 			}
-			if (pool.getProperty("LoginTimeout") != null) {
-				datasource.setLoginTimeout(Integer.parseInt(pool.getProperty("LoginTimeout")));
+			if (druidProperties.getProperty("LoginTimeout") != null) {
+				datasource.setLoginTimeout(Integer.parseInt(druidProperties.getProperty("LoginTimeout")));
 			}
-			if (pool.getProperty("MaxCreateTaskCount") != null) {
-				datasource.setMaxCreateTaskCount(Integer.parseInt(pool.getProperty("MaxCreateTaskCount")));
+			if (druidProperties.getProperty("MaxCreateTaskCount") != null) {
+				datasource.setMaxCreateTaskCount(Integer.parseInt(druidProperties.getProperty("MaxCreateTaskCount")));
 			}
-			if (pool.getProperty("MaxEvictableIdleTimeMillis") != null) {
-				datasource.setMaxEvictableIdleTimeMillis(Long.parseLong(pool.getProperty("MaxEvictableIdleTimeMillis")));
+			if (druidProperties.getProperty("MaxEvictableIdleTimeMillis") != null) {
+				datasource.setMaxEvictableIdleTimeMillis(Long.parseLong(druidProperties.getProperty("MaxEvictableIdleTimeMillis")));
 			}
-			if (pool.getProperty("MaxOpenPreparedStatements") != null) {
-				datasource.setMaxOpenPreparedStatements(Integer.parseInt(pool.getProperty("MaxOpenPreparedStatements")));
+			if (druidProperties.getProperty("MaxOpenPreparedStatements") != null) {
+				datasource.setMaxOpenPreparedStatements(Integer.parseInt(druidProperties.getProperty("MaxOpenPreparedStatements")));
 			}
-			if (pool.getProperty("PoolPreparedStatementPerConnectionSize") != null) {
-				datasource.setMaxPoolPreparedStatementPerConnectionSize(Integer.parseInt(pool.getProperty("PoolPreparedStatementPerConnectionSize")));
+			if (druidProperties.getProperty("PoolPreparedStatementPerConnectionSize") != null) {
+				datasource.setMaxPoolPreparedStatementPerConnectionSize(Integer.parseInt(druidProperties.getProperty("PoolPreparedStatementPerConnectionSize")));
 			}
-			if (pool.getProperty("MaxWait") != null) {
-				datasource.setMaxWait(Long.parseLong(pool.getProperty("MaxWait")));
+			if (druidProperties.getProperty("MaxWait") != null) {
+				datasource.setMaxWait(Long.parseLong(druidProperties.getProperty("MaxWait")));
 			}
-			if (pool.getProperty("MaxWaitThreadCount") != null) {
-				datasource.setMaxWaitThreadCount(Integer.parseInt(pool.getProperty("MaxWaitThreadCount")));
+			if (druidProperties.getProperty("MaxWaitThreadCount") != null) {
+				datasource.setMaxWaitThreadCount(Integer.parseInt(druidProperties.getProperty("MaxWaitThreadCount")));
 			}
-			if (pool.getProperty("MinEvictableIdleTimeMillis") != null) {
-				datasource.setMinEvictableIdleTimeMillis(Long.parseLong(pool.getProperty("MinEvictableIdleTimeMillis")));
+			if (druidProperties.getProperty("MinEvictableIdleTimeMillis") != null) {
+				datasource.setMinEvictableIdleTimeMillis(Long.parseLong(druidProperties.getProperty("MinEvictableIdleTimeMillis")));
 			}
-			if (pool.getProperty("MinIdle") != null) {
-				datasource.setMinIdle(Integer.parseInt(pool.getProperty("MinIdle")));
+			if (druidProperties.getProperty("MinIdle") != null) {
+				datasource.setMinIdle(Integer.parseInt(druidProperties.getProperty("MinIdle")));
 			}
-			if (pool.getProperty("NotFullTimeoutRetryCount") != null) {
-				datasource.setNotFullTimeoutRetryCount(Integer.parseInt(pool.getProperty("NotFullTimeoutRetryCount")));
+			if (druidProperties.getProperty("NotFullTimeoutRetryCount") != null) {
+				datasource.setNotFullTimeoutRetryCount(Integer.parseInt(druidProperties.getProperty("NotFullTimeoutRetryCount")));
 			}
-			if (pool.getProperty("OnFatalErrorMaxActive") != null) {
-				datasource.setOnFatalErrorMaxActive(Integer.parseInt(pool.getProperty("OnFatalErrorMaxActive")));
+			if (druidProperties.getProperty("OnFatalErrorMaxActive") != null) {
+				datasource.setOnFatalErrorMaxActive(Integer.parseInt(druidProperties.getProperty("OnFatalErrorMaxActive")));
 			}
-			if (pool.getProperty("Oracle") != null) {
-				datasource.setOracle(Boolean.parseBoolean(pool.getProperty("Oracle")));
+			if (druidProperties.getProperty("Oracle") != null) {
+				datasource.setOracle(Boolean.parseBoolean(druidProperties.getProperty("Oracle")));
 			}
-			if (pool.getProperty("PoolPreparedStatements") != null) {
-				datasource.setPoolPreparedStatements(Boolean.parseBoolean(pool.getProperty("PoolPreparedStatements")));
+			if (druidProperties.getProperty("PoolPreparedStatements") != null) {
+				datasource.setPoolPreparedStatements(Boolean.parseBoolean(druidProperties.getProperty("PoolPreparedStatements")));
 			}
-			if (pool.getProperty("QueryTimeout") != null) {
-				datasource.setQueryTimeout(Integer.parseInt(pool.getProperty("QueryTimeout")));
+			if (druidProperties.getProperty("QueryTimeout") != null) {
+				datasource.setQueryTimeout(Integer.parseInt(druidProperties.getProperty("QueryTimeout")));
 			}
-			if (pool.getProperty("RemoveAbandoned") != null) {
-				datasource.setRemoveAbandoned(Boolean.parseBoolean(pool.getProperty("RemoveAbandoned")));
+			if (druidProperties.getProperty("RemoveAbandoned") != null) {
+				datasource.setRemoveAbandoned(Boolean.parseBoolean(druidProperties.getProperty("RemoveAbandoned")));
 			}
-			if (pool.getProperty("RemoveAbandonedTimeout") != null) {
-				datasource.setRemoveAbandonedTimeout(Integer.parseInt(pool.getProperty("RemoveAbandonedTimeout")));
+			if (druidProperties.getProperty("RemoveAbandonedTimeout") != null) {
+				datasource.setRemoveAbandonedTimeout(Integer.parseInt(druidProperties.getProperty("RemoveAbandonedTimeout")));
 			}
-			if (pool.getProperty("RemoveAbandonedTimeoutMillis") != null) {
-				datasource.setRemoveAbandonedTimeoutMillis(Long.parseLong(pool.getProperty("RemoveAbandonedTimeoutMillis")));
+			if (druidProperties.getProperty("RemoveAbandonedTimeoutMillis") != null) {
+				datasource.setRemoveAbandonedTimeoutMillis(Long.parseLong(druidProperties.getProperty("RemoveAbandonedTimeoutMillis")));
 			}
-			if (pool.getProperty("ResetStatEnable") != null) {
-				datasource.setResetStatEnable(Boolean.parseBoolean(pool.getProperty("ResetStatEnable")));
+			if (druidProperties.getProperty("ResetStatEnable") != null) {
+				datasource.setResetStatEnable(Boolean.parseBoolean(druidProperties.getProperty("ResetStatEnable")));
 			}
-			if (pool.getProperty("SharePreparedStatements") != null) {
-				datasource.setSharePreparedStatements(Boolean.parseBoolean(pool.getProperty("SharePreparedStatements")));
+			if (druidProperties.getProperty("SharePreparedStatements") != null) {
+				datasource.setSharePreparedStatements(Boolean.parseBoolean(druidProperties.getProperty("SharePreparedStatements")));
 			}
-			if (pool.getProperty("TestOnBorrow") != null) {
-				datasource.setTestOnBorrow(Boolean.parseBoolean(pool.getProperty("TestOnBorrow")));
+			if (druidProperties.getProperty("TestOnBorrow") != null) {
+				datasource.setTestOnBorrow(Boolean.parseBoolean(druidProperties.getProperty("TestOnBorrow")));
 			}
-			if (pool.getProperty("TestOnReturn") != null) {
-				datasource.setTestOnReturn(Boolean.parseBoolean(pool.getProperty("TestOnReturn")));
+			if (druidProperties.getProperty("TestOnReturn") != null) {
+				datasource.setTestOnReturn(Boolean.parseBoolean(druidProperties.getProperty("TestOnReturn")));
 			}
-			if (pool.getProperty("TimeBetweenConnectErrorMillis") != null) {
-				datasource.setTimeBetweenConnectErrorMillis(Long.parseLong(pool.getProperty("TimeBetweenConnectErrorMillis")));
+			if (druidProperties.getProperty("TimeBetweenConnectErrorMillis") != null) {
+				datasource.setTimeBetweenConnectErrorMillis(Long.parseLong(druidProperties.getProperty("TimeBetweenConnectErrorMillis")));
 			}
-			if (pool.getProperty("TimeBetweenEvictionRunsMillis") != null) {
-				datasource.setTimeBetweenEvictionRunsMillis(Long.parseLong(pool.getProperty("TimeBetweenEvictionRunsMillis")));
+			if (druidProperties.getProperty("TimeBetweenEvictionRunsMillis") != null) {
+				datasource.setTimeBetweenEvictionRunsMillis(Long.parseLong(druidProperties.getProperty("TimeBetweenEvictionRunsMillis")));
 			}
-			if (pool.getProperty("TimeBetweenLogStatsMillis") != null) {
-				datasource.setTimeBetweenLogStatsMillis(Long.parseLong(pool.getProperty("TimeBetweenLogStatsMillis")));
+			if (druidProperties.getProperty("TimeBetweenLogStatsMillis") != null) {
+				datasource.setTimeBetweenLogStatsMillis(Long.parseLong(druidProperties.getProperty("TimeBetweenLogStatsMillis")));
 			}
-			if (pool.getProperty("TransactionQueryTimeout") != null) {
-				datasource.setTransactionQueryTimeout(Integer.parseInt(pool.getProperty("TransactionQueryTimeout")));
+			if (druidProperties.getProperty("TransactionQueryTimeout") != null) {
+				datasource.setTransactionQueryTimeout(Integer.parseInt(druidProperties.getProperty("TransactionQueryTimeout")));
 			}
-			if (pool.getProperty("TransactionThresholdMillis") != null) {
-				datasource.setTransactionThresholdMillis(Long.parseLong(pool.getProperty("TransactionThresholdMillis")));
+			if (druidProperties.getProperty("TransactionThresholdMillis") != null) {
+				datasource.setTransactionThresholdMillis(Long.parseLong(druidProperties.getProperty("TransactionThresholdMillis")));
 			}
-			if (pool.getProperty("UseGlobalDataSourceStat") != null) {
-				datasource.setUseGlobalDataSourceStat(Boolean.parseBoolean(pool.getProperty("UseGlobalDataSourceStat")));
+			if (druidProperties.getProperty("UseGlobalDataSourceStat") != null) {
+				datasource.setUseGlobalDataSourceStat(Boolean.parseBoolean(druidProperties.getProperty("UseGlobalDataSourceStat")));
 			}
-			if (pool.getProperty("UseLocalSessionState") != null) {
-				datasource.setUseLocalSessionState(Boolean.parseBoolean(pool.getProperty("UseLocalSessionState")));
+			if (druidProperties.getProperty("UseLocalSessionState") != null) {
+				datasource.setUseLocalSessionState(Boolean.parseBoolean(druidProperties.getProperty("UseLocalSessionState")));
 			}
-			if (pool.getProperty("UseOracleImplicitCache") != null) {
-				datasource.setUseOracleImplicitCache(Boolean.parseBoolean(pool.getProperty("UseOracleImplicitCache")));
+			if (druidProperties.getProperty("UseOracleImplicitCache") != null) {
+				datasource.setUseOracleImplicitCache(Boolean.parseBoolean(druidProperties.getProperty("UseOracleImplicitCache")));
 			}
-			if (pool.getProperty("UseUnfairLock") != null) {
-				datasource.setUseUnfairLock(Boolean.parseBoolean(pool.getProperty("UseUnfairLock")));
+			if (druidProperties.getProperty("UseUnfairLock") != null) {
+				datasource.setUseUnfairLock(Boolean.parseBoolean(druidProperties.getProperty("UseUnfairLock")));
 			}
 		} catch (Exception e) {
 			LOGGER.error(Symbol.BLANK, e);

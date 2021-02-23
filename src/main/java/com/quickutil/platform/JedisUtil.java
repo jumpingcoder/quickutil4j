@@ -45,7 +45,7 @@ public class JedisUtil {
 		jedisPool.close();
 	}
 
-	private JedisPool buildJedisPool(String host, int port, int timeout, String password, int database, boolean isSsl, String caPath, Properties pool) {
+	private JedisPool buildJedisPool(String host, int port, int timeout, String password, int database, boolean isSsl, String caPath, Properties jedisPoolProperties) {
 		if (isSsl) {
 			if (caPath == null || caPath.isEmpty()) {
 				LOGGER.error("证书路径不能为空!");
@@ -54,65 +54,65 @@ public class JedisUtil {
 			System.setProperty("javax.net.ssl.trustStore", caPath);
 		}
 		JedisPoolConfig config = new JedisPoolConfig();
-		if (pool == null) {
+		if (jedisPoolProperties == null) {
 			return new JedisPool(config, host, port, timeout, password, database, isSsl);
 		}
-		if (pool.getProperty("BlockWhenExhausted") != null) {
-			config.setBlockWhenExhausted(Boolean.parseBoolean(pool.getProperty("BlockWhenExhausted")));
+		if (jedisPoolProperties.getProperty("BlockWhenExhausted") != null) {
+			config.setBlockWhenExhausted(Boolean.parseBoolean(jedisPoolProperties.getProperty("BlockWhenExhausted")));
 		}
-		if (pool.getProperty("EvictionPolicyClassName") != null) {
-			config.setEvictionPolicyClassName(pool.getProperty("EvictionPolicyClassName"));
+		if (jedisPoolProperties.getProperty("EvictionPolicyClassName") != null) {
+			config.setEvictionPolicyClassName(jedisPoolProperties.getProperty("EvictionPolicyClassName"));
 		}
-		if (pool.getProperty("Fairness") != null) {
-			config.setFairness(Boolean.parseBoolean(pool.getProperty("Fairness")));
+		if (jedisPoolProperties.getProperty("Fairness") != null) {
+			config.setFairness(Boolean.parseBoolean(jedisPoolProperties.getProperty("Fairness")));
 		}
-		if (pool.getProperty("JmxEnabled") != null) {
-			config.setJmxEnabled(Boolean.parseBoolean(pool.getProperty("JmxEnabled")));
+		if (jedisPoolProperties.getProperty("JmxEnabled") != null) {
+			config.setJmxEnabled(Boolean.parseBoolean(jedisPoolProperties.getProperty("JmxEnabled")));
 		}
-		if (pool.getProperty("JmxNameBase") != null) {
-			config.setJmxNameBase(pool.getProperty("JmxNameBase"));
+		if (jedisPoolProperties.getProperty("JmxNameBase") != null) {
+			config.setJmxNameBase(jedisPoolProperties.getProperty("JmxNameBase"));
 		}
-		if (pool.getProperty("JmxNamePrefix") != null) {
-			config.setJmxNamePrefix(pool.getProperty("JmxNamePrefix"));
+		if (jedisPoolProperties.getProperty("JmxNamePrefix") != null) {
+			config.setJmxNamePrefix(jedisPoolProperties.getProperty("JmxNamePrefix"));
 		}
-		if (pool.getProperty("Lifo") != null) {
-			config.setLifo(Boolean.parseBoolean(pool.getProperty("Lifo")));
+		if (jedisPoolProperties.getProperty("Lifo") != null) {
+			config.setLifo(Boolean.parseBoolean(jedisPoolProperties.getProperty("Lifo")));
 		}
-		if (pool.getProperty("MaxIdle") != null) {
-			config.setMaxIdle(Integer.parseInt(pool.getProperty("MaxIdle")));
+		if (jedisPoolProperties.getProperty("MaxIdle") != null) {
+			config.setMaxIdle(Integer.parseInt(jedisPoolProperties.getProperty("MaxIdle")));
 		}
-		if (pool.getProperty("MaxTotal") != null) {
-			config.setMaxTotal(Integer.parseInt(pool.getProperty("MaxTotal")));
+		if (jedisPoolProperties.getProperty("MaxTotal") != null) {
+			config.setMaxTotal(Integer.parseInt(jedisPoolProperties.getProperty("MaxTotal")));
 		}
-		if (pool.getProperty("MaxWaitMillis") != null) {
-			config.setMaxWaitMillis(Long.parseLong(pool.getProperty("MaxWaitMillis")));
+		if (jedisPoolProperties.getProperty("MaxWaitMillis") != null) {
+			config.setMaxWaitMillis(Long.parseLong(jedisPoolProperties.getProperty("MaxWaitMillis")));
 		}
-		if (pool.getProperty("MinEvictableIdleTimeMillis") != null) {
-			config.setMinEvictableIdleTimeMillis(Long.parseLong(pool.getProperty("MinEvictableIdleTimeMillis")));
+		if (jedisPoolProperties.getProperty("MinEvictableIdleTimeMillis") != null) {
+			config.setMinEvictableIdleTimeMillis(Long.parseLong(jedisPoolProperties.getProperty("MinEvictableIdleTimeMillis")));
 		}
-		if (pool.getProperty("MinIdle") != null) {
-			config.setMinIdle(Integer.parseInt(pool.getProperty("MinIdle")));
+		if (jedisPoolProperties.getProperty("MinIdle") != null) {
+			config.setMinIdle(Integer.parseInt(jedisPoolProperties.getProperty("MinIdle")));
 		}
-		if (pool.getProperty("NumTestsPerEvictionRun") != null) {
-			config.setNumTestsPerEvictionRun(Integer.parseInt(pool.getProperty("NumTestsPerEvictionRun")));
+		if (jedisPoolProperties.getProperty("NumTestsPerEvictionRun") != null) {
+			config.setNumTestsPerEvictionRun(Integer.parseInt(jedisPoolProperties.getProperty("NumTestsPerEvictionRun")));
 		}
-		if (pool.getProperty("SoftMinEvictableIdleTimeMillis") != null) {
-			config.setSoftMinEvictableIdleTimeMillis(Long.parseLong(pool.getProperty("SoftMinEvictableIdleTimeMillis")));
+		if (jedisPoolProperties.getProperty("SoftMinEvictableIdleTimeMillis") != null) {
+			config.setSoftMinEvictableIdleTimeMillis(Long.parseLong(jedisPoolProperties.getProperty("SoftMinEvictableIdleTimeMillis")));
 		}
-		if (pool.getProperty("TestOnBorrow") != null) {
-			config.setTestOnBorrow(Boolean.parseBoolean(pool.getProperty("TestOnBorrow")));
+		if (jedisPoolProperties.getProperty("TestOnBorrow") != null) {
+			config.setTestOnBorrow(Boolean.parseBoolean(jedisPoolProperties.getProperty("TestOnBorrow")));
 		}
-		if (pool.getProperty("TestOnCreate") != null) {
-			config.setTestOnCreate(Boolean.parseBoolean(pool.getProperty("TestOnCreate")));
+		if (jedisPoolProperties.getProperty("TestOnCreate") != null) {
+			config.setTestOnCreate(Boolean.parseBoolean(jedisPoolProperties.getProperty("TestOnCreate")));
 		}
-		if (pool.getProperty("TestOnReturn") != null) {
-			config.setTestOnReturn(Boolean.parseBoolean(pool.getProperty("TestOnReturn")));
+		if (jedisPoolProperties.getProperty("TestOnReturn") != null) {
+			config.setTestOnReturn(Boolean.parseBoolean(jedisPoolProperties.getProperty("TestOnReturn")));
 		}
-		if (pool.getProperty("TestWhileIdle") != null) {
-			config.setTestWhileIdle(Boolean.parseBoolean(pool.getProperty("TestWhileIdle")));
+		if (jedisPoolProperties.getProperty("TestWhileIdle") != null) {
+			config.setTestWhileIdle(Boolean.parseBoolean(jedisPoolProperties.getProperty("TestWhileIdle")));
 		}
-		if (pool.getProperty("AcquireIncrement") != null) {
-			config.setTimeBetweenEvictionRunsMillis(Long.parseLong(pool.getProperty("TimeBetweenEvictionRunsMillis")));
+		if (jedisPoolProperties.getProperty("AcquireIncrement") != null) {
+			config.setTimeBetweenEvictionRunsMillis(Long.parseLong(jedisPoolProperties.getProperty("TimeBetweenEvictionRunsMillis")));
 		}
 		return new JedisPool(config, host, port, timeout, password, database, isSsl);
 	}

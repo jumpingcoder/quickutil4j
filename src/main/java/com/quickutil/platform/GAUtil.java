@@ -12,6 +12,7 @@ import com.google.api.services.analytics.Analytics.Data.Ga;
 import com.google.api.services.analytics.Analytics.Data.Realtime;
 import com.google.api.services.analytics.AnalyticsScopes;
 import com.quickutil.platform.constants.Symbol;
+
 import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.PrivateKey;
@@ -22,6 +23,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+
+import com.quickutil.platform.exception.MissingParametersException;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -52,6 +55,8 @@ public class GAUtil {
 				String p12Path = properties.getProperty(key + ".p12Path");
 				String applicationName = properties.getProperty(key + ".applicationName");
 				String ids = properties.getProperty(key + ".ids");
+				if (clientID == null || p12Path == null || applicationName == null || ids == null)
+					throw new MissingParametersException("init requires clientID, p12Path, applicationName, ids");
 				gaIdsMap.put(key, ids);
 				addGaClient(key, clientID, PropertiesUtil.getInputStream(p12Path), applicationName);
 				addGaRTClient(key, clientID, PropertiesUtil.getInputStream(p12Path), applicationName);
@@ -81,7 +86,7 @@ public class GAUtil {
 			keystore.load(p12InputStream, null);
 			PrivateKey privateKey = (PrivateKey) keystore.getKey("privatekey", "notasecret".toCharArray());
 			GoogleCredential credential = new GoogleCredential.Builder().setTransport(httpTransport).setJsonFactory(jsonFactory).setServiceAccountId(clientID).setServiceAccountPrivateKey(privateKey)
-					.setServiceAccountScopes(Collections.singleton(AnalyticsScopes.ANALYTICS_READONLY)).build();
+				.setServiceAccountScopes(Collections.singleton(AnalyticsScopes.ANALYTICS_READONLY)).build();
 			return new Analytics.Builder(httpTransport, jsonFactory, credential).setApplicationName(applicationName).build().data();
 		} catch (Exception e) {
 			LOGGER.error(Symbol.BLANK, e);
