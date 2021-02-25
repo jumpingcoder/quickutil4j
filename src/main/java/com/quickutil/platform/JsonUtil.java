@@ -65,14 +65,14 @@ public class JsonUtil {
 	/**
 	 * json字符串转class对象
 	 */
-	public static <T>T toClass(String json,Class<T> clazz) {
+	public static <T>T toObject(String json,Class<T> clazz) {
 		return gson.fromJson(json, clazz);
 	}
 
 	/**
 	 * json字符串转class数组
 	 */
-	public static <T> List<T> toClassList(String json,Class<T> clazz) {
+	public static <T> List<T> toObjectList(String json,Class<T> clazz) {
 		return gson.fromJson(json, new ParameterizedTypeImpl(clazz));
 	}
 

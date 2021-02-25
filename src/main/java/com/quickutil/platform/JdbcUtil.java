@@ -6,6 +6,8 @@ import com.quickutil.platform.constants.Symbol;
 import com.quickutil.platform.entity.ResultSetDef;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.sql.*;
 import java.util.*;
 
@@ -18,7 +20,6 @@ public class JdbcUtil {
 
 	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(JdbcUtil.class);
 	private static final String DOUBLEMARKS = "\"";
-	private static final String COMMA = ",";
 	private DruidDataSource datasource;
 
 	public JdbcUtil(String dbName, String jdbcUrl, String username, String password, int initconnum, int minconnum, int maxconnum, Properties druidProperties) {
@@ -234,7 +235,7 @@ public class JdbcUtil {
 	/**
 	 * 获取单列数据
 	 */
-	public List<Object> getListObject(String sql) {
+	public List<Object> getListSingle(String sql) {
 		List<Object> list = new ArrayList<Object>();
 		Connection connection = null;
 		PreparedStatement ps = null;
@@ -269,44 +270,7 @@ public class JdbcUtil {
 	}
 
 	/**
-	 * 获取单列数据
-	 */
-	public List<Object> getListString(String sql) {
-		List<Object> list = new ArrayList<Object>();
-		Connection connection = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		try {
-			connection = datasource.getConnection();
-			ps = connection.prepareStatement(sql);
-			rs = ps.executeQuery();
-			ResultSetMetaData rsmd = rs.getMetaData();
-			String columnName = rsmd.getColumnLabel(1);
-			while (rs.next()) {
-				list.add(rs.getObject(columnName));
-			}
-		} catch (Exception e) {
-			LOGGER.error(Symbol.BLANK, e);
-		} finally {
-			try {
-				if (rs != null) {
-					rs.close();
-				}
-				if (ps != null) {
-					ps.close();
-				}
-				if (connection != null) {
-					connection.close();
-				}
-			} catch (Exception e) {
-				LOGGER.error(Symbol.BLANK, e);
-			}
-		}
-		return list;
-	}
-
-	/**
-	 * 获取多列数据，有错误抛出
+	 * 返回ListMap，有错误抛出
 	 */
 	public List<Map<String, Object>> getListMapThrowable(String sql) throws Exception {
 		Connection connection = null;
@@ -320,15 +284,15 @@ public class JdbcUtil {
 			ResultSetMetaData rsmd = rs.getMetaData();
 			// 获取字段
 			int columnCount = rsmd.getColumnCount();
-			List<String> columnName = new ArrayList<String>();
+			List<String> columnNames = new ArrayList<String>();
 			for (int i = 1; i <= columnCount; i++) {
-				columnName.add(rsmd.getColumnLabel(i));
+				columnNames.add(rsmd.getColumnLabel(i));
 			}
 			// 获取数据
 			while (rs.next()) {
-				Map<String, Object> map = new HashMap<>();
-				for (String name : columnName) {
-					map.put(name, rs.getObject(name));
+				Map<String, Object> map = new TreeMap<>();
+				for (String columnName : columnNames) {
+					map.put(columnName, rs.getObject(columnName));
 				}
 				list.add(map);
 			}
@@ -353,20 +317,95 @@ public class JdbcUtil {
 	}
 
 	/**
-	 * 获取多列数据
+	 * 返回ListMap，无错误抛出
 	 */
 	public List<Map<String, Object>> getListMap(String sql) {
-		List<Map<String, Object>> list = new ArrayList<>();
 		try {
-			list = getListMapThrowable(sql);
+			return getListMapThrowable(sql);
 		} catch (Exception e) {
 			LOGGER.error(Symbol.BLANK, e);
+		}
+		return new ArrayList<>();
+	}
+
+	/**
+	 * 返回对象数组，有错误抛出
+	 */
+	public <T> List<T> getListObjectThrowable(String sql, Class<T> clazz) throws Exception {
+		Connection connection = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		List<T> list = new ArrayList<>();
+		try {
+			connection = datasource.getConnection();
+			ps = connection.prepareStatement(sql);
+			rs = ps.executeQuery();
+			ResultSetMetaData rsmd = rs.getMetaData();
+			// 获取字段
+			int columnCount = rsmd.getColumnCount();
+			List<String> columnNames = new ArrayList<String>();
+			for (int i = 1; i <= columnCount; i++) {
+				columnNames.add(rsmd.getColumnLabel(i));
+			}
+			// 生成映射
+			Field[] fields = clazz.getDeclaredFields();
+			for (Field field : fields) {
+				field.setAccessible(true);
+			}
+			Map<String, String> mapping = new HashMap<>();
+			for (String columnName : columnNames) {
+				for (Field field : fields) {
+					String columnNameDealed = columnName.replaceAll(Symbol.UNDERSCORE, Symbol.BLANK).toLowerCase();
+					String fieldNameDealed = field.getName().replaceAll(Symbol.UNDERSCORE, Symbol.BLANK).toLowerCase();
+					if (columnNameDealed.equals(fieldNameDealed)) {
+						mapping.put(field.getName(), columnName);
+						break;
+					}
+				}
+			}
+			// 获取数据
+			while (rs.next()) {
+				T t = clazz.getConstructor().newInstance();
+				for (Field field : fields) {
+					if (mapping.get(field.getName()) != null)
+						field.set(t, rs.getObject(mapping.get(field.getName())));
+				}
+				list.add(t);
+			}
+		} catch (Exception e) {
+			throw e;
+		} finally {
+			try {
+				if (rs != null) {
+					rs.close();
+				}
+				if (ps != null) {
+					ps.close();
+				}
+				if (connection != null) {
+					connection.close();
+				}
+			} catch (Exception e) {
+				throw e;
+			}
 		}
 		return list;
 	}
 
 	/**
-	 * 执行多条语句（前几条事务，最后一条查询）
+	 * 返回对象数组，有错误抛出
+	 */
+	public <T> List<T> getListObject(String sql, Class<T> clazz) {
+		try {
+			return getListObjectThrowable(sql, clazz);
+		} catch (Exception e) {
+			LOGGER.error(Symbol.BLANK, e);
+		}
+		return new ArrayList<>();
+	}
+
+	/**
+	 * 返回ListMap，一次执行多条语句
 	 */
 	public List<Map<String, Object>> getListMapByBatch(List<String> sqlList) {
 		if (sqlList.size() < 2) {
@@ -402,6 +441,83 @@ public class JdbcUtil {
 				list.add(map);
 			}
 			return list;
+		} catch (Exception e) {
+			if (connection != null) {
+				try {
+					connection.rollback();
+				} catch (SQLException e1) {
+					LOGGER.error(Symbol.BLANK, e1);
+				}
+			}
+			LOGGER.error(Symbol.BLANK, e);
+		} finally {
+			try {
+				if (ps != null) {
+					ps.close();
+				}
+				if (connection != null) {
+					connection.close();
+				}
+			} catch (SQLException e) {
+				LOGGER.error(Symbol.BLANK, e);
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * 返回ListMap，一次执行多条语句
+	 */
+	public <T> List<T> getListObjectByBatch(List<String> sqlList, Class<T> clazz) {
+		if (sqlList.size() < 2) {
+			return null;
+		}
+		Connection connection = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		List<T> list = new ArrayList<>();
+		try {
+			connection = datasource.getConnection();
+			connection.setAutoCommit(false);
+			Statement statement = connection.createStatement();
+			for (String sql : sqlList.subList(0, sqlList.size() - 1)) {
+				statement.addBatch(sql);
+			}
+			statement.executeBatch();
+			rs = statement.executeQuery(sqlList.get(sqlList.size() - 1));
+			ResultSetMetaData rsmd = rs.getMetaData();
+			connection.commit();
+			// 获取字段
+			int columnCount = rsmd.getColumnCount();
+			List<String> columnNames = new ArrayList<String>();
+			for (int i = 1; i <= columnCount; i++) {
+				columnNames.add(rsmd.getColumnLabel(i));
+			}
+			// 生成映射
+			Field[] fields = clazz.getDeclaredFields();
+			for (Field field : fields) {
+				field.setAccessible(true);
+			}
+			Map<String, String> mapping = new HashMap<>();
+			for (String columnName : columnNames) {
+				for (Field field : fields) {
+					String columnNameDealed = columnName.replaceAll(Symbol.UNDERSCORE, Symbol.BLANK).toLowerCase();
+					String fieldNameDealed = field.getName().replaceAll(Symbol.UNDERSCORE, Symbol.BLANK).toLowerCase();
+					if (columnNameDealed.equals(fieldNameDealed)) {
+						mapping.put(field.getName(), columnName);
+						break;
+					}
+				}
+			}
+			// 获取数据
+			while (rs.next()) {
+				T t = clazz.getConstructor().newInstance();
+				for (Field field : fields) {
+					if (mapping.get(field.getName()) != null)
+						field.set(t, rs.getObject(mapping.get(field.getName())));
+				}
+				list.add(t);
+			}
 		} catch (Exception e) {
 			if (connection != null) {
 				try {
@@ -466,7 +582,7 @@ public class JdbcUtil {
 	}
 
 	/**
-	 * 获取ResultSet
+	 * 获取ResultSet，无错误抛出
 	 */
 	public ResultSetDef getResultSet(String sql) {
 		try {
@@ -586,42 +702,55 @@ public class JdbcUtil {
 			return true;
 		}
 		String sql = combineInsert(tableName, content, false);
-		boolean result = execute(sql);
-		if (!result) {
-			LOGGER.debug(sql);
-		}
-		return result;
+		return execute(sql);
 	}
 
 	/**
-	 * 批量替换数据-只适用于MySQL
-	 */
-	public boolean replaceListMap(String tableName, List<Map<String, Object>> content) {
-		if (content.size() == 0) {
-			return true;
-		}
-		String sql = combineInsert(tableName, content, true);
-		boolean result = execute(sql);
-		if (!result) {
-			LOGGER.debug(sql);
-		}
-		return result;
-	}
-
-	/**
-	 * 批量插入数据并返回最后一条自增id
+	 * 批量插入数据，并返回最后一条自增id
 	 */
 	public Integer insertListMapWithId(String tableName, List<Map<String, Object>> content) {
+		if (content.size() == 0) {
+			return null;
+		}
 		String sql = combineInsert(tableName, content, false);
 		return executeWithId(sql);
 	}
 
 	/**
+	 * 批量替换数据-只适用于MySQL
+	 */
+	public boolean replaceListMapForMySQL(String tableName, List<Map<String, Object>> content) {
+		if (content.size() == 0) {
+			return true;
+		}
+		String sql = combineInsert(tableName, content, true);
+		return execute(sql);
+	}
+
+	/**
 	 * 批量替换数据并返回最后一条自增id-只适用于MySQL
 	 */
-	public Integer replaceListMapWithId(String tableName, List<Map<String, Object>> content) {
+	public Integer replaceListMapWithIdForMySQL(String tableName, List<Map<String, Object>> content) {
+		if (content.size() == 0) {
+			return null;
+		}
 		String sql = combineInsert(tableName, content, true);
 		return executeWithId(sql);
+	}
+
+	/**
+	 * 批量upsert数据-适用于Postgre
+	 */
+	public boolean upsertListMapForPG(String tableName, List<Map<String, Object>> content, String constraint) {
+		if (content.size() == 0) {
+			return true;
+		}
+		String sql = combineUpsert(tableName, content, constraint);
+		boolean result = execute(sql);
+		if (!result) {
+			LOGGER.debug(sql);
+		}
+		return result;
 	}
 
 	private String combineInsert(String tableName, List<Map<String, Object>> content, boolean isReplace) {
@@ -668,21 +797,6 @@ public class JdbcUtil {
 		return sqlBuf.toString();
 	}
 
-	/**
-	 * 批量upsert数据-适用于Postgre
-	 */
-	public boolean upsertListMap(String tableName, List<Map<String, Object>> content, String constraint) {
-		if (content.size() == 0) {
-			return true;
-		}
-		String sql = combineUpsert(tableName, content, constraint);
-		boolean result = execute(sql);
-		if (!result) {
-			LOGGER.debug(sql);
-		}
-		return result;
-	}
-
 	private static String combineUpsert(String tableName, List<Map<String, Object>> content, String constraint) {
 		StringBuffer sqlBuf = new StringBuffer();
 		Set<String> keySet = content.get(0).keySet();
@@ -695,7 +809,7 @@ public class JdbcUtil {
 		sqlBuf.append(" (");
 		for (int i = 0; i < keyList.size(); i++) {
 			sqlBuf.append(DOUBLEMARKS + keyList.get(i) + DOUBLEMARKS);
-			sqlBuf.append(COMMA);
+			sqlBuf.append(Symbol.COMMA);
 		}
 		sqlBuf.deleteCharAt(sqlBuf.length() - 1);
 		sqlBuf.append(") values ");
@@ -720,7 +834,7 @@ public class JdbcUtil {
 		sqlBuf.deleteCharAt(sqlBuf.length() - 1);
 		sqlBuf.append("ON CONFLICT ON CONSTRAINT " + constraint + " DO update set ");
 		for (int i = 0; i < keyList.size(); i++) {
-			sqlBuf.append(DOUBLEMARKS + keyList.get(i) + DOUBLEMARKS + "=EXCLUDED." + keyList.get(i) + COMMA);
+			sqlBuf.append(DOUBLEMARKS + keyList.get(i) + DOUBLEMARKS + "=EXCLUDED." + keyList.get(i) + Symbol.COMMA);
 		}
 		sqlBuf.deleteCharAt(sqlBuf.length() - 1);
 		return sqlBuf.toString();
