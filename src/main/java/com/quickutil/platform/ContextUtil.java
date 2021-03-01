@@ -1,18 +1,9 @@
 package com.quickutil.platform;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import com.quickutil.platform.constants.Symbol;
-
-import java.io.File;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,12 +22,14 @@ public class ContextUtil {
 	private static final String iPad = "iPad";
 	private static final String CFNetwork = "CFNetwork";
 	private static final String Wechat = "MicroMessenger";
+	public static final String HOST = "host";
 	private static final String USER_AGENT = "user-agent";
 	private static final String REFERER = "Referer";
 	private static final String CONTENT_TYPE = "content-type";
-	private static final String X_Real_IP = "X-Real-IP";
+	public static final String X_Real_IP = "X-Real-IP";
 	private static final String X_Forwarded_For = "X-Forwarded-For";
 	private static final String X_Forwarded_Proto = "X-Forwarded-Proto";
+	public static final String X_REQUEST_ID = "X-Request-ID";
 	private static final String APPLICATION_JSON = "application/json";
 	private static final String APPLICATION_X_WWW_FORM_URLENCODED = "application/x-www-form-urlencoded";
 
