@@ -33,7 +33,7 @@ public class ApiLimitInterceptor implements HandlerInterceptor {
 		this.serviceLimit = serviceLimit;
 	}
 
-	public ApiLimitInterceptor setPath(String path, int pathLimit) {
+	public ApiLimitInterceptor setPathLimit(String path, int pathLimit) {
 		pathLimitMap.put(path, pathLimit);
 		return this;
 	}
