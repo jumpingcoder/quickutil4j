@@ -22,16 +22,13 @@ public class ContextUtil {
 	private static final String iPad = "iPad";
 	private static final String CFNetwork = "CFNetwork";
 	private static final String Wechat = "MicroMessenger";
-	public static final String HOST = "host";
-	private static final String USER_AGENT = "user-agent";
+	public static final String HOST = "Host";
+	public static final String USER_AGENT = "User-Agent";
 	private static final String REFERER = "Referer";
-	private static final String CONTENT_TYPE = "content-type";
-	public static final String X_Real_IP = "X-Real-IP";
+	public static final String X_REAL_IP = "X-Real-IP";
+	public static final String X_REQUEST_ID = "X-Request-ID";
 	private static final String X_Forwarded_For = "X-Forwarded-For";
 	private static final String X_Forwarded_Proto = "X-Forwarded-Proto";
-	public static final String X_REQUEST_ID = "X-Request-ID";
-	private static final String APPLICATION_JSON = "application/json";
-	private static final String APPLICATION_X_WWW_FORM_URLENCODED = "application/x-www-form-urlencoded";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ContextUtil.class);
 	protected transient static ThreadLocal<HttpServletRequest> request = new ThreadLocal<>();
@@ -106,7 +103,7 @@ public class ContextUtil {
 	 * 获取请求的IP，获取顺序X-Real-IP,X-Forwarded-For第一段,直连机器的ip
 	 */
 	public static String getIp() {
-		String ip = request.get().getHeader(X_Real_IP);
+		String ip = request.get().getHeader(X_REAL_IP);
 		if (ip != null) {
 			return ip;
 		}

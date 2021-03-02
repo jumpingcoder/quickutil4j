@@ -4,12 +4,22 @@ import ch.qos.logback.classic.Logger;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.quickutil.platform.constants.Symbol;
 import com.quickutil.platform.entity.ResultSetDef;
-import org.slf4j.LoggerFactory;
-
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.sql.*;
-import java.util.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.TreeMap;
+import org.slf4j.LoggerFactory;
 
 /**
  * 关系型数据库Jdbc工具
@@ -19,7 +29,6 @@ import java.util.*;
 public class JdbcUtil {
 
 	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(JdbcUtil.class);
-	private static final String DOUBLEMARKS = "\"";
 	private DruidDataSource datasource;
 
 	public JdbcUtil(String dbName, String jdbcUrl, String username, String password, int initconnum, int minconnum, int maxconnum, Properties druidProperties) {
@@ -31,13 +40,15 @@ public class JdbcUtil {
 	}
 
 	public void closeDataSource() {
-		if (datasource == null)
+		if (datasource == null) {
 			return;
+		}
 		datasource.close();
 	}
 
 
-	private DruidDataSource buildDataSource(String dbName, String jdbcUrl, String username, String password, int initconnum, int minconnum, int maxconnum, Properties druidProperties) {
+	private DruidDataSource buildDataSource(String dbName, String jdbcUrl, String username, String password, int initconnum, int minconnum, int maxconnum,
+			Properties druidProperties) {
 		if (jdbcUrl == null || username == null || password == null) {
 			return null;
 		}
@@ -367,8 +378,9 @@ public class JdbcUtil {
 			while (rs.next()) {
 				T t = clazz.getConstructor().newInstance();
 				for (Field field : fields) {
-					if (mapping.get(field.getName()) != null)
+					if (mapping.get(field.getName()) != null) {
 						field.set(t, rs.getObject(mapping.get(field.getName())));
+					}
 				}
 				list.add(t);
 			}
@@ -513,8 +525,9 @@ public class JdbcUtil {
 			while (rs.next()) {
 				T t = clazz.getConstructor().newInstance();
 				for (Field field : fields) {
-					if (mapping.get(field.getName()) != null)
+					if (mapping.get(field.getName()) != null) {
 						field.set(t, rs.getObject(mapping.get(field.getName())));
+					}
 				}
 				list.add(t);
 			}
@@ -808,7 +821,7 @@ public class JdbcUtil {
 		sqlBuf.append(tableName);
 		sqlBuf.append(" (");
 		for (int i = 0; i < keyList.size(); i++) {
-			sqlBuf.append(DOUBLEMARKS + keyList.get(i) + DOUBLEMARKS);
+			sqlBuf.append(Symbol.DOUBLE_QUOTES + keyList.get(i) + Symbol.DOUBLE_QUOTES);
 			sqlBuf.append(Symbol.COMMA);
 		}
 		sqlBuf.deleteCharAt(sqlBuf.length() - 1);
@@ -834,7 +847,7 @@ public class JdbcUtil {
 		sqlBuf.deleteCharAt(sqlBuf.length() - 1);
 		sqlBuf.append("ON CONFLICT ON CONSTRAINT " + constraint + " DO update set ");
 		for (int i = 0; i < keyList.size(); i++) {
-			sqlBuf.append(DOUBLEMARKS + keyList.get(i) + DOUBLEMARKS + "=EXCLUDED." + keyList.get(i) + Symbol.COMMA);
+			sqlBuf.append(Symbol.DOUBLE_QUOTES + keyList.get(i) + Symbol.DOUBLE_QUOTES + "=EXCLUDED." + keyList.get(i) + Symbol.COMMA);
 		}
 		sqlBuf.deleteCharAt(sqlBuf.length() - 1);
 		return sqlBuf.toString();

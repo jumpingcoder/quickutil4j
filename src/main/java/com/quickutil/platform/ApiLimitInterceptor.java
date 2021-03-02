@@ -1,6 +1,7 @@
 package com.quickutil.platform;
 
-import com.quickutil.platform.entity.HttpLog;
+import com.quickutil.platform.constants.Symbol;
+import com.quickutil.platform.entity.HttpTraceLog;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,18 +20,20 @@ import org.springframework.web.servlet.HandlerInterceptor;
  */
 public class ApiLimitInterceptor implements HandlerInterceptor {
 
-	private boolean openCostLog = false;
+	private boolean openTraceLog = false;
 	private int serviceLimit = 200;
+	private String limitTips = "Rate Limit";
 	private int serviceUsed = 0;
 	private int pathLimitDefault = 100;
 	private Map<String, Integer> pathLimitMap = new HashMap<>();
 	private Map<String, Integer> pathUsedMap = new HashMap<>();
 	private static final Logger LOGGER = LoggerFactory.getLogger(ApiLimitInterceptor.class);
-	private static final String BEGIN_TIME_STAMP = "beginTimeStamp";
+	private static final String HTTP_LOG = "HTTP_LOG";//程序中可以使用detail字段插入自定义内容
 
-	public ApiLimitInterceptor(boolean openCostLog, int serviceLimit) {
-		this.openCostLog = openCostLog;
+	public ApiLimitInterceptor(boolean openTraceLog, int serviceLimit, String limitTips) {
+		this.openTraceLog = openTraceLog;
 		this.serviceLimit = serviceLimit;
+		this.limitTips = limitTips;
 	}
 
 	public ApiLimitInterceptor setPathLimit(String path, int pathLimit) {
@@ -43,26 +46,30 @@ public class ApiLimitInterceptor implements HandlerInterceptor {
 			throws IOException, ServletException {
 		int limit = pathLimitMap.get(request.getRequestURI()) == null ? pathLimitDefault : pathLimitMap.get(request.getRequestURI());
 		if (!bind(request, limit)) {
-			LOGGER.error(request.getRequestURI() + " bind more than " + limit);
+			LOGGER.error(request.getRequestURI() + Symbol.GREATER + limit);
 			response.setStatus(503);
-			response.getOutputStream().println("Rate Limit");
+			response.getOutputStream().println(limitTips);
 			return false;
 		}
-		request.setAttribute(BEGIN_TIME_STAMP, System.currentTimeMillis());
+		if (openTraceLog) {
+			HttpTraceLog log = new HttpTraceLog()
+					.setHost(request.getHeader(ContextUtil.HOST))
+					.setPath(request.getRequestURI())
+					.setRequestTime(System.currentTimeMillis())
+					.setUserAgent(request.getHeader(ContextUtil.USER_AGENT))
+					.setXRequestId(request.getHeader(ContextUtil.X_REQUEST_ID))
+					.setXRealIp(request.getHeader(ContextUtil.X_REAL_IP) == null ? request.getRemoteAddr() : request.getHeader(ContextUtil.X_REAL_IP));
+			request.setAttribute(HTTP_LOG, log);
+		}
 		return true;
 	}
 
 	@Override
 	public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, @Nullable Exception ex) {
 		free(request);
-		if (openCostLog) {
-			Long begin = (Long) request.getAttribute(BEGIN_TIME_STAMP);
-			HttpLog log = new HttpLog()
-					.setHost(request.getHeader(ContextUtil.HOST))
-					.setPath(request.getRequestURI())
-					.setXRequestId(request.getHeader(ContextUtil.X_REQUEST_ID))
-					.setXRealIp(request.getHeader(ContextUtil.X_Real_IP) == null ? request.getRemoteAddr() : request.getHeader(ContextUtil.X_Real_IP))
-					.setCost(System.currentTimeMillis() - begin);
+		if (openTraceLog) {
+			HttpTraceLog log = (HttpTraceLog) request.getAttribute(HTTP_LOG);
+			log.setCost(System.currentTimeMillis() - log.getRequestTime());
 			LOGGER.info(JsonUtil.toJson(log));
 		}
 	}

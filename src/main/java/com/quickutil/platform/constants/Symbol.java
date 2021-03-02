@@ -13,5 +13,8 @@ public class Symbol {
 	public static final String EQUAL = "=";
 	public static final String AND = "&";
 	public static final String UNDERSCORE = "_";
+	public static final String DOUBLE_QUOTES = "\"";
+	public static final String GREATER = ">";
+	public static final String LESS = "<";
 
 }
