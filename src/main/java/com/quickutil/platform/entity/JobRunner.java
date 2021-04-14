@@ -2,7 +2,7 @@ package com.quickutil.platform.entity;
 
 import ch.qos.logback.classic.Logger;
 import com.quickutil.platform.CronJobUtil;
-import com.quickutil.platform.IPUtil;
+import com.quickutil.platform.EnvironmentUtil;
 import java.lang.reflect.Method;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -29,7 +29,7 @@ public class JobRunner implements Job {
 		try {
 			//执行前判断是否有锁
 			if (cronJob.getLock()) {
-				boolean lockSuccess = cronJob.getJedisUtil().setnxWithExpire("CronJob::" + cronJob.getJobName(), IPUtil.getIpv4ListString(), cronJob.getLockExpire());
+				boolean lockSuccess = cronJob.getJedisUtil().setnxWithExpire("CronJob::" + cronJob.getJobName(), EnvironmentUtil.getMachineFinger(), cronJob.getLockExpire());
 				if (!lockSuccess) {
 					LOGGER.info("CronJob " + cronJob.getJobName() + " get lock failed, other process is running");
 					return;

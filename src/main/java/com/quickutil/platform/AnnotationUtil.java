@@ -13,6 +13,7 @@ import java.util.*;
  *
  * @author 0.5
  */
+@Deprecated
 public class AnnotationUtil {
 	
 	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(AnnotationUtil.class);

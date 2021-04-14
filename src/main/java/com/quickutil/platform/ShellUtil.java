@@ -1,11 +1,8 @@
 package com.quickutil.platform;
 
-import java.lang.management.ManagementFactory;
-
+import ch.qos.logback.classic.Logger;
 import com.quickutil.platform.constants.Symbol;
 import org.slf4j.LoggerFactory;
-
-import ch.qos.logback.classic.Logger;
 
 /**
  * Shell调用工具
@@ -15,25 +12,6 @@ import ch.qos.logback.classic.Logger;
 public class ShellUtil {
 	
 	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(ShellUtil.class);
-
-	/**
-	 * 获取当前进程号
-	 * 
-	 * @return
-	 */
-	public static int getPid() {
-		String name = ManagementFactory.getRuntimeMXBean().getName();// "pid@hostname"
-		return Integer.parseInt(name.substring(0, name.indexOf('@')));
-	}
-
-	/**
-	 * 获取当前线程号
-	 * 
-	 * @return
-	 */
-	public static long getThreadId() {
-		return Thread.currentThread().getId();
-	}
 
 	/**
 	 * 执行shell命令

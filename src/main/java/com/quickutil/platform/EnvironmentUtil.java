@@ -1,14 +1,14 @@
 package com.quickutil.platform;
 
 import ch.qos.logback.classic.Logger;
+import com.quickutil.platform.constants.Symbol;
+import java.lang.management.ManagementFactory;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
-
-import com.quickutil.platform.constants.Symbol;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -16,9 +16,24 @@ import org.slf4j.LoggerFactory;
  *
  * @author 0.5
  */
-public class IPUtil {
+public class EnvironmentUtil {
 
-	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(IPUtil.class);
+	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(EnvironmentUtil.class);
+
+
+	/**
+	 * 获取本机host+md5(MAC地址)
+	 */
+	public static String getMachineFinger() {
+		try {
+			InetAddress ia = InetAddress.getLocalHost();
+			byte[] mac = NetworkInterface.getByInetAddress(ia).getHardwareAddress();
+			return ia.getHostName() + "::" + CryptoUtil.md5Encode(mac);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 
 	/**
 	 * 获取本机ipv4地址列表
@@ -43,22 +58,6 @@ public class IPUtil {
 	}
 
 	/**
-	 * 获取本机ipv4地址列表序列化
-	 */
-
-	public static String getIpv4ListString() {
-		StringBuilder sb = new StringBuilder();
-		List<String> ipv4List = getIpv4List();
-		for (String ipv4 : ipv4List) {
-			sb.append(ipv4 + ",");
-		}
-		if (sb.length() > 0) {
-			sb = sb.deleteCharAt(sb.length() - 1);
-		}
-		return sb.toString();
-	}
-
-	/**
 	 * 获取本机ipv6地址列表
 	 */
 	public static List<String> getIpv6List() {
@@ -80,15 +79,23 @@ public class IPUtil {
 		return ipList;
 	}
 
-	public static String getIpv6ListString() {
-		StringBuilder sb = new StringBuilder();
-		List<String> ipv6List = getIpv6List();
-		for (String ipv6 : ipv6List) {
-			sb.append(ipv6 + ",");
-		}
-		if (sb.length() > 0) {
-			sb = sb.deleteCharAt(sb.length() - 1);
-		}
-		return sb.toString();
+	/**
+	 * 获取当前进程号
+	 */
+	public static int getPid() {
+		String name = ManagementFactory.getRuntimeMXBean().getName();// "pid@hostname"
+		return Integer.parseInt(name.substring(0, name.indexOf('@')));
 	}
+
+	/**
+	 * 获取当前线程号
+	 */
+	public static long getThreadId() {
+		return Thread.currentThread().getId();
+	}
+
+	public static void main(String[] args) {
+		LOGGER.info(getMachineFinger());
+	}
+
 }

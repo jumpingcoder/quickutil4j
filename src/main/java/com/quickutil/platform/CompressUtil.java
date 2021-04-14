@@ -21,7 +21,6 @@ public class CompressUtil {
 
 	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(CompressUtil.class);
 
-
 	/**
 	 * 解压tar.gz文件：
 	 *
