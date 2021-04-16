@@ -28,7 +28,7 @@ public class EnvironmentUtil {
 		try {
 			InetAddress ia = InetAddress.getLocalHost();
 			byte[] mac = NetworkInterface.getByInetAddress(ia).getHardwareAddress();
-			return ia.getHostName() + "::" + CryptoUtil.md5Encode(mac);
+			return ia.getHostName() + ":" + CryptoUtil.md5Encode(mac);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

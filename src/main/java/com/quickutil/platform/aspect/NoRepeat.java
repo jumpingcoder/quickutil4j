@@ -1,4 +1,4 @@
-package com.quickutil.platform.annotation;
+package com.quickutil.platform.aspect;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,6 +7,9 @@ import java.lang.annotation.Target;
 
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ApiLimit {
-  int limit() default 200;
+public @interface NoRepeat {
+
+	int lockExpire() default 86400;//默认一天过期
+
+	String taskName() default "";
 }
