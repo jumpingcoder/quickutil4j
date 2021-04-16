@@ -46,8 +46,7 @@ public class NoRepeatAspect implements Ordered {
 		String value = EnvironmentUtil.getMachineFinger() + ":" + System.currentTimeMillis();
 		Jedis jedis = jedisPool.getResource();
 		try {
-			String result = jedis.get(keyName);
-			result = jedis.set(keyName, value, new SetParams().nx().ex(notRepeat.lockExpire()));
+			String result = jedis.set(keyName, value, new SetParams().nx().ex(notRepeat.lockExpire()));
 			if (!"OK".equals(result)) {
 				throw new NoRepeatException(keyName + " is running");
 			}
