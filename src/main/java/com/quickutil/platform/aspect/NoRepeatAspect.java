@@ -1,7 +1,10 @@
 package com.quickutil.platform.aspect;
 
 import com.quickutil.platform.EnvironmentUtil;
+import com.quickutil.platform.annotation.NoRepeat;
 import com.quickutil.platform.exception.NoRepeatException;
+import java.util.ArrayList;
+import java.util.List;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.After;
@@ -13,6 +16,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.ScanParams;
+import redis.clients.jedis.ScanResult;
 import redis.clients.jedis.params.SetParams;
 
 @Aspect
@@ -36,7 +41,6 @@ public class NoRepeatAspect implements Ordered {
 
 	@Around("pointCut(noRepeat)")
 	public Object around(ProceedingJoinPoint point, NoRepeat noRepeat) throws Throwable {
-		LOGGER.debug("NoRepeat around");
 		if (jedisPool == null) {
 			throw new NullPointerException("NoRepeat need set jedis pool before use");
 		}
@@ -58,7 +62,6 @@ public class NoRepeatAspect implements Ordered {
 
 	@After("pointCut(noRepeat)")
 	public void After(JoinPoint point, NoRepeat noRepeat) {
-		LOGGER.debug("NoRepeat after");
 		String keyName = String.format("nopeat:%s:%s", point.getSignature().getDeclaringTypeName(), point.getSignature().getName());
 		Jedis jedis = jedisPool.getResource();
 		try {
@@ -68,5 +71,33 @@ public class NoRepeatAspect implements Ordered {
 				jedis.close();
 			}
 		}
+	}
+
+	public List<String> getLocks() {
+		return getLocks("norepeat:*");
+	}
+
+	public List<String> getLock(String className, String functionName) {
+		return getLocks(String.format("nopeat:%s:%s", className, functionName));
+	}
+
+	private List<String> getLocks(String pattern) {
+		List<String> resultList = new ArrayList<>();
+		String cursor = ScanParams.SCAN_POINTER_START;
+		ScanParams params = new ScanParams().count(100).match(pattern);
+		while (true) {
+			Jedis jedis = jedisPool.getResource();
+			try {
+				ScanResult<String> result = jedis.scan(cursor, params);
+				resultList.addAll(result.getResult());
+				cursor = result.getCursor();
+				if (cursor.equals("0")) {
+					break;
+				}
+			} finally {
+				jedis.close();
+			}
+		}
+		return resultList;
 	}
 }

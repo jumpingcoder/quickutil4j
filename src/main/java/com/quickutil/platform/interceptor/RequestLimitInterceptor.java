@@ -1,9 +1,13 @@
-package com.quickutil.platform;
+package com.quickutil.platform.interceptor;
 
+import com.quickutil.platform.ContextUtil;
+import com.quickutil.platform.JsonUtil;
 import com.quickutil.platform.constants.Symbol;
 import com.quickutil.platform.entity.HttpTraceLog;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -76,44 +80,66 @@ public class RequestLimitInterceptor implements HandlerInterceptor {
 		}
 	}
 
+	//设置路由限制
 	public RequestLimitInterceptor addPathLimit(String path, int pathLimit) {
 		pathLimitMap.put(path, pathLimit);
 		return this;
 	}
 
+	//返回整个服务用量
 	public int getServiceUsed() {
 		return serviceUsed;
 	}
 
+	//返回各路由用量
+	public Map<String, Integer> getPathUsed() {
+		return pathUsedMap;
+	}
+
+	//绑定连接
 	private synchronized boolean bind(HttpServletRequest request, int limit) {
 		//判断全局流量
 		if (serviceUsed >= serviceLimit) {
 			return false;
 		}
 		//判断PATH流量
-		pathUsedMap.putIfAbsent(request.getRequestURI(), 0);
-		if (pathUsedMap.get(request.getRequestURI()) >= limit) {
-			return false;
+		List<String> pathKeys = getPathKeys(request.getRequestURI());
+		for (String pathKey : pathKeys) {
+			pathUsedMap.putIfAbsent(pathKey, 0);
+			if (pathUsedMap.get(pathKey) >= limit) {
+				return false;
+			}
 		}
 		//计数
 		serviceUsed++;
-		pathUsedMap.put(request.getRequestURI(), pathUsedMap.get(request.getRequestURI()) + 1);
+		for (String pathKey : pathKeys) {
+			pathUsedMap.put(pathKey, pathUsedMap.get(pathKey) + 1);
+		}
 		return true;
 	}
 
+	//释放连接
 	private synchronized boolean free(HttpServletRequest request) {
-		if (serviceUsed <= 0) {
-			return false;
-		}
-		if (pathUsedMap.get(request.getRequestURI()) == null) {
-			return false;
-		}
-		if (pathUsedMap.get(request.getRequestURI()) <= 0) {
-			return false;
-		}
 		serviceUsed--;
-		pathUsedMap.put(request.getRequestURI(), pathUsedMap.get(request.getRequestURI()) - 1);
+		List<String> pathKeys = getPathKeys(request.getRequestURI());
+		for (String pathKey : pathKeys) {
+			pathUsedMap.putIfAbsent(pathKey, 1);
+			pathUsedMap.put(pathKey, pathUsedMap.get(pathKey) - 1);
+		}
 		return true;
 	}
 
+	//获得所有的uri配置
+	private List<String> getPathKeys(String uri) {
+		List<String> pathKeys = new ArrayList<>();
+		for (String key : pathLimitMap.keySet()) {
+			if (uri.startsWith(key)) {
+				pathKeys.add(key);
+			}
+		}
+		if (pathKeys.size() == 0) {
+			pathKeys.add(uri);
+		}
+		return pathKeys;
+	}
 }
