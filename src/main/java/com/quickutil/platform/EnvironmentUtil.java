@@ -19,20 +19,44 @@ import org.slf4j.LoggerFactory;
 public class EnvironmentUtil {
 
 	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(EnvironmentUtil.class);
+	private static String hostName = null;
+	private static byte[] mac = null;
+
+	static {
+		try {
+			InetAddress ia = InetAddress.getLocalHost();
+			hostName = ia.getHostName();
+			mac = NetworkInterface.getByInetAddress(ia).getHardwareAddress();
+		} catch (Exception e) {
+			LOGGER.error("", e);
+		}
+	}
 
 
 	/**
-	 * 获取本机host+md5(MAC地址)
+	 * 获取本机host+md5(MAC地址)，因为性能较低，所以存到了静态变量
 	 */
 	public static String getMachineFinger() {
 		try {
-			InetAddress ia = InetAddress.getLocalHost();
-			byte[] mac = NetworkInterface.getByInetAddress(ia).getHardwareAddress();
-			return ia.getHostName() + ":" + CryptoUtil.md5Encode(mac);
+			return hostName + ":" + CryptoUtil.md5Encode(mac);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	/**
+	 * 获取本机hostname
+	 */
+	public static String getHostName() {
+		return hostName;
+	}
+
+	/**
+	 * 获取本机mac
+	 */
+	public static byte[] getMacAddrss() {
+		return mac;
 	}
 
 	/**

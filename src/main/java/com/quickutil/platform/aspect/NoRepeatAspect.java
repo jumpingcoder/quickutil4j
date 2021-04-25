@@ -44,7 +44,7 @@ public class NoRepeatAspect implements Ordered {
 		if (jedisPool == null) {
 			throw new NullPointerException("NoRepeat need set jedis pool before use");
 		}
-		String keyName = String.format("nopeat:%s:%s", point.getSignature().getDeclaringTypeName(), point.getSignature().getName());
+		String keyName = String.format("norepeat:%s:%s", point.getSignature().getDeclaringTypeName(), point.getSignature().getName());
 		String value = EnvironmentUtil.getMachineFinger() + ":" + System.currentTimeMillis();
 		Jedis jedis = jedisPool.getResource();
 		try {
@@ -62,7 +62,7 @@ public class NoRepeatAspect implements Ordered {
 
 	@After("pointCut(noRepeat)")
 	public void After(JoinPoint point, NoRepeat noRepeat) {
-		String keyName = String.format("nopeat:%s:%s", point.getSignature().getDeclaringTypeName(), point.getSignature().getName());
+		String keyName = String.format("norepeat:%s:%s", point.getSignature().getDeclaringTypeName(), point.getSignature().getName());
 		Jedis jedis = jedisPool.getResource();
 		try {
 			jedis.del(keyName);
@@ -78,7 +78,7 @@ public class NoRepeatAspect implements Ordered {
 	}
 
 	public List<String> getLock(String className, String functionName) {
-		return getLocks(String.format("nopeat:%s:%s", className, functionName));
+		return getLocks(String.format("norepeat:%s:%s", className, functionName));
 	}
 
 	private List<String> getLocks(String pattern) {

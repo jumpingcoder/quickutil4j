@@ -1,5 +1,10 @@
 package com.quickutil.platform;
 
+import static com.quickutil.platform.GeoUtil.ISO_3166_2_Version.V20040308;
+import static com.quickutil.platform.GeoUtil.MMDBVersion.GeoIP2City;
+import static com.quickutil.platform.GeoUtil.MMDBVersion.GeoLite2City;
+
+import ch.qos.logback.classic.Logger;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.maxmind.geoip2.DatabaseReader;
@@ -8,9 +13,6 @@ import com.maxmind.geoip2.model.CityResponse;
 import com.quickutil.platform.constants.Symbol;
 import com.quickutil.platform.entity.GeoDef;
 import com.quickutil.platform.entity.GeoPoint;
-
-import ch.qos.logback.classic.Logger;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -18,16 +20,12 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
-import java.util.*;
-
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.apache.http.HttpResponse;
-import org.quartz.*;
-import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.LoggerFactory;
-
-import static com.quickutil.platform.GeoUtil.ISO_3166_2_Version.V20040308;
-import static com.quickutil.platform.GeoUtil.MMDBVersion.GeoIP2City;
-import static com.quickutil.platform.GeoUtil.MMDBVersion.GeoLite2City;
 
 /**
  * IP/经纬度地理工具
@@ -144,59 +142,11 @@ public class GeoUtil {
 				stateCodeByStateNameMap.put((String) map.get("country_code") + "_" + (String) map.get("state_name"), (String) map.get("state_code"));
 				stateCodeByStateNameChineseMap.put((String) map.get("country_code") + "_" + (String) map.get("state_chinese"), (String) map.get("state_code"));
 			}
-
-			//周期性更新MMDB文件
-			if(isoVersion != V20040308){
-				scheduleUpdateMMDBFileJob(mmdbVersion, mmdbPath);
-			}
 			return true;
 		} catch (Exception e) {
 			LOGGER.error(Symbol.BLANK,e);
 		}
 		return false;
-	}
-
-	/**
-	 * 周期性更新MMDB文件
-	 */
-	private static void scheduleUpdateMMDBFileJob(MMDBVersion mmdbVersion, String mmdbPath){
-		try {
-			JobDetail jobDetail = JobBuilder.newJob(UpdateMMDBFileJob.class)
-					.withIdentity("UpdateMMDBFileJob")
-					.usingJobData("mmdbVersion", mmdbVersion.toString())
-					.usingJobData("mmdbPath", mmdbPath)
-					.build();
-			String cronExpression = "0 0 9 ? * THU";
-			CronScheduleBuilder cronScheduleBuilder = CronScheduleBuilder.cronSchedule(cronExpression);
-			Trigger trigger = TriggerBuilder.newTrigger()
-					.withIdentity("UpdateMMDBFileTrigger")
-					.withSchedule(cronScheduleBuilder)
-					.build();
-			Properties properties= new Properties();
-			properties.setProperty("org.quartz.threadPool.threadCount", "1");
-			Scheduler scheduler = new StdSchedulerFactory(properties).getScheduler();
-			scheduler.scheduleJob(jobDetail, trigger);
-			scheduler.start();
-		} catch (SchedulerException e) {
-			LOGGER.error("scheduleUpdateMMDBFileJob error",e);
-		}
-	}
-
-	public static class UpdateMMDBFileJob implements Job{
-		@Override
-		public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
-			JobDataMap dataMap = jobExecutionContext.getJobDetail().getJobDataMap();
-			String mmdbVersion = dataMap.getString("mmdbVersion");
-			String mmdbPath = dataMap.getString("mmdbPath");
-			if(mmdbVersion.equals(GeoLite2City.toString())){
-				updateGeoLite2CityMMDBFile(mmdbPath);
-			}
-			try {
-				databaseReader = new DatabaseReader.Builder(new File(mmdbPath)).build();
-			} catch (IOException e) {
-				LOGGER.error(Symbol.BLANK, e);
-			}
-		}
 	}
 
 	private static void updateGeoLite2CityMMDBFile(String mmdbPath){

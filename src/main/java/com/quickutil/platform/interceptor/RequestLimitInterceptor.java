@@ -2,7 +2,6 @@ package com.quickutil.platform.interceptor;
 
 import com.quickutil.platform.ContextUtil;
 import com.quickutil.platform.JsonUtil;
-import com.quickutil.platform.constants.Symbol;
 import com.quickutil.platform.entity.HttpTraceLog;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,20 +35,26 @@ public class RequestLimitInterceptor implements HandlerInterceptor {
 	private boolean openTraceLog = false;
 	private final String HTTP_LOG = "HTTP_LOG";//程序中可以使用detail字段插入自定义内容
 
-	public RequestLimitInterceptor(boolean openTraceLog, int serviceLimit, int pathLimitDefault, String limitTips) {
-		this.openTraceLog = openTraceLog;
+	//如果serviceLimit>server.tomcat.threads.max，则永远不会触发拦截器服务限流
+	//如果serviceLimit<=server.tomcat.threads.max，则tomcat队列永远不会等待
+	public RequestLimitInterceptor(int serviceLimit, int pathLimitDefault, String limitTips, boolean openTraceLog) {
 		this.serviceLimit = serviceLimit;
 		this.pathLimitDefault = pathLimitDefault;
 		this.limitTips = limitTips;
+		this.openTraceLog = openTraceLog;
+	}
+
+	//设置路由限制
+	public RequestLimitInterceptor addPathLimit(String path, int pathLimit) {
+		pathLimitMap.put(path, pathLimit);
+		return this;
 	}
 
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
 			throws IOException, ServletException {
 		//限流设置
-		int limit = pathLimitMap.get(request.getRequestURI()) == null ? pathLimitDefault : pathLimitMap.get(request.getRequestURI());
-		if (!bind(request, limit)) {
-			LOGGER.error(request.getRequestURI() + Symbol.GREATER + limit);
+		if (!bind(request)) {
 			response.setStatus(503);
 			response.getOutputStream().println(limitTips);
 			return false;
@@ -80,33 +85,36 @@ public class RequestLimitInterceptor implements HandlerInterceptor {
 		}
 	}
 
-	//设置路由限制
-	public RequestLimitInterceptor addPathLimit(String path, int pathLimit) {
-		pathLimitMap.put(path, pathLimit);
-		return this;
-	}
-
-	//返回整个服务用量
 	public int getServiceUsed() {
 		return serviceUsed;
 	}
 
-	//返回各路由用量
+	public int getPathLimitDefault() {
+		return pathLimitDefault;
+	}
+
 	public Map<String, Integer> getPathUsed() {
 		return pathUsedMap;
 	}
 
+	public Map<String, Integer> getPathLimitMap() {
+		return pathLimitMap;
+	}
+
 	//绑定连接
-	private synchronized boolean bind(HttpServletRequest request, int limit) {
+	private boolean bind(HttpServletRequest request) {
 		//判断全局流量
 		if (serviceUsed >= serviceLimit) {
+			LOGGER.error("Connection number of service >= " + serviceLimit);
 			return false;
 		}
 		//判断PATH流量
 		List<String> pathKeys = getPathKeys(request.getRequestURI());
 		for (String pathKey : pathKeys) {
 			pathUsedMap.putIfAbsent(pathKey, 0);
+			int limit = pathLimitMap.get(pathKey) == null ? pathLimitDefault : pathLimitMap.get(pathKey);
 			if (pathUsedMap.get(pathKey) >= limit) {
+				LOGGER.error("Connection number of " + pathKey + " >= " + limit);
 				return false;
 			}
 		}
@@ -119,12 +127,17 @@ public class RequestLimitInterceptor implements HandlerInterceptor {
 	}
 
 	//释放连接
-	private synchronized boolean free(HttpServletRequest request) {
+	private boolean free(HttpServletRequest request) {
 		serviceUsed--;
 		List<String> pathKeys = getPathKeys(request.getRequestURI());
 		for (String pathKey : pathKeys) {
 			pathUsedMap.putIfAbsent(pathKey, 1);
-			pathUsedMap.put(pathKey, pathUsedMap.get(pathKey) - 1);
+			int result = pathUsedMap.get(pathKey) - 1;
+			if (result == 0) {
+				pathUsedMap.remove(pathKey);
+			} else {
+				pathUsedMap.put(pathKey, result);
+			}
 		}
 		return true;
 	}
