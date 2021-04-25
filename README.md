@@ -17,7 +17,7 @@ Documents can be found here [https://quickutil.com/quickutil4j](http://quickutil
 ```xml
 <dependency>
 	<groupId>com.quickutil</groupId>
-	<artifactId>platform</artifactId>
-	<version>1.6.9</version>
+	<artifactId>4j</artifactId>
+	<version>1.7.0</version>
 </dependency>
 ```

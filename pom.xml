@@ -2,11 +2,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.quickutil</groupId>
-    <artifactId>platform</artifactId>
+    <artifactId>4j</artifactId>
     <packaging>jar</packaging>
-    <version>1.6.9</version>
+    <version>1.7.0</version>
     <name>quickutil</name>
-    <url>http://www.quickutil.com</url>
+    <url>https://quickutil.com/quickutil4j</url>
     <distributionManagement>
         <repository>
             <id>com.quickutil</id>
@@ -24,7 +24,6 @@
         </repository>
     </repositories>
     <properties>
-        <!-- build version-->
         <!-- dependency version-->
         <junit.version>4.13.1</junit.version>
         <slf4j.version>1.7.30</slf4j.version>
