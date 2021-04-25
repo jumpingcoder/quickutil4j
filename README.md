@@ -1,17 +1,15 @@
-#QuickUtil
+# QuickUtil
 
-Documents can be found here [http://quickutil.com](http://quickutil.com)
+Documents can be found here [https://quickutil.com/quickutil4j](http://quickutil.com)
 
-##How can I use it?
-
-####Use it as a maven dependency.
+## How can I use it?
 
 + Add a repository.
 
 ```xml
 <repository>
 	<id>com.quickutil</id>
-	<url>http://nexus.quickutil.com/repository/com.quickutil</url>
+	<url>https://nexus.quickutil.com/repository/com.quickutil</url>
 </repository>
 ```
 
