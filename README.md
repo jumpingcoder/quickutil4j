@@ -9,7 +9,7 @@ Documents can be found here [https://quickutil.com/quickutil4j](http://quickutil
 ```xml
 <repository>
 	<id>com.quickutil</id>
-	<url>https://nexus.quickutil.com/repository/com.quickutil</url>
+	<url>https://nexus.quickutil.com/repository/maven-public/</url>
 </repository>
 ```
 
