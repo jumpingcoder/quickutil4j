@@ -38,7 +38,7 @@
         <jedis.version>3.1.0</jedis.version>
         <mongo.driver.version>3.11.1</mongo.driver.version>
         <kafka-client.version>0.10.2.2</kafka-client.version>
-        <httpclient.version>4.5.10</httpclient.version>
+        <httpclient.version>4.5.13</httpclient.version>
         <javax.mail.version>1.6.2</javax.mail.version>
         <geoip.version>2.12.0</geoip.version>
         <aliyun-sdk-core.version>4.5.2</aliyun-sdk-core.version>

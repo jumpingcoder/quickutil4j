@@ -103,12 +103,6 @@ public class HttpUtil {
 			return response;
 		} catch (Exception e1) {
 			LOGGER.error(Symbol.BLANK, e1);
-		} finally {
-			try {
-				httpClient.close();
-			} catch (Exception e2) {
-				LOGGER.error(Symbol.BLANK, e2);
-			}
 		}
 		return null;
 	}
@@ -174,12 +168,6 @@ public class HttpUtil {
 			return response;
 		} catch (Exception e1) {
 			LOGGER.error(Symbol.BLANK, e1);
-		} finally {
-			try {
-				httpClient.close();
-			} catch (Exception e2) {
-				LOGGER.error(Symbol.BLANK, e2);
-			}
 		}
 		return null;
 	}
@@ -245,12 +233,6 @@ public class HttpUtil {
 			return response;
 		} catch (Exception e1) {
 			LOGGER.error(Symbol.BLANK, e1);
-		} finally {
-			try {
-				httpClient.close();
-			} catch (Exception e2) {
-				LOGGER.error(Symbol.BLANK, e2);
-			}
 		}
 		return null;
 	}
@@ -308,12 +290,6 @@ public class HttpUtil {
 			return response;
 		} catch (Exception e1) {
 			LOGGER.error(Symbol.BLANK, e1);
-		} finally {
-			try {
-				httpClient.close();
-			} catch (Exception e2) {
-				LOGGER.error(Symbol.BLANK, e2);
-			}
 		}
 		return null;
 	}
