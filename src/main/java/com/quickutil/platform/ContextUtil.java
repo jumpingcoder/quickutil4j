@@ -1,6 +1,7 @@
 package com.quickutil.platform;
 
 import com.quickutil.platform.constants.Symbol;
+import java.net.URI;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -25,10 +26,11 @@ public class ContextUtil {
 	public static final String HOST = "Host";
 	public static final String USER_AGENT = "User-Agent";
 	private static final String REFERER = "Referer";
+	private static final String X_Forwarded_Proto = "X-Forwarded-Proto";
+	private static final String X_Forwarded_Host = "X-Forwarded-Host";
+	private static final String X_Forwarded_For = "X-Forwarded-For";
 	public static final String X_REAL_IP = "X-Real-IP";
 	public static final String X_REQUEST_ID = "X-Request-ID";
-	private static final String X_Forwarded_For = "X-Forwarded-For";
-	private static final String X_Forwarded_Proto = "X-Forwarded-Proto";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ContextUtil.class);
 	protected transient static ThreadLocal<HttpServletRequest> request = new ThreadLocal<>();
@@ -102,7 +104,7 @@ public class ContextUtil {
 	/**
 	 * 获取请求的IP，获取顺序X-Real-IP,X-Forwarded-For第一段,直连机器的ip
 	 */
-	public static String getIp() {
+	public static String getRealIp() {
 		String ip = request.get().getHeader(X_REAL_IP);
 		if (ip != null) {
 			return ip;
@@ -117,7 +119,7 @@ public class ContextUtil {
 	}
 
 	/**
-	 * 获取完整HOST，错误的方法，建议使用getUrlWithoutPath
+	 * 获取完整HOST，错误的方法，请使用getOriginalUrlWithoutPath
 	 */
 	@Deprecated
 	public static String getHost() {
@@ -125,49 +127,33 @@ public class ContextUtil {
 	}
 
 	/**
-	 * 获取url的一部分，并根据X-Forwarded-Proto替换schema https://quickutil.com/hello?xx=123
+	 * 获取原始URI
 	 */
-	public static String getUrl() {
-		String url = ContextUtil.getRequest().getRequestURL().toString();
-		//重新组装Schema
-		String proto = ContextUtil.getRequest().getHeader(X_Forwarded_Proto);
-		if (proto != null) {
-			int start = url.indexOf(Symbol.COLON);
-			url = proto + url.substring(start);
+	public static URI getOriginalUri() {
+		try {
+			return new URI(getOriginalUrl());
+		} catch (Exception e) {
+			LOGGER.error("", e);
 		}
-		//重新组装参数
-		String query = ContextUtil.getRequest().getQueryString();
-		if (query != null) {
-			url = url + Symbol.QUESTION_MARK + query;
-		}
-		return url;
+		return null;
 	}
 
 	/**
-	 * 获取url的一部分，并根据X-Forwarded-Proto替换schema https://quickutil.com/hello?xx=123 -> https://quickutil.com/hello
+	 * 获取原始url
 	 */
-	public static String getUrlWithoutQuery() {
+	public static String getOriginalUrl() {
 		String url = ContextUtil.getRequest().getRequestURL().toString();
-		//重新组装Schema
 		String proto = ContextUtil.getRequest().getHeader(X_Forwarded_Proto);
-		if (proto != null) {
-			int start = url.indexOf(Symbol.COLON);
-			url = proto + url.substring(start);
-		}
-		return url;
+		String host = ContextUtil.getRequest().getHeader(X_Forwarded_Host);
+		return getOriginalUrl(url, proto, host);
 	}
 
 	/**
-	 * 获取url的一部分，并根据X-Forwarded-Proto替换schema https://quickutil.com/hello?xx=123 -> https://quickutil.com
+	 * 获取原始url的一部分，https://quickutil.com/hello?xx=123#part1 -> https://quickutil.com
 	 */
-	public static String getUrlWithoutPath() {
-		String url = getUrlWithoutQuery();
-		if (ContextUtil.getRequest().getRequestURI().equals("/")) {
-			return url.substring(0, url.length() - 1);
-		} else if (ContextUtil.getRequest().getRequestURI().equals("//")) {
-			return url.substring(0, url.length() - 2);
-		}
-		return url.replace(ContextUtil.getRequest().getRequestURI(), Symbol.BLANK);
+	public static String getOriginalUrlWithoutPath() {
+		URI uri = getOriginalUri();
+		return uri.getScheme() + "://" + uri.getAuthority();
 	}
 
 	/**
@@ -213,6 +199,34 @@ public class ContextUtil {
 			return true;
 		}
 		return false;
+	}
+
+	public static String getOriginalUrl(String url, String originalSchema, String originalHost) {
+		try {
+			StringBuilder sb = new StringBuilder();
+			URI uri = new URI(url);
+			originalSchema = (originalSchema == null) ? uri.getScheme() : originalSchema;
+			sb.append(originalSchema);
+			sb.append("://");
+			if (originalHost == null) {
+				sb.append(uri.getAuthority());
+			} else {
+				sb.append(uri.getAuthority().replaceAll(uri.getHost(), originalHost));
+			}
+			if (uri.getPath() != null) {
+				sb.append(uri.getPath());
+			}
+			if (uri.getQuery() != null) {
+				sb.append("?" + uri.getQuery());
+			}
+			if (uri.getFragment() != null) {
+				sb.append("#" + uri.getFragment());
+			}
+			return sb.toString();
+		} catch (Exception e) {
+			LOGGER.error("", e);
+		}
+		return url;
 	}
 
 }
