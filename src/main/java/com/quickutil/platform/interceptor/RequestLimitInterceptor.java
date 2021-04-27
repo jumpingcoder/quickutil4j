@@ -102,7 +102,7 @@ public class RequestLimitInterceptor implements HandlerInterceptor {
 	}
 
 	//绑定连接
-	private boolean bind(HttpServletRequest request) {
+	private synchronized boolean bind(HttpServletRequest request) {
 		//判断全局流量
 		if (serviceUsed >= serviceLimit) {
 			LOGGER.error("Connection number of service >= " + serviceLimit);
@@ -118,6 +118,11 @@ public class RequestLimitInterceptor implements HandlerInterceptor {
 				return false;
 			}
 		}
+		//避免异步请求重复计数
+		if (request.getAttribute("X-Request-Binded") != null) {
+			return true;
+		}
+		request.setAttribute("X-Request-Binded", 1);
 		//计数
 		serviceUsed++;
 		for (String pathKey : pathKeys) {
@@ -127,7 +132,7 @@ public class RequestLimitInterceptor implements HandlerInterceptor {
 	}
 
 	//释放连接
-	private boolean free(HttpServletRequest request) {
+	private synchronized boolean free(HttpServletRequest request) {
 		serviceUsed--;
 		List<String> pathKeys = getPathKeys(request.getRequestURI());
 		for (String pathKey : pathKeys) {
