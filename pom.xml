@@ -41,6 +41,7 @@
         <httpclient.version>4.5.13</httpclient.version>
         <javax.mail.version>1.6.2</javax.mail.version>
         <geoip.version>2.12.0</geoip.version>
+        <mapdb.version>3.0.5</mapdb.version>
         <aliyun-sdk-core.version>4.5.2</aliyun-sdk-core.version>
         <aliyun-sdk-oss.version>3.10.0</aliyun-sdk-oss.version>
         <aws-sdk-s3.version>1.11.656</aws-sdk-s3.version>
@@ -147,6 +148,11 @@
             <groupId>com.maxmind.geoip2</groupId>
             <artifactId>geoip2</artifactId>
             <version>${geoip.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mapdb</groupId>
+            <artifactId>mapdb</artifactId>
+            <version>${mapdb.version}</version>
         </dependency>
         <dependency>
             <groupId>com.aliyun</groupId>

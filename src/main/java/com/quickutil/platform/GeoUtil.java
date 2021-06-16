@@ -1,9 +1,5 @@
 package com.quickutil.platform;
 
-import static com.quickutil.platform.GeoUtil.ISO_3166_2_Version.V20040308;
-import static com.quickutil.platform.GeoUtil.MMDBVersion.GeoIP2City;
-import static com.quickutil.platform.GeoUtil.MMDBVersion.GeoLite2City;
-
 import ch.qos.logback.classic.Logger;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -14,17 +10,17 @@ import com.quickutil.platform.constants.Symbol;
 import com.quickutil.platform.entity.GeoDef;
 import com.quickutil.platform.entity.GeoPoint;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.http.HttpResponse;
+import org.mapdb.DB;
+import org.mapdb.DBMaker;
+import org.mapdb.Serializer;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -33,10 +29,12 @@ import org.slf4j.LoggerFactory;
  * @author 0.5
  */
 public class GeoUtil {
-	
+
 	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(GeoUtil.class);
 
-	private static DatabaseReader databaseReader = null;
+	private static DatabaseReader mmdbReader = null;
+	private static Map<Integer, String> geodbQueryMap;
+	private static Map<String, Integer> geodbCacheMap;
 	private static String baiduKeyIn = null;
 	private static String amapKeyIn = null;
 	private static Map<String, String> countryCodeByCountryNameMap = new HashMap<String, String>();
@@ -47,96 +45,72 @@ public class GeoUtil {
 	private static Map<String, String> stateCodeByStateNameChineseMap = new HashMap<String, String>();
 	private static Map<String, String> stateCodeByStateNameMap = new HashMap<String, String>();
 
-	public enum MMDBVersion{
-		GeoLite2City("GeoLite2-City"),
-		GeoIP2City("GeoIP2-City");
 
-		private String version;
-
-		private MMDBVersion(String version){
-			this.version = version;
-		}
-
-		@Override
-		public String toString() {
-			return version;
-		}
+	//初始化之后可以使用百度和高德API查询GPS
+	public static boolean initGPSOnline(String baiduKey, String amapKey) {
+		baiduKeyIn = baiduKey;
+		amapKeyIn = amapKey;
+		return true;
 	}
 
-	public enum ISO_3166_2_Version{
-		V20040308(""),
-		V20171123("_iso_3166_2_20171123");
-
-		private String version;
-
-		private ISO_3166_2_Version(String version){
-			this.version = version;
+	//初始化之后可以使用自制的mapdb库查询GPS
+	public static boolean initGPSOffline(String mapdbPath) {
+		if (mapdbPath == null) {
+			mapdbPath = FileUtil.getCurrentPath() + File.separator + "geodb";
 		}
-
-		@Override
-		public String toString() {
-			return version;
+		File countryStateFile = new File(mapdbPath);
+		if (!countryStateFile.exists()) {
+			LOGGER.error("缺少geodb文件，请放置到" + mapdbPath);
+			return false;
 		}
+		DB db = DBMaker
+				.fileDB(mapdbPath)
+				.allocateStartSize((long) 256 * 1024 * 1024)
+				.allocateIncrement(10 * 1024 * 1024)
+				.checksumHeaderBypass()
+				.closeOnJvmShutdown()
+				.readOnly()
+				.make();
+		geodbQueryMap = db.treeMap("geoQuery", Serializer.INTEGER, Serializer.STRING).counterEnable().createOrOpen();
+		geodbCacheMap = db.treeMap("cache", Serializer.STRING, Serializer.INTEGER).counterEnable().createOrOpen();
+		return true;
 	}
 
-
-	//兼容使用旧版本的GeoIP2-City.mmdb
-	public static boolean init(String baiduKey, String amapKey){
-		return init(baiduKey, amapKey, GeoIP2City, V20040308);
-	}
-
-	/**
-	 * 初始化静态资源，并周期性更新MMDB文件
-	 * @param baiduKey
-	 * @param amapKey
-	 * @param mmdbVersion mmdb文件的版本，GeoLite2City or GeoIP2City
-	 * @param isoVersion ISO国家省份编码版本
-	 * @return
-	 */
-	public static boolean init(String baiduKey, String amapKey, MMDBVersion mmdbVersion, ISO_3166_2_Version isoVersion) {
+	//初始化之后使用maxmind的库查询IP
+	public static boolean initIPOffline(String mmdbPath, String countryStatePath) {
 		try {
-			// 读取IP库
-			baiduKeyIn = baiduKey;
-			amapKeyIn = amapKey;
-
-			String mmdbPath = FileUtil.getCurrentPath() + File.separator +  mmdbVersion.toString() + ".mmdb";
-			File mmdbFile = new File(mmdbPath);
-			if (!mmdbFile.exists()) {
-				if(mmdbVersion == GeoLite2City){
-					updateGeoLite2CityMMDBFile(mmdbPath);
-				}else if(mmdbVersion == GeoIP2City) {
-					HttpResponse response = HttpUtil.httpGet("http://quickutil.oss-cn-shenzhen.aliyuncs.com/GeoIP2-City.mmdb");
-					byte[] mmdb = FileUtil.stream2byte(response.getEntity().getContent());
-					if (mmdb != null)
-						FileUtil.byte2File(mmdbPath, mmdb);
-				}
-				mmdbFile = new File(mmdbPath);
-			}
-			databaseReader = new DatabaseReader.Builder(mmdbFile).build();
-
 			// 读取国家地区库
-			String jsonFileName = "country_state" + isoVersion.toString() + ".json";
-			String countryStatePath = FileUtil.getCurrentPath() + File.separator + jsonFileName;
+			if (countryStatePath == null) {
+				countryStatePath = FileUtil.getCurrentPath() + File.separator + "country_state.json";
+			}
 			File countryStateFile = new File(countryStatePath);
 			if (!countryStateFile.exists()) {
-				HttpResponse response = HttpUtil.httpGet("http://quickutil.oss-cn-shenzhen.aliyuncs.com/" + jsonFileName);
-				byte[] countryState = FileUtil.stream2byte(response.getEntity().getContent());
-				if (countryState != null)
-					FileUtil.byte2File(countryStatePath, countryState);
+				LOGGER.error("缺少country_state.json文件，请放置到" + countryStatePath);
+				return false;
 			}
+			// 读取IP库
+			if (mmdbPath == null) {
+				mmdbPath = FileUtil.getCurrentPath() + File.separator + "GeoLite2-City.mmdb";
+			}
+			File mmdbFile = new File(mmdbPath);
+			if (!mmdbFile.exists()) {
+				LOGGER.error("缺少GeoLite2-City.mmdb文件，请放置到" + mmdbPath);
+				return false;
+			}
+			mmdbReader = new DatabaseReader.Builder(mmdbFile).build();
 			// 生成缓存
-			String stateCodeNewVersion = "state_code" + isoVersion.toString();
+			String stateCodeNewVersion = "state_code_iso_3166_2_20171123";
 			List<Map<String, Object>> list = JsonUtil.toList(FileUtil.file2String(countryStatePath));
 			for (Map<String, Object> map : list) {
 				countryCodeByCountryNameMap.put((String) map.get("country_name"), (String) map.get("country_code"));
 				countryChineseByCountryCodeMap.put((String) map.get("country_code"), (String) map.get("country_chinese"));
 				stateNameByStateCodeMap.put((String) map.get("country_code") + "_" + (String) map.get("state_code"), (String) map.get("state_name"));
 				stateChineseByStateCodeMap.put((String) map.get("country_code") + "_" + (String) map.get("state_code"), (String) map.get("state_chinese"));
-				stateCodeByStateCodeNewVersionMap.put(map.get("country_code") + "_" + map.get("state_code"), (String)map.get("state_code"));
-				if(map.containsKey(stateCodeNewVersion)){
+				stateCodeByStateCodeNewVersionMap.put(map.get("country_code") + "_" + map.get("state_code"), (String) map.get("state_code"));
+				if (map.containsKey(stateCodeNewVersion)) {
 					stateNameByStateCodeMap.put((String) map.get("country_code") + "_" + (String) map.get(stateCodeNewVersion), (String) map.get("state_name"));
 					stateChineseByStateCodeMap.put((String) map.get("country_code") + "_" + (String) map.get(stateCodeNewVersion), (String) map.get("state_chinese"));
-					stateCodeByStateCodeNewVersionMap.put(map.get("country_code") + "_" + map.get(stateCodeNewVersion), (String)map.get("state_code"));
+					stateCodeByStateCodeNewVersionMap.put(map.get("country_code") + "_" + map.get(stateCodeNewVersion), (String) map.get("state_code"));
 				}
 				//只建立到旧的state_code的映射，供geoCodeyByBaidu、geoCodeyByAmap使用
 				stateCodeByStateNameMap.put((String) map.get("country_code") + "_" + (String) map.get("state_name"), (String) map.get("state_code"));
@@ -144,47 +118,9 @@ public class GeoUtil {
 			}
 			return true;
 		} catch (Exception e) {
-			LOGGER.error(Symbol.BLANK,e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return false;
-	}
-
-	private static void updateGeoLite2CityMMDBFile(String mmdbPath){
-		LOGGER.info("start update GeoLite2CityMMDB file");
-
-		//从官网获取GeoLite2-City.tar.gz文件
-		String dstFilePath = FileUtil.getCurrentPath() + "/GeoLite2-City.tar.gz";
-		HttpResponse response = HttpUtil.httpGet("http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz");
-		try {
-			byte[] tarGzBytes = FileUtil.stream2byte(response.getEntity().getContent());
-			if (tarGzBytes != null)
-				FileUtil.byte2File(dstFilePath, tarGzBytes);
-		} catch (IOException e) {
-			LOGGER.error("download GeoLite2-City.tar.gz file error", e);
-		}
-
-		//解压获取mmdb文件
-		String decompressRootPath = CompressUtil.decompressTarGz(dstFilePath, FileUtil.getCurrentPath());
-		FileInputStream fileInputStream = null;
-		List<String> pathList =  FileUtil.getAllFilePath(FileUtil.getCurrentPath(), null);
-		for(String path : pathList){
-			if(path.matches(".*GeoLite2-City.mmdb")){
-				try {
-					fileInputStream = new FileInputStream(path);
-				} catch (FileNotFoundException e) {
-					LOGGER.error("cannot find GeoLite2-City.mmdb file", e);
-				}
-				break;
-			}
-		}
-		byte[] mmdb = FileUtil.stream2byte(fileInputStream);
-		if (mmdb != null)
-			FileUtil.byte2File(mmdbPath, mmdb);
-
-		//删除压缩文件和解压后的文件夹
-		FileUtil.deleteFile(dstFilePath);
-		FileUtil.deleteFile(decompressRootPath);
-		LOGGER.info("end update GeoLite2CityMMDB file");
 	}
 
 	private static String countryCodeByCountryName(String countryName) {
@@ -203,7 +139,7 @@ public class GeoUtil {
 		return stateChineseByStateCodeMap.get(countryCode + "_" + stateCode);
 	}
 
-	private static String stateCodeByStateCodeNewVersion(String countryCode, String stateCode){
+	private static String stateCodeByStateCodeNewVersion(String countryCode, String stateCode) {
 		return stateCodeByStateCodeNewVersionMap.get(countryCode + "_" + stateCode);
 	}
 
@@ -215,16 +151,15 @@ public class GeoUtil {
 		return stateCodeByStateNameChineseMap.get(countryCode + "_" + stateName);
 	}
 
-
 	/**
 	 * 根据IP查询地理信息
-	 * 
+	 *
 	 * @param ip-ip地址
 	 * @return
 	 */
 	private static final String UNKNOWN = "";
 
-	public static GeoDef GeoIPByMMDB(String ip) {
+	public static GeoDef geoIPByMMDB(String ip) {
 		String countryCode = UNKNOWN;
 		String country = UNKNOWN;
 		String countryChinese = UNKNOWN;
@@ -237,7 +172,7 @@ public class GeoUtil {
 		try {
 			InetAddress ipAddr = InetAddress.getByName(ip);
 			CityResponse result;
-			result = databaseReader.city(ipAddr);
+			result = mmdbReader.city(ipAddr);
 			countryCode = result.getCountry().getIsoCode();
 			country = result.getCountry().getName();
 			countryChinese = countryChineseByCountryCode(countryCode);
@@ -258,7 +193,7 @@ public class GeoUtil {
 		} catch (AddressNotFoundException ae) {
 		} catch (UnknownHostException ue) {
 		} catch (Exception e) {
-			LOGGER.error(Symbol.BLANK,e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		countryCode = (countryCode == null) ? UNKNOWN : countryCode;
 		country = (country == null) ? UNKNOWN : country;
@@ -272,33 +207,57 @@ public class GeoUtil {
 		return new GeoDef(latitude, longitude, countryCode, country, countryChinese, stateCode, state, stateChinese, city, "");
 	}
 
+	public static GeoDef geoGpsByOfflineDB(double latitude, double longitude) {
+		float latF = Float.valueOf(new DecimalFormat("#.00").format(latitude));
+		float lngF = Float.valueOf(new DecimalFormat("#.00").format(longitude));
+		Integer idx = geodbCacheMap.get(latF + "/" + lngF);
+		if (idx == null) {
+			latF = Float.valueOf(new DecimalFormat("#.0").format(latitude));
+			lngF = Float.valueOf(new DecimalFormat("#.0").format(longitude));
+			idx = geodbCacheMap.get(latF + "/" + lngF);
+			if (idx == null) {
+				LOGGER.info("No result, lat: " + latitude + " lng: " + longitude);
+				return new GeoDef(latitude, longitude, "", "", "", "", "", "", "", "");
+			}
+		}
+		String content = geodbQueryMap.get(idx);
+		String[] items = content.split(",");
+		return new GeoDef(latitude, longitude, items[0], items[1], items[2], items[3], items[4], items[5], items[6], items[7]);
+		//        String countryCode;
+		//        String country;
+		//        String countryChinese;
+		//        String stateCode;
+		//        String state;
+		//        String stateChinese;
+		//        String city;
+		//        String description;
+	}
+
 	/**
 	 * 根据经纬度查询地理信息-百度世界
-	 * 
-	 * @param latitude-纬度
-	 * @param longitude-经度
-	 * @return
 	 */
-
-	public static GeoDef geoCodeyByBaidu(double latitude, double longitude) {
+	public static GeoDef geoGpsByBaidu(double latitude, double longitude) {
 		try {
 			double[] delta = WGSToGCJPointer(latitude, longitude);
 			delta = GCJToBDPointer(delta[0], delta[1]);
 			String queryUrl = String.format("http://api.map.baidu.com/geocoder/v2/?ak=%s&location=%s,%s&output=json", baiduKeyIn, delta[0], delta[1]);
 			JsonObject object = JsonUtil.toJsonObject(FileUtil.stream2string(HttpUtil.httpGet(queryUrl).getEntity().getContent()));
 			String country = object.getAsJsonObject("result").getAsJsonObject("addressComponent").get("country").getAsString();
-			if (country.equals("中国"))
+			if (country.equals("中国")) {
 				country = "China";
-			if (country.equals("England"))
+			}
+			if (country.equals("England")) {
 				country = "United Kingdom";
+			}
 			String countryCode = countryCodeByCountryName(country);
 			String countryChinese = countryChineseByCountryCode(countryCode);
 			String state = object.getAsJsonObject("result").getAsJsonObject("addressComponent").get("province").getAsString();
 			String stateCode = "";
-			if (country.equals("China"))
+			if (country.equals("China")) {
 				stateCode = stateCodeByStateChinese(countryCode, state);
-			else
+			} else {
 				stateCode = stateCodeByStateName(countryCode, state);
+			}
 			state = stateNameByStateCode(countryCode, stateCode);
 			String stateChinese = stateChineseByStateCode(countryCode, stateCode);
 			String city = object.getAsJsonObject("result").getAsJsonObject("addressComponent").get("city").getAsString();
@@ -312,21 +271,19 @@ public class GeoUtil {
 			city = (city == null) ? UNKNOWN : city;
 			return new GeoDef(latitude, longitude, countryCode, country, countryChinese, stateCode, state, stateChinese, city, description);
 		} catch (Exception e) {
-			LOGGER.error(Symbol.BLANK,e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return null;
 	}
 
 	/**
 	 * 根据经纬度查询地理信息-百度批量
-	 * 
-	 * @param points-纬度经度数组，下标偶数位为纬度，奇数位为经度，必须成对，最多20条经纬度
-	 * @return
 	 */
-	public static List<GeoDef> geoCodeyByBaidu(List<GeoPoint> points) {
+	public static List<GeoDef> geoGpsByBaidu(List<GeoPoint> points) {
 		try {
-			if (points.size() > 20)
+			if (points.size() > 20) {
 				return null;
+			}
 			StringBuilder builder = new StringBuilder();
 			for (int i = 0; i < points.size(); i++) {
 				double[] delta = WGSToGCJPointer(points.get(i).latitude, points.get(i).longitude);
@@ -341,18 +298,21 @@ public class GeoUtil {
 			for (int i = 0; i < points.size(); i++) {
 				object = array.get(i).getAsJsonObject();
 				String country = object.get("country").getAsString();
-				if (country.equals("中国"))
+				if (country.equals("中国")) {
 					country = "China";
-				if (country.equals("England"))
+				}
+				if (country.equals("England")) {
 					country = "United Kingdom";
+				}
 				String countryCode = countryCodeByCountryName(country);
 				String countryChinese = countryChineseByCountryCode(countryCode);
 				String state = object.get("province").getAsString();
 				String stateCode = "";
-				if (country.equals("China"))
+				if (country.equals("China")) {
 					stateCode = stateCodeByStateChinese(countryCode, state);
-				else
+				} else {
 					stateCode = stateCodeByStateName(countryCode, state);
+				}
 				state = stateNameByStateCode(countryCode, stateCode);
 				String stateChinese = stateChineseByStateCode(countryCode, stateCode);
 				String city = object.get("city").getAsString();
@@ -368,40 +328,40 @@ public class GeoUtil {
 			}
 			return geodefList;
 		} catch (Exception e) {
-			LOGGER.error(Symbol.BLANK,e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return null;
 	}
 
 	/**
 	 * 根据经纬度查询地理信息-高德中国
-	 * 
-	 * @param latitude-纬度
-	 * @param longitude-经度
-	 * @return
 	 */
-	public static GeoDef geoCodeyByAmap(double latitude, double longitude) {
+	public static GeoDef geoGpsByAmap(double latitude, double longitude) {
 		try {
 			double[] delta = WGSToGCJPointer(latitude, longitude);
 			String queryUrl = String.format("http://restapi.amap.com/v3/geocode/regeo?output=json&location=%s,%s&key=%s", delta[1], delta[0], amapKeyIn);
 			JsonObject object = JsonUtil.toJsonObject(FileUtil.stream2string(HttpUtil.httpGet(queryUrl).getEntity().getContent()));
 			String country = object.getAsJsonObject("regeocode").getAsJsonObject("addressComponent").get("country").getAsString();
-			if (country.equals("中国"))
+			if (country.equals("中国")) {
 				country = "China";
-			if (country.equals("England"))
+			}
+			if (country.equals("England")) {
 				country = "United Kingdom";
+			}
 			String city = "";
-			if (!object.getAsJsonObject("regeocode").getAsJsonObject("addressComponent").get("city").isJsonArray())
+			if (!object.getAsJsonObject("regeocode").getAsJsonObject("addressComponent").get("city").isJsonArray()) {
 				city = object.getAsJsonObject("regeocode").getAsJsonObject("addressComponent").get("city").getAsString();
+			}
 			String description = object.getAsJsonObject("regeocode").get("formatted_address").getAsString();
 			String countryCode = countryCodeByCountryName(country);
 			String countryChinese = countryChineseByCountryCode(countryCode);
 			String state = object.get("province").getAsString();
 			String stateCode = "";
-			if (country.equals("China"))
+			if (country.equals("China")) {
 				stateCode = stateCodeByStateChinese(countryCode, state);
-			else
+			} else {
 				stateCode = stateCodeByStateName(countryCode, state);
+			}
 			state = stateNameByStateCode(countryCode, stateCode);
 			String stateChinese = stateChineseByStateCode(countryCode, stateCode);
 			countryCode = (countryCode == null) ? UNKNOWN : countryCode;
@@ -413,31 +373,24 @@ public class GeoUtil {
 			city = (city == null) ? UNKNOWN : city;
 			return new GeoDef(latitude, longitude, countryCode, country, countryChinese, stateCode, state, stateChinese, city, description);
 		} catch (Exception e) {
-			LOGGER.error(Symbol.BLANK,e);
+			LOGGER.error(Symbol.BLANK, e);
 		}
 		return null;
 	}
 
 	/**
 	 * WGS-84 -> GCJ-02
-	 * 
-	 * @param latitude-纬度
-	 * @param longitude-经度
-	 * @return
 	 */
 	private static double[] WGSToGCJPointer(double latitude, double longitude) {
-		if (outOfChina(latitude, longitude))
-			return new double[] { latitude, longitude };
+		if (outOfChina(latitude, longitude)) {
+			return new double[]{latitude, longitude};
+		}
 		double[] delta = delta(latitude, longitude);
-		return new double[] { latitude + delta[0], longitude + delta[1] };
+		return new double[]{latitude + delta[0], longitude + delta[1]};
 	}
 
 	/**
 	 * GCJ-02 -> BD-09
-	 * 
-	 * @param latitude-纬度
-	 * @param longitude-经度
-	 * @return
 	 */
 	private static double[] GCJToBDPointer(double latitude, double longitude) {
 		double x = longitude;
@@ -445,7 +398,7 @@ public class GeoUtil {
 		double x_pi = 3.14159265358979324 * 3000.0 / 180.0;
 		double z = Math.sqrt(x * x + y * y) + 0.00002 * Math.sin(y * x_pi);
 		double theta = Math.atan2(y, x) + 0.000003 * Math.cos(x * x_pi);
-		return new double[] { (z * Math.sin(theta) + 0.006), z * Math.cos(theta) + 0.0065 };
+		return new double[]{(z * Math.sin(theta) + 0.006), z * Math.cos(theta) + 0.0065};
 	}
 
 	private static boolean outOfChina(double lat, double lng) {

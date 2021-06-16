@@ -133,6 +133,11 @@ public class RequestLimitInterceptor implements HandlerInterceptor {
 
 	//释放连接
 	private synchronized boolean free(HttpServletRequest request) {
+		//避免异步请求重复计数
+		if (request.getAttribute("X-Request-Freed") != null) {
+			return true;
+		}
+		request.setAttribute("X-Request-Freed", 1);
 		serviceUsed--;
 		List<String> pathKeys = getPathKeys(request.getRequestURI());
 		for (String pathKey : pathKeys) {
