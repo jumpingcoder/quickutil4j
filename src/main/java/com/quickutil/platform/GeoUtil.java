@@ -221,8 +221,15 @@ public class GeoUtil {
 			}
 		}
 		String content = geodbQueryMap.get(idx);
+		String[] results = new String[8];
 		String[] items = content.split(",");
-		return new GeoDef(latitude, longitude, items[0], items[1], items[2], items[3], items[4], items[5], items[6], items[7]);
+		for (int i = 0; i < items.length; i++) {
+			results[i] = items[i];
+		}
+		for (int i = items.length; i < results.length; i++) {
+			results[i] = "";
+		}
+		return new GeoDef(latitude, longitude, results[0], results[1], results[2], results[3], results[4], results[5], results[6], results[7]);
 		//        String countryCode;
 		//        String country;
 		//        String countryChinese;
