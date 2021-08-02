@@ -47,7 +47,7 @@
         <aws-sdk-s3.version>1.11.656</aws-sdk-s3.version>
         <ga-api.version>v3-rev161-1.25.0</ga-api.version>
         <commons-pool.version>2.6.2</commons-pool.version>
-        <commons-compress.version>1.19</commons-compress.version>
+        <commons-compress.version>1.21</commons-compress.version>
 
 
     </properties>
