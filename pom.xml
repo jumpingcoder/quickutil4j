@@ -44,7 +44,7 @@
         <mapdb.version>3.0.5</mapdb.version>
         <aliyun-sdk-core.version>4.5.2</aliyun-sdk-core.version>
         <aliyun-sdk-oss.version>3.10.0</aliyun-sdk-oss.version>
-        <aws-sdk-s3.version>1.11.656</aws-sdk-s3.version>
+        <aws-sdk-s3.version>1.12.261</aws-sdk-s3.version>
         <ga-api.version>v3-rev161-1.25.0</ga-api.version>
         <commons-pool.version>2.6.2</commons-pool.version>
         <commons-compress.version>1.19</commons-compress.version>
