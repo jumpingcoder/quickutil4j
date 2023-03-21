@@ -6,11 +6,11 @@
     <packaging>jar</packaging>
     <version>1.7.0</version>
     <name>quickutil</name>
-    <url>https://quickutil.com/quickutil4j</url>
+    <url>https://github.com/jumpingcoder/quickutil4j</url>
     <distributionManagement>
         <repository>
             <id>com.quickutil</id>
-            <url>https://nexus.quickutil.com/repository/com.quickutil</url>
+            <url>https://nexus.quickutil.com/repository/com.quickutil/</url>
         </repository>
     </distributionManagement>
     <repositories>

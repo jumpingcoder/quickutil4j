@@ -1,8 +1,8 @@
-# QuickUtil
+## Introduction
 
-Documents can be found here [https://quickutil.com/quickutil4j](http://quickutil.com)
+Utils for Java, cover file, http, json, db, redis, elastic search, kafka, ali oss, aws s3, crypto ...
 
-## How can I use it?
+## How To Use
 
 + Add a repository.
 
@@ -21,3 +21,42 @@ Documents can be found here [https://quickutil.com/quickutil4j](http://quickutil
 	<version>1.7.0</version>
 </dependency>
 ```
+
+## Change Log
+
+#### v1.7.0
++ AliOSSPoolUtil.java
++ AliOSSUtil.java 
++ AliSmsPoolUtil.java
++ AliSmsUtil.java
++ AWSS3PoolUtil.java
++ AWSS3Util.java
++ CompressUtil.java
++ ConfirmCodeUtil.java
++ ContextFilter.java
++ ContextUtil.java
++ CryptoUtil.java
++ DateTimeUtil.java
++ ElasticPoolUtil.java
++ ElasticUtil.java
++ EnvironmentUtil.java
++ FileUtil.java
++ GAUtil.java
++ GeoUtil.java
++ HttpUtil.java
++ ImageUtil.java
++ JdbcPoolUtil.java
++ JdbcUtil.java
++ JedisPoolUtil.java
++ JedisUtil.java
++ JsonUtil.java
++ KafkaUtil.java
++ MailPoolUtil.java
++ MailUtil.java
++ MongoPoolUtil.java
++ MongoUtil.java
++ PassportUtil.java
++ PropertiesUtil.java
++ ShellUtil.java
++ SnowFlakeUtil.java
++ StringUtil.java

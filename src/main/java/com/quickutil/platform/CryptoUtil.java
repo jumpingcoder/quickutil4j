@@ -29,6 +29,7 @@ public class CryptoUtil {
 
 	private static final String ENCODING = "UTF-8";
 	private static final String HmacSHA1 = "HmacSHA1";
+	private static final String HmacSHA256 = "HmacSHA256";
 	private static final String HmacMD5 = "HmacMD5";
 	private static final String SHA1 = "SHA-1";
 	private static final String MD5 = "MD5";
@@ -109,6 +110,25 @@ public class CryptoUtil {
 			byte[] data = encryptKey.getBytes(ENCODING);
 			SecretKey secretKey = new SecretKeySpec(data, HmacSHA1);
 			Mac mac = Mac.getInstance(HmacSHA1);
+			mac.init(secretKey);
+			byte[] secretbt = mac.doFinal(encryptContent);
+			return byte2hex(secretbt);
+		} catch (Exception e) {
+			LOGGER.error("", e);
+			return null;
+		}
+	}
+
+	/**
+	 * hmac-sha1签名
+	 *
+	 * @return 计算过HMAC-sha1的字符串
+	 */
+	public static String HmacSHA256Encrypt(byte[] encryptContent, String encryptKey) {
+		try {
+			byte[] data = encryptKey.getBytes(ENCODING);
+			SecretKey secretKey = new SecretKeySpec(data, HmacSHA256);
+			Mac mac = Mac.getInstance(HmacSHA256);
 			mac.init(secretKey);
 			byte[] secretbt = mac.doFinal(encryptContent);
 			return byte2hex(secretbt);
