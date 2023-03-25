@@ -59,8 +59,9 @@ public class PropertiesUtil {
         for (Object key : properties.keySet()) {
             String value = properties.getProperty(key.toString());
             try {
-                if (value.length() == 0)
+                if (!value.startsWith("(ENC)"))
                     continue;
+                value = value.substring(5);
                 byte[] encrypted = null;
                 //decode
                 if (codecType == CodecType.HEX) {
