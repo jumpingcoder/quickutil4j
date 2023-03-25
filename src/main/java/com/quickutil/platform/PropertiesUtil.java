@@ -14,20 +14,21 @@ import java.util.Properties;
  */
 public class PropertiesUtil {
 
-    private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(PropertiesUtil.class);
-
-    /**
-     * 获取资源文件字节流
-     */
-    public static InputStream getInputStream(String filePath) {
-        return new PropertiesUtil().getResourceStream(filePath);
+    public enum EncryptType {
+        AESRandom, AESECB, AESCBC
     }
+
+    public enum CodecType {
+        HEX, Base64
+    }
+
+    private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(PropertiesUtil.class);
 
     /**
      * 将资源文件读取为Properties
      */
-    public static Properties getProperties(String filePath) {
-        return getProperties(getInputStream(filePath));
+    public static Properties getResourceProperties(String filePath) {
+        return getProperties(FileUtil.resource2stream(filePath));
     }
 
     /**
@@ -44,61 +45,41 @@ public class PropertiesUtil {
         return null;
     }
 
-    /**
-     * 获取非标准aes解密properties，如未加密也可填明文
-     */
-    public static Properties getPropertiesWithKey(String filePath, String password) {
-        Properties properties = getProperties(filePath);
-        for (Object pkey : properties.keySet()) {
-            String pvalue = properties.getProperty(pkey.toString());
-            try {
-                if (pvalue.length() > 1) {
-                    properties.setProperty(pkey.toString(), CryptoUtil.aesDecryptStr(pvalue, password));
-                }
-            } catch (Exception e) {
-            }
-        }
-        return properties;
+    public static Properties getPropertiesWithKey(String filePath, EncryptType encryptType, CodecType codecType, String password) {
+        Properties properties = getResourceProperties(filePath);
+        return getPropertiesWithKey(properties, encryptType, codecType, password);
     }
 
-    /**
-     * 获取非标准aes解密properties，如未加密也可填明文
-     */
-    public static Properties getPropertiesWithKey(InputStream stream, String password) {
+    public static Properties getPropertiesWithKey(InputStream stream, EncryptType encryptType, CodecType codecType, String password) {
         Properties properties = getProperties(stream);
-        for (Object pkey : properties.keySet()) {
-            String pvalue = properties.getProperty(pkey.toString());
+        return getPropertiesWithKey(properties, encryptType, codecType, password);
+    }
+
+    public static Properties getPropertiesWithKey(Properties properties, EncryptType encryptType, CodecType codecType, String password) {
+        for (Object key : properties.keySet()) {
+            String value = properties.getProperty(key.toString());
             try {
-                if (pvalue.length() > 1) {
-                    properties.setProperty(pkey.toString(), CryptoUtil.aesDecryptStr(pvalue, password));
+                if (value.length() == 0)
+                    continue;
+                byte[] encrypted = null;
+                //decode
+                if (codecType == CodecType.HEX) {
+                    encrypted = CryptoUtil.hex2byte(value);
+                } else {
+                    encrypted = CryptoUtil.base64ToByte(value);
                 }
+                //decrypt
+                if (encryptType == EncryptType.AESRandom) {
+                    value = new String(CryptoUtil.aesRandomDecrypt(encrypted, password));
+                } else if (encryptType == EncryptType.AESECB) {
+                    value = new String(CryptoUtil.aesecbDecrypt(encrypted, password));
+                } else if (encryptType == EncryptType.AESCBC) {
+                    value = new String(CryptoUtil.aescbcDecrypt(encrypted, password, new byte[16]));
+                }
+                properties.setProperty(key.toString(), value);
             } catch (Exception e) {
             }
         }
         return properties;
-    }
-
-    private InputStream getResourceStream(String filePath) {
-        InputStream stream = null;
-        try {
-            stream = this.getClass().getClassLoader().getResourceAsStream(filePath);
-        } catch (Exception e) {
-            LOGGER.debug(Symbol.BLANK, e);
-        }
-        if (stream == null) {
-            try {
-                stream = this.getClass().getResourceAsStream("/resources/" + filePath);
-            } catch (Exception e) {
-                LOGGER.debug(Symbol.BLANK, e);
-            }
-        }
-        if (stream == null) {
-            try {
-                stream = this.getClass().getResourceAsStream(filePath);
-            } catch (Exception e) {
-                LOGGER.debug(Symbol.BLANK, e);
-            }
-        }
-        return stream;
     }
 }

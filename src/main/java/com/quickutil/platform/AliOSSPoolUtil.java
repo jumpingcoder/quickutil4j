@@ -16,7 +16,10 @@ import java.util.*;
 public class AliOSSPoolUtil {
     private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(AliOSSPoolUtil.class);
 
-    private static Map<String, AliOSSUtil> ossMap = new HashMap<>();
+    private Map<String, AliOSSUtil> ossMap = new HashMap<>();
+
+    public AliOSSPoolUtil() {
+    }
 
     public AliOSSPoolUtil(Properties properties) {
         Enumeration<?> keys = properties.propertyNames();
@@ -32,8 +35,8 @@ public class AliOSSPoolUtil {
                 String accessKeySecret = properties.getProperty(key + ".accessKeySecret");
                 String endpoint = properties.getProperty(key + ".endpoint");
                 String bucketName = properties.getProperty(key + ".bucketname");
-                if(accessKeyId==null||accessKeySecret==null||endpoint==null||bucketName==null)
-					throw new MissingParametersException("init requires accessKeyId, accessKeySecret, endpoint, bucketname");
+                if (accessKeyId == null || accessKeySecret == null || endpoint == null || bucketName == null)
+                    throw new MissingParametersException("init requires accessKeyId, accessKeySecret, endpoint, bucketname");
                 ossMap.put(key, new AliOSSUtil(accessKeyId, accessKeySecret, endpoint, bucketName));
             } catch (Exception e) {
                 LOGGER.error(Symbol.BLANK, e);
@@ -41,7 +44,16 @@ public class AliOSSPoolUtil {
         }
     }
 
-    public AliOSSUtil get(String key) {
-        return ossMap.get(key);
+    public AliOSSUtil get(String name) {
+        return ossMap.get(name);
     }
+
+    public void add(String name, AliOSSUtil alioss) {
+        ossMap.put(name, alioss);
+    }
+
+    public void remove(String name) {
+        ossMap.remove(name);
+    }
+
 }

@@ -46,7 +46,7 @@ public class CompressUtil {
 					isRootPath = false;
 				}
 				if (entry.isDirectory()) {
-					FileUtil.mkdirByFile(entryName);
+					FileUtil.mkdir(entryName);
 				} else if (entry.isFile()) {
 					FileUtil.stream2file(archiveInput, entryName, false);
 				}

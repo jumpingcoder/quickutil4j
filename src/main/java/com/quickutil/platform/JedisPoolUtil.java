@@ -14,59 +14,59 @@ import java.util.*;
  */
 public class JedisPoolUtil {
 
-	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(JedisPoolUtil.class);
+    private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(JedisPoolUtil.class);
 
-	private Map<String, JedisUtil> jedisUtilMap = new HashMap<>();
+    private Map<String, JedisUtil> jedisUtilMap = new HashMap<>();
 
-	public JedisPoolUtil() {
-	}
+    public JedisPoolUtil() {
+    }
 
-	public JedisPoolUtil(Properties jedisProperties, Properties jedisPoolProperties) {
-		try {
-			Enumeration<?> keys = jedisProperties.propertyNames();
-			List<String> keyList = new ArrayList<String>();
-			while (keys.hasMoreElements()) {
-				String key = (String) keys.nextElement();
-				key = key.split("\\.")[0];
-				if (!keyList.contains(key)) {
-					keyList.add(key);
-				}
-			}
-			for (String key : keyList) {
-				String host = jedisProperties.getProperty(key + ".host");
-				String portStr = jedisProperties.getProperty(key + ".port");
-				if (host == null || portStr == null)
-					throw new MissingParametersException("init requires host, port");
-				int port = Integer.parseInt(portStr);
-				String timeoutStr = jedisProperties.getProperty(key + ".timeout");
-				int timeout = timeoutStr == null ? 2000 : Integer.parseInt(timeoutStr);
-				String databaseStr = jedisProperties.getProperty(key + ".database");
-				int database = databaseStr == null ? 0 : Integer.parseInt(databaseStr);
-				String password = jedisProperties.getProperty(key + ".password");
-				String isSslStr = jedisProperties.getProperty(key + ".isSsl");
-				boolean isSsl = isSslStr == null ? false : Boolean.parseBoolean(isSslStr);
-				String caPath = jedisProperties.getProperty(key + ".caPath");
-				jedisUtilMap.put(key, new JedisUtil(host, port, timeout, password, database, isSsl, caPath, jedisPoolProperties));
-			}
-		} catch (Exception e) {
-			LOGGER.error(Symbol.BLANK, e);
-		}
-	}
+    public JedisPoolUtil(Properties jedisProperties, Properties jedisPoolProperties) {
+        try {
+            Enumeration<?> keys = jedisProperties.propertyNames();
+            List<String> keyList = new ArrayList<String>();
+            while (keys.hasMoreElements()) {
+                String key = (String) keys.nextElement();
+                key = key.split("\\.")[0];
+                if (!keyList.contains(key)) {
+                    keyList.add(key);
+                }
+            }
+            for (String key : keyList) {
+                String host = jedisProperties.getProperty(key + ".host");
+                String portStr = jedisProperties.getProperty(key + ".port");
+                if (host == null || portStr == null)
+                    throw new MissingParametersException("init requires host, port");
+                int port = Integer.parseInt(portStr);
+                String timeoutStr = jedisProperties.getProperty(key + ".timeout");
+                int timeout = timeoutStr == null ? 2000 : Integer.parseInt(timeoutStr);
+                String databaseStr = jedisProperties.getProperty(key + ".database");
+                int database = databaseStr == null ? 0 : Integer.parseInt(databaseStr);
+                String password = jedisProperties.getProperty(key + ".password");
+                String isSslStr = jedisProperties.getProperty(key + ".isSsl");
+                boolean isSsl = isSslStr == null ? false : Boolean.parseBoolean(isSslStr);
+                String caPath = jedisProperties.getProperty(key + ".caPath");
+                jedisUtilMap.put(key, new JedisUtil(host, port, timeout, password, database, isSsl, caPath, jedisPoolProperties));
+            }
+        } catch (Exception e) {
+            LOGGER.error(Symbol.BLANK, e);
+        }
+    }
 
-	public void add(String key, String host, int port, int timeout, String password, int database, boolean isSsl, String caPath, Properties jedisPoolProperties) {
-		jedisUtilMap.put(key, new JedisUtil(host, port, timeout, password, database, isSsl, caPath, jedisPoolProperties));
-	}
+    public JedisUtil get(String redisName) {
+        return jedisUtilMap.get(redisName);
+    }
 
-	public JedisUtil get(String dbName) {
-		return jedisUtilMap.get(dbName);
-	}
+    public void add(String redisName, JedisUtil jedis) {
+        jedisUtilMap.put(redisName, jedis);
+    }
 
-	public void remove(String dbName) {
-		JedisUtil jedisUtil = jedisUtilMap.get(dbName);
-		if (jedisUtil == null)
-			return;
-		jedisUtil.closeJedis();
-		jedisUtilMap.remove(dbName);
-	}
+    public void remove(String redisName) {
+        JedisUtil jedisUtil = jedisUtilMap.get(redisName);
+        if (jedisUtil == null)
+            return;
+        jedisUtil.closeJedis();
+        jedisUtilMap.remove(redisName);
+    }
 
 }

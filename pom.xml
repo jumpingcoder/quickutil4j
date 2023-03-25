@@ -4,7 +4,7 @@
     <groupId>com.quickutil</groupId>
     <artifactId>4j</artifactId>
     <packaging>jar</packaging>
-    <version>1.7.0</version>
+    <version>1.8.0</version>
     <name>quickutil</name>
     <url>https://github.com/jumpingcoder/quickutil4j</url>
     <distributionManagement>
@@ -48,7 +48,6 @@
         <ga-api.version>v3-rev161-1.25.0</ga-api.version>
         <commons-pool.version>2.6.2</commons-pool.version>
         <commons-compress.version>1.19</commons-compress.version>
-
 
     </properties>
     <dependencies>
