@@ -245,9 +245,11 @@ public class FileUtil {
      *
      * @return 是否成功
      */
-    public static boolean lines2file(String filename, List<String> contentList, boolean append) {
-        mkdir(filename);
-        File file = new File(filename);
+    public static boolean lines2file(String filePath, List<String> contentList, boolean append) {
+        File file = new File(filePath);
+        if (!file.getParentFile().exists()) {
+            file.getParentFile().mkdirs();
+        }
         try {
             FileWriter writer = new FileWriter(file, append);
             for (String content : contentList) {
