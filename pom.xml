@@ -4,7 +4,7 @@
     <groupId>com.quickutil</groupId>
     <artifactId>4j</artifactId>
     <packaging>jar</packaging>
-    <version>1.8.1</version>
+    <version>1.8.2</version>
     <name>quickutil</name>
     <url>https://github.com/jumpingcoder/quickutil4j</url>
     <distributionManagement>
