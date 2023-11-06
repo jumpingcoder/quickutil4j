@@ -161,6 +161,31 @@ public class JedisUtil {
     }
 
     /**
+     * 删除key
+     */
+    public boolean deleteKeys(List<String> keys) {
+        if (keys == null) {
+            return false;
+        }
+        Jedis jedis = jedisPool.getResource();
+        try {
+            Pipeline pipeline = jedis.pipelined();
+            for (String key : keys) {
+                jedis.del(key);
+            }
+            pipeline.sync();
+            return true;
+        } catch (Exception e) {
+            LOGGER.error(Symbol.BLANK, e);
+        } finally {
+            if (jedis != null) {
+                jedis.close();
+            }
+        }
+        return false;
+    }
+
+    /**
      * 清空数据
      */
     public String flushData() {
