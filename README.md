@@ -18,11 +18,16 @@ Utils for Java, cover file, http, json, db, redis, elastic search, kafka, ali os
 <dependency>
 	<groupId>com.quickutil</groupId>
 	<artifactId>4j</artifactId>
-	<version>1.8.2</version>
+	<version>1.8.3</version>
 </dependency>
 ```
 
 ## Change Log
+
+#### v1.8.3
++ OSSUtil change
++ CryptoUtil change
++ RedisUtil change
 
 #### v1.8.2
 + RedisUtil change

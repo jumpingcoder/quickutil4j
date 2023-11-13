@@ -402,47 +402,59 @@ public class JedisUtil {
     }
 
     /**
-     * 批量右出队列（基于Lua）
+     * 批量右出队列
      */
-    @SuppressWarnings("unchecked")
     public List<String> rpopBulk(String key, Integer count) {
         if (key == null || count == null) {
             return null;
         }
+        List<Response<String>> responseList = new ArrayList<>();
+        List<String> resultList = new ArrayList<>();
         Jedis jedis = jedisPool.getResource();
+        Pipeline pipeline = jedis.pipelined();
         try {
-            List<String> list = (List<String>) jedis.eval(rpopQueueLua, 1, key, count.toString());
-            return list;
+            for (int i = 0; i < count; i++) {
+                responseList.add(pipeline.rpop(key));
+            }
+            pipeline.sync();
+            for (Response<String> response : responseList) {
+                resultList.add(response.get());
+            }
+            return resultList;
         } catch (Exception e) {
             LOGGER.error(Symbol.BLANK, e);
         } finally {
-            if (jedis != null) {
-                jedis.close();
-            }
+            jedis.close();
         }
-        return null;
+        return resultList;
     }
 
     /**
-     * 批量左出队列（基于Lua）
+     * 批量左出队列
      */
-    @SuppressWarnings("unchecked")
     public List<String> lpopBulk(String key, Integer count) {
         if (key == null || count == null) {
             return null;
         }
+        List<Response<String>> responseList = new ArrayList<>();
+        List<String> resultList = new ArrayList<>();
         Jedis jedis = jedisPool.getResource();
+        Pipeline pipeline = jedis.pipelined();
         try {
-            List<String> list = (List<String>) jedis.eval(lpopQueueLua, 1, key, count.toString());
-            return list;
+            for (int i = 0; i < count; i++) {
+                responseList.add(pipeline.lpop(key));
+            }
+            pipeline.sync();
+            for (Response<String> response : responseList) {
+                resultList.add(response.get());
+            }
+            return resultList;
         } catch (Exception e) {
             LOGGER.error(Symbol.BLANK, e);
         } finally {
-            if (jedis != null) {
-                jedis.close();
-            }
+            jedis.close();
         }
-        return null;
+        return resultList;
     }
 
     /**

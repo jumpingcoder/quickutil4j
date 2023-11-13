@@ -83,14 +83,13 @@ public class CryptoUtil {
      *
      * @return 计算过HMAC-md5的字符串
      */
-    public static String HmacMD5Encrypt(byte[] encryptContent, String encryptKey) {
+    public static byte[] HmacMD5Encrypt(byte[] encryptContent, String encryptKey) {
         try {
             byte[] data = encryptKey.getBytes(UTF_8);
             SecretKey secretKey = new SecretKeySpec(data, "HmacMD5");
             Mac mac = Mac.getInstance("HmacMD5");
             mac.init(secretKey);
-            byte[] encryptByte = mac.doFinal(encryptContent);
-            return byte2hex(encryptByte);
+            return mac.doFinal(encryptContent);
         } catch (Exception e) {
             LOGGER.error(Symbol.BLANK, e);
             return null;
@@ -102,14 +101,13 @@ public class CryptoUtil {
      *
      * @return 计算过HMAC-sha1的字符串
      */
-    public static String HmacSHA1Encrypt(byte[] encryptContent, String encryptKey) {
+    public static byte[] HmacSHA1Encrypt(byte[] encryptContent, String encryptKey) {
         try {
             byte[] data = encryptKey.getBytes(UTF_8);
             SecretKey secretKey = new SecretKeySpec(data, "HmacSHA1");
             Mac mac = Mac.getInstance("HmacSHA1");
             mac.init(secretKey);
-            byte[] encryptByte = mac.doFinal(encryptContent);
-            return byte2hex(encryptByte);
+            return mac.doFinal(encryptContent);
         } catch (Exception e) {
             LOGGER.error("", e);
             return null;
